@@ -1,15 +1,17 @@
 ios-image-util
 ==============
 
-This code generate all size of Icon & Splash PNG file those are required for iOS7, iOS6 and lower.
+iOS6以前、およびiOS7で必要なアイコン＆起動イメージを全てのサイズで生成するプログラムです。
 
-You only need to prepare 2 Icon files(one for iOS7, another for iOS6 or lower), either 1 Icon file for all version of iOS.
+アイコンはiOS6用とiOS7用で若干異なる為、両方指定できるようにしてあります（ズレても構わなければ１つで全てのアイコンも出力できます）。
 
-And you better prepare a square image (1536 x 1536 pixels) for splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color.
+起動イメージは1536×1536ピクセルの正方形イメージを用意すると、全てのサイズを出力します。その際、元画像は真ん中に配置され、元画像の左上の色が背景色になります。
 
-<img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true" />
+何か問題がある場合や仕様にご不満の場合は、自由に編集してください。コンパイルをしたくない場合は、起動可能なjarファイルをダウンロードして使ってください。
 
-Generate files below.
+<img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen_ja.png?raw=true" />
+
+以下、出力されるファイル一覧。
 <table>
 	<tr>
 		<th>Version</th>
