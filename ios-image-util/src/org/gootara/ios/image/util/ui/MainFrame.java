@@ -289,6 +289,7 @@ public class MainFrame extends JFrame {
 			    }
 			}
 		});
+
 		JButton generateButton = new JButton(getResource("button.generate", "Generate"));
 		generateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -450,7 +451,7 @@ public class MainFrame extends JFrame {
 			handleException(ex);
 		}
 	}
-	
+
 	private void writeIconImage(BufferedImage src, int width, int height, File f) throws Exception {
 		BufferedImage buf = new BufferedImage(width, height, src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
 		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();

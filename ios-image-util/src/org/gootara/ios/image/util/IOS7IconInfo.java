@@ -35,8 +35,8 @@ public enum IOS7IconInfo implements IOSImageInfo {
 	ICON_76x2("Icon-76@2x.png", 152, 152, "iPad3 or later"),
 	ICON_40("Icon-Small-40.png", 40, 40, "iPad2 / iPad mini"),
 	ICON_40x2("Icon-Small-40@2x.png", 80, 80, "iPhone4 / iPad3 or later"),
-	ITUNES_ARTWARK("iTunesArtwork", 512, 512, "-"),
-	ITUNES_ARTWARKx2("iTunesArtwork@2x", 1024, 1024, "-"),
+	ITUNES_ARTWORK("iTunesArtwork", 512, 512, "-"),
+	ITUNES_ARTWORKx2("iTunesArtwork@2x", 1024, 1024, "-"),
 	;
 
 	private String filename;
