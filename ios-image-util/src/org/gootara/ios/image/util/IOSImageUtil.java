@@ -20,9 +20,9 @@
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package org.gootara;
+package org.gootara.ios.image.util;
 
-import org.gootara.ui.MainFrame;
+import org.gootara.ios.image.util.ui.MainFrame;
 
 /**
  * @author gootara.org
@@ -32,7 +32,7 @@ public class IOSImageUtil {
 
 	public static void main(String[] args) throws Exception {
 		MainFrame mainFrame = new MainFrame();
-		mainFrame.setSize(640, 320);
+		mainFrame.setSize(640, 480);
 		mainFrame.setVisible(true);
 	}
 
