@@ -64,7 +64,7 @@ import org.gootara.ios.image.util.IOS7SplashInfo;
 public class MainFrame extends JFrame {
 	private ResourceBundle resource;
 	private JTextField icon6Path, icon7Path, splashPath, outputPath;
-	private JComboBox scaleAlgorithm;
+	private JComboBox<ComboBoxItem> scaleAlgorithm;
 	private ImagePanel icon6Image, icon7Image, splashImage;
 	private JProgressBar progress;
 
@@ -163,7 +163,7 @@ public class MainFrame extends JFrame {
 		items.add(new ComboBoxItem(Image.SCALE_FAST, "SCALE_FAST"));
 		items.add(new ComboBoxItem(Image.SCALE_REPLICATE, "SCALE_REPLICATE"));
 		items.add(new ComboBoxItem(Image.SCALE_SMOOTH, "SCALE_SMOOTH"));
-		scaleAlgorithm = new JComboBox(items);
+		scaleAlgorithm = new JComboBox<ComboBoxItem>(items);
 		scaleAlgorithm.setSelectedIndex(4);
 		JLabel scaleLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
 		JPanel scalePanel = new JPanel();
