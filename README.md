@@ -1,11 +1,11 @@
 ios-image-util
 ==============
 
-This code generate all size of Icon & Splash PNG file those are required for iOS7, iOS6 and lower.
+OVERVIEW
 
-You only need to prepare 2 Icon files(one for iOS7, another for iOS6 or lower), either 1 Icon file for all version of iOS.
-
-And you better prepare a square image (1536 x 1536 pixels) for splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color.
+This tiny java program generate all size of icon & splash png files those are required for iOS7, iOS6 and lower.
+Only two icon files are needed(one for iOS7, another for iOS6 or lower), or just one icon file for all version of iOS.
+And better prepare a square image (1536 x 1536 pixels) for splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color.
 
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true" />
 
@@ -182,4 +182,9 @@ Generate files below.
 		<td>iPad 3 or later</td>
 	</tr>
 </table>
+
+PREREQUISITES
+
+- JDK 1.6 or higher
+
 
