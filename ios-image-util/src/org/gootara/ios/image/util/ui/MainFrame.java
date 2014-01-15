@@ -41,6 +41,7 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -67,6 +68,7 @@ public class MainFrame extends JFrame {
 	private JComboBox<ComboBoxItem> scaleAlgorithm;
 	private ImagePanel icon6Image, icon7Image, splashImage;
 	private JProgressBar progress;
+	private JCheckBox generateOldSplashImages;
 
 	public MainFrame() {
 		resource = ResourceBundle.getBundle("application");
@@ -167,9 +169,16 @@ public class MainFrame extends JFrame {
 		scaleAlgorithm.setSelectedIndex(4);
 		JLabel scaleLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
 		JPanel scalePanel = new JPanel();
-		scalePanel.setLayout(new BorderLayout(2, 2));
-		scalePanel.add(scaleLabel, BorderLayout.WEST);
-		scalePanel.add(scaleAlgorithm, BorderLayout.CENTER);
+//		scalePanel.setLayout(new BorderLayout(2, 2));
+//		scalePanel.add(scaleLabel, BorderLayout.WEST);
+//		scalePanel.add(scaleAlgorithm, BorderLayout.CENTER);
+
+		this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false);
+
+		scalePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 0));
+		scalePanel.add(generateOldSplashImages);
+		scalePanel.add(scaleLabel);
+		scalePanel.add(scaleAlgorithm);
 
 
 		JPanel northPanel = new JPanel();
@@ -437,8 +446,13 @@ public class MainFrame extends JFrame {
 				progress.setValue(progress.getValue() + IOS6SplashInfo.values().length + IOS7SplashInfo.values().length);
 			} else {
 				BufferedImage image = ImageIO.read(splashFile);
-				for (IOS6SplashInfo info : IOS6SplashInfo.values()) {
-					writeSplashImage(image, (int)info.getSize().getWidth(), (int)info.getSize().getHeight(), new File(outputDir, info.getFilename()));
+				if (this.generateOldSplashImages.isSelected()) {
+					// Generate old size of Splash images when checkbox selected.
+					for (IOS6SplashInfo info : IOS6SplashInfo.values()) {
+						writeSplashImage(image, (int)info.getSize().getWidth(), (int)info.getSize().getHeight(), new File(outputDir, info.getFilename()));
+					}
+				} else {
+					progress.setValue(progress.getValue() + IOS6SplashInfo.values().length);
 				}
 				for (IOS7SplashInfo info : IOS7SplashInfo.values()) {
 					writeSplashImage(image, (int)info.getSize().getWidth(), (int)info.getSize().getHeight(), new File(outputDir, info.getFilename()));

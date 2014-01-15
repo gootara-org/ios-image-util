@@ -12,7 +12,7 @@ OVERVIEW
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen_ja.png?raw=true" />
 
 以下、出力されるファイル一覧。
-<table>
+<table border="1">
 	<tr>
 		<th>Version</th>
 		<th>Type</th>
@@ -22,7 +22,7 @@ OVERVIEW
 		<th>Description</th>
 	</tr>
 	<tr>
-		<td rowspan="15">iOS6 or lower</td>
+		<td rowspan="8">iOS6 or lower</td>
 		<td rowspan="8">Icon</td>
 		<td>Icon.png</td>
 		<td align="right">57</td>
@@ -72,50 +72,7 @@ OVERVIEW
 		<td>iPad3 or later</td>
 	</tr>
 	<tr>
-		<td rowspan="7">Splash</td>
-		<td>Default.png</td>
-		<td align="right">320</td>
-		<td align="right">480</td>
-		<td>iPhone 3G / 3GS</td>
-	</tr>
-	<tr>
-		<td>Default@2x.png</td>
-		<td align="right">640</td>
-		<td align="right">960</td>
-		<td>iPhone4 / 4S</td>
-	</tr>
-	<tr>
-		<td>Default-568h@2x.png</td>
-		<td align="right">640</td>
-		<td align="right">1136</td>
-		<td>iPhone 5 or later</td>
-	</tr>
-	<tr>
-		<td>Default-Portrait.png</td>
-		<td align="right">768</td>
-		<td align="right">1004</td>
-		<td>iPad / iPad2 / iPad mini</td>
-	</tr>
-	<tr>
-		<td>Default-Portrait@2x.png</td>
-		<td align="right">1536</td>
-		<td align="right">2008</td>
-		<td>iPad 3 or later</td>
-	</tr>
-	<tr>
-		<td>Default-Landscape.png</td>
-		<td align="right">1024</td>
-		<td align="right">748</td>
-		<td>iPad / iPad2 / iPad mini</td>
-	</tr>
-	<tr>
-		<td>Default-Landscape@2x.png</td>
-		<td align="right">2048</td>
-		<td align="right">1496</td>
-		<td>iPad 3 or later</td>
-	</tr>
-	<tr>
-		<td rowspan="11">iOS7 or upper</td>
+		<td rowspan="7">iOS7 or upper</td>
 		<td rowspan="7">Icon</td>
 		<td>Icon-60@2x.png</td>
 		<td align="right">120</td>
@@ -159,28 +116,72 @@ OVERVIEW
 		<td>iTunes Artwork(Retina)</td>
 	</tr>
 	<tr>
-		<td rowspan="4">Splash</td>
-		<td>Default-Portrait-1024h.png</td>
+		<td rowspan="11">Splash</td>
+		<td rowspan="7">(default)</td>
+		<td>Default.png</td>
+		<td align="right">320</td>
+		<td align="right">480</td>
+		<td>iPhone 3G / 3GS</td>
+	</tr>
+	<tr>
+		<td>Default@2x.png</td>
+		<td align="right">640</td>
+		<td align="right">960</td>
+		<td>iPhone4 / 4S</td>
+	</tr>
+	<tr>
+		<td>Default-568h@2x.png</td>
+		<td align="right">640</td>
+		<td align="right">1136</td>
+		<td>iPhone 5 or later</td>
+	</tr>
+	<tr>
+		<td>Default-Portrait~ipad.png</td>
 		<td align="right">768</td>
 		<td align="right">1024</td>
 		<td>iPad / iPad2 / iPad mini</td>
 	</tr>
 	<tr>
-		<td>Default-Portrait-1024h@2x.png</td>
+		<td>Default-Portrait@2x~ipad.png</td>
 		<td align="right">1536</td>
 		<td align="right">2048</td>
 		<td>iPad 3 or later</td>
 	</tr>
 	<tr>
-		<td>Default-Landscape-768h.png</td>
+		<td>Default-Landscape~ipad.png</td>
 		<td align="right">1024</td>
 		<td align="right">768</td>
 		<td>iPad 3 or later</td>
 	</tr>
 	<tr>
-		<td>Default-Landscape-768h@2x.png</td>
+		<td>Default-Landscape@2x~ipad.png</td>
 		<td align="right">2048</td>
 		<td align="right">1536</td>
+		<td>iPad 3 or later</td>
+	</tr>
+	<tr>
+		<td rowspan="4">(optional)</td>
+		<td>Default-Portrait-1004h.png</td>
+		<td align="right">768</td>
+		<td align="right">1004</td>
+		<td>iPad / iPad2 / iPad mini</td>
+	</tr>
+	<tr>
+		<td>Default-Portrait-1004h@2x.png</td>
+		<td align="right">1536</td>
+		<td align="right">2008</td>
+		<td>iPad 3 or later</td>
+	</tr>
+	<tr>
+		<td>Default-Landscape-748h.png</td>
+		<td align="right">1024</td>
+		<td align="right">748</td>
+		<td>iPad / iPad2 / iPad mini</td>
+	</tr>
+	<tr>
+		<td>Default-Landscape-748h@2x.png</td>
+		<td align="right">2048</td>
+		<td align="right">1496</td>
 		<td>iPad 3 or later</td>
 	</tr>
 </table>
@@ -189,4 +190,18 @@ PREREQUISITES
 
 - JDK 1.6 or higher
 
+
+COMMAND LINE
+
+  java -classpath ios-image-util.jar org.gootara.ios.image.util.IOSImageUtil
+
+    OR
+
+  java -jar ios-image-util.jar
+
+
+CHANGE LOG
+
+  2014/01/15 Change output filenames suitable for the xcode 5.
+             Add "Generate Old Size of Splash Images" checbox.(optional)
 

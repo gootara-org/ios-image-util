@@ -29,10 +29,13 @@ import java.awt.Dimension;
  *
  */
 public enum IOS7SplashInfo implements IOSImageInfo {
-	SPLASH_PORTRAIT("Default-Portrait-1024h.png", 768, 1024, "iPad / iPad2 / iPad mini"),
-	SPLASH_PORTRAITx2("Default-Portrait-1024h@2x.png", 1536, 2048, "iPad 3 or later"),
-	SPLASH_LANDSCAPE("Default-Landscape-768h.png", 1024, 768, "iPad / iPad2 / iPad mini"),
-	SPLASH_LANDSCAPEx2("Default-Landscape-768h@2x.png", 2048, 1536, "iPad 3 or later"),
+	SPLASH_480("Default.png", 320, 480, "iPhone 3G / 3GS"),
+	SPLASH_480x2("Default@2x.png", 640, 960, "iPhone4 / 4S"),
+	SPLASH_568x2("Default-568h@2x.png", 640, 1136, "iPhone 5 or later"),
+	SPLASH_PORTRAIT("Default-Portrait~ipad.png", 768, 1024, "iPad / iPad2 / iPad mini"),
+	SPLASH_PORTRAITx2("Default-Portrait@2x~ipad.png", 1536, 2048, "iPad 3 or later"),
+	SPLASH_LANDSCAPE("Default-Landscape~ipad.png", 1024, 768, "iPad / iPad2 / iPad mini"),
+	SPLASH_LANDSCAPEx2("Default-Landscape@2x~ipad.png", 2048, 1536, "iPad 3 or later"),
 	;
 
 	private String filename;
