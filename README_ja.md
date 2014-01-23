@@ -3,11 +3,13 @@ ios-image-util
 
 OVERVIEW
 
-このjavaプログラムは、iOS6以前、およびiOS7で必要なアイコン＆起動イメージを全てのサイズで生成します。
-アイコンはiOS6用とiOS7用で若干異なる為、両方指定できるようにしてあります（ズレても構わなければ１つで全てのアイコンも出力できます）。
-起動イメージは1536×1536ピクセルの正方形イメージを用意すると、全てのサイズを出力します。その際、元画像は真ん中に配置され、元画像の左上の色が背景色になります。
+このjavaプログラムは、iOS6以前、およびiOS7のアイコン＆起動イメージを、必要とされる全てのサイズで生成します。
 
-何か問題がある場合や仕様にご不満の場合は、自由に編集してください。コンパイルをしたくない場合は、起動可能なjarファイルをダウンロードして使ってください。
+iOS6用とiOS7用では若干アイコンの仕様が異なる為、別々に元画像を指定できるようにしてあります（多少ズレても構わなければ、１つのPNG画像から全てのアイコンを出力できます。いまなら、iOS7用に１つ用意すれば、大抵の場合で事足りると思われます）。
+
+起動イメージは、1536×1536ピクセルの正方形PNG画像を元にして、全てのサイズを出力します。その際、元画像は中央に配置され、左上の点の色が背景色になります。
+
+何か問題がある場合や仕様にご不満がある場合は、自由に改変してください。コンパイルをしたくない場合は、起動可能なjarファイルをご利用ください。
 
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen_ja.png?raw=true" />
 
@@ -186,22 +188,31 @@ OVERVIEW
 	</tr>
 </table>
 
+
+
 PREREQUISITES
 
 - JDK 1.6 or higher
 
+RECOMMENDED
+
+- Eclipse Java Development Tools (Maybe any version. This program does not depend on any external libraries.)
+
+
 
 COMMAND LINE
 
-  java -classpath ios-image-util.jar org.gootara.ios.image.util.IOSImageUtil
+- java -jar ios-image-util.jar
 
-    OR
+or run with main-class.
 
-  java -jar ios-image-util.jar
+- java -classpath ios-image-util.jar org.gootara.ios.image.util.IOSImageUtil
+
 
 
 CHANGE LOG
 
   2014/01/15 Change output filenames suitable for the xcode 5.
              Add "Generate Old Size of Splash Images" checbox.(optional)
+
 

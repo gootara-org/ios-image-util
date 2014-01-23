@@ -29,14 +29,15 @@ import java.awt.Dimension;
  *
  */
 public enum IOS7IconInfo implements IOSImageInfo {
-//	ICON_60("Icon-60.png", 60, 60, "-"),
-	ICON_60x2("Icon-60@2x.png", 120, 120, "iPhone4 or later"),
-	ICON_76("Icon-76.png", 76, 76, "iPad / iPad2 / iPad mini"),
-	ICON_76x2("Icon-76@2x.png", 152, 152, "iPad3 or later"),
-	ICON_40("Icon-Small-40.png", 40, 40, "iPad2 / iPad mini"),
-	ICON_40x2("Icon-Small-40@2x.png", 80, 80, "iPhone4 / iPad3 or later"),
-	ITUNES_ARTWORK("iTunesArtwork", 512, 512, "-"),
-	ITUNES_ARTWORKx2("iTunesArtwork@2x", 1024, 1024, "-"),
+	//     				filename				width	height	description
+//	ICON_60(			"Icon-60.png"			, 60	, 60	, "-"),
+	ICON_60x2(			"Icon-60@2x.png"		, 120	, 120	, "iPhone4 or later"),
+	ICON_76(			"Icon-76.png"			, 76	, 76	, "iPad / iPad2 / iPad mini"),
+	ICON_76x2(			"Icon-76@2x.png"		, 152	, 152	, "iPad3 or later"),
+	ICON_40(			"Icon-Small-40.png"		, 40	, 40	, "iPad2 / iPad mini"),
+	ICON_40x2(			"Icon-Small-40@2x.png"	, 80	, 80	, "iPhone4 / iPad3 or later"),
+	ITUNES_ARTWORK(		"iTunesArtwork"			, 512	, 512	, "-"),
+	ITUNES_ARTWORKx2(	"iTunesArtwork@2x"		, 1024	, 1024	, "-"),
 	;
 
 	private String filename;

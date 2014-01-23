@@ -29,14 +29,15 @@ import java.awt.Dimension;
  *
  */
 public enum IOS6IconInfo implements IOSImageInfo {
-	ICON_57("Icon.png", 57, 57, "iPhone 3G / 3GS"),
-	ICON_57x2("Icon@2x.png", 114, 114, "iPhone4 or later"),
-	ICON_72("Icon-72.png", 72, 72, "iPad / iPad2 / iPad mini"),
-	ICON_72x2("Icon-72@2x.png", 144, 144, "iPad3 or later"),
-	ICON_29("Icon-Small.png", 29, 29, "iPhone3G / 3GS / iPad / iPad2 / iPad mini"),
-	ICON_29x2("Icon-Small@2x.png", 58, 58, "iPhone4 / iPad3 or later"),
-	ICON_50("Icon-Small-50.png", 50, 50, "iPad / iPad2 / iPad mini"),
-	ICON_50x2("Icon-Small-50@2x.png", 100, 100, "iPad3 or later"),
+	//     		filename				width	height	description
+	ICON_57(	"Icon.png"				, 57	, 57	, "iPhone 3G / 3GS"),
+	ICON_57x2(	"Icon@2x.png"			, 114	, 114	, "iPhone4 or later"),
+	ICON_72(	"Icon-72.png"			, 72	, 72	, "iPad / iPad2 / iPad mini"),
+	ICON_72x2(	"Icon-72@2x.png"		, 144	, 144	, "iPad3 or later"),
+	ICON_29(	"Icon-Small.png"		, 29	, 29	, "iPhone3G / 3GS / iPad / iPad2 / iPad mini"),
+	ICON_29x2(	"Icon-Small@2x.png"		, 58	, 58	, "iPhone4 / iPad3 or later"),
+	ICON_50(	"Icon-Small-50.png"		, 50	, 50	, "iPad / iPad2 / iPad mini"),
+	ICON_50x2(	"Icon-Small-50@2x.png"	, 100	, 100	, "iPad3 or later"),
 	;
 
 	private String filename;

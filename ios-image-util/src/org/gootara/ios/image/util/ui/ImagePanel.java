@@ -77,10 +77,17 @@ public class ImagePanel extends JPanel {
     	}
     	if (image == null || scaledImage == null) {
     		FontMetrics fm = this.getFontMetrics(this.getFont());
-    		int x = (this.getWidth() - fm.stringWidth(this.getPlaceHolder())) / 2;
-    		int y = (this.getHeight() / 2) + (fm.getAscent() / 2);
-    		g.setColor(new Color(128, 128, 128));
-    		g.drawString(this.getPlaceHolder(), x, y);
+    		String[] lines = this.getPlaceHolder().split("<br>");
+//    		ArrayList<String> lines = this.getPlaceHolderLines(fm);
+//    		int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + (fm.getAscent() / 2);
+    		int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.length) / 2) + (fm.getAscent() / 2);
+    		for (String line : lines) {
+        		int x = (this.getWidth() - fm.stringWidth(line)) / 2;
+        		g.setColor(new Color(128, 128, 128));
+        		g.drawString(line, x, y);
+        		y += fm.getHeight();
+    		}
+
     	} else {
     		int x = (int) ((this.getWidth() - this.scaledImage.getWidth(this)) / 2);
     		int y = (int) ((this.getHeight() - this.scaledImage.getHeight(this)) / 2);
@@ -114,6 +121,27 @@ public class ImagePanel extends JPanel {
 	public void setPlaceHolder(String placeHolder) {
 		this.placeHolder = placeHolder;
 	}
+
+	/*
+	 * For japanese below.
+	public ArrayList<String> getPlaceHolderLines(FontMetrics fm) {
+		ArrayList<String> lines = new ArrayList<String>();
+		String line = this.getPlaceHolder();
+		while (line.length() > 0) {
+			int i;
+			for (i = 1; i < line.length(); i++) {
+				if (this.getWidth() <= fm.stringWidth(line.substring(0, i))) {
+					if (i > 1) i--;
+					break;
+				}
+			}
+			lines.add(line.substring(0, i));
+			if (line.length() <= 1) break;
+			line = line.substring(i);
+		}
+		return lines;
+	}
+	*/
 
 	private synchronized void createScaledImage() {
 		if (image == null) {
