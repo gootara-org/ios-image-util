@@ -196,7 +196,7 @@ PREREQUISITES
 
 RECOMMENDED
 
-- Eclipse Java Development Tools (Maybe any version. This program does not depend on any external libraries.)
+- Eclipse Java Development Tools (Any version maybe. This program does not depend on any external libraries.)
 
 
 
