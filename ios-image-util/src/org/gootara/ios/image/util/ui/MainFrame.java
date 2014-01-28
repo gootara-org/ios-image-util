@@ -40,6 +40,7 @@ import java.util.ResourceBundle;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -49,6 +50,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -57,6 +59,7 @@ import org.gootara.ios.image.util.IOS6IconInfo;
 import org.gootara.ios.image.util.IOS6SplashInfo;
 import org.gootara.ios.image.util.IOS7IconInfo;
 import org.gootara.ios.image.util.IOS7SplashInfo;
+import org.gootara.ios.image.util.IOSImageInfo;
 
 /**
  * @author gootara.org
@@ -68,13 +71,15 @@ public class MainFrame extends JFrame {
 	private JComboBox<ComboBoxItem> scaleAlgorithm;
 	private ImagePanel icon6Image, icon7Image, splashImage;
 	private JProgressBar progress;
-	private JCheckBox generateOldSplashImages;
+	private JCheckBox generateOldSplashImages, resizeSplashImage;
+	private JRadioButton iPhoneOnly, iPadOnly, iBoth;
 
 	public MainFrame() {
 		resource = ResourceBundle.getBundle("application");
 
 		this.setTitle(getResource("window.title", "iOS Image Util"));
 
+		// iOS6 Icon Path.
 		icon6Path = new JTextField();
 		JButton refIcon6Path = new JButton("...");
 		JPanel icon6PathPanel = new JPanel();
@@ -103,6 +108,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 
+		// iOS7 Icon Path.
 		icon7Path = new JTextField();
 		JButton refIcon7Path = new JButton("...");
 		JPanel icon7PathPanel = new JPanel();
@@ -131,6 +137,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 
+		// Splash Image Path.
 		splashPath = new JTextField();
 		JButton refSplashPath = new JButton("...");
 		JPanel splashPathPanel = new JPanel();
@@ -159,6 +166,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 
+		// Scaling Algorithm.
 		Vector<ComboBoxItem> items = new Vector<ComboBoxItem>();
 		items.add(new ComboBoxItem(Image.SCALE_AREA_AVERAGING, "SCALE_AREA_AVERAGING"));
 		items.add(new ComboBoxItem(Image.SCALE_DEFAULT, "SCALE_DEFAULT"));
@@ -166,28 +174,50 @@ public class MainFrame extends JFrame {
 		items.add(new ComboBoxItem(Image.SCALE_REPLICATE, "SCALE_REPLICATE"));
 		items.add(new ComboBoxItem(Image.SCALE_SMOOTH, "SCALE_SMOOTH"));
 		scaleAlgorithm = new JComboBox<ComboBoxItem>(items);
+		scaleAlgorithm.setFont(scaleAlgorithm.getFont().deriveFont(11.0f));
 		scaleAlgorithm.setSelectedIndex(4);
 		JLabel scaleLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
 		JPanel scalePanel = new JPanel();
 //		scalePanel.setLayout(new BorderLayout(2, 2));
 //		scalePanel.add(scaleLabel, BorderLayout.WEST);
 //		scalePanel.add(scaleAlgorithm, BorderLayout.CENTER);
-
-		this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false);
-
-		scalePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 0));
-		scalePanel.add(generateOldSplashImages);
+		scalePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
 		scalePanel.add(scaleLabel);
 		scalePanel.add(scaleAlgorithm);
 
+		// Checkboxes and Radio Buttons.
+		JPanel radioPanel = new JPanel();
+		radioPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		radioPanel.add(this.iBoth = new JRadioButton(getResource("label.output.both", "Output Both"), true));
+		radioPanel.add(this.iPhoneOnly = new JRadioButton(getResource("label.iphone.only", "iPhone Only")));
+		radioPanel.add(this.iPadOnly = new JRadioButton(getResource("label.ipad.only", "iPad Only")));
+		ButtonGroup group = new ButtonGroup();
+		group.add(iBoth);
+		group.add(iPhoneOnly);
+		group.add(iPadOnly);
 
+		this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false);
+		this.resizeSplashImage = new JCheckBox(getResource("label.resize.splash", "Fit Splash Image to Screen (iPhone)"), false);
+
+		JPanel settingPanel = new JPanel();
+		settingPanel.setLayout(new GridLayout(2, 2, 2, 0));
+		settingPanel.add(scalePanel);
+		settingPanel.add(this.generateOldSplashImages);
+		settingPanel.add(radioPanel);
+		settingPanel.add(this.resizeSplashImage);
+
+		// Set Components for North Panel.
+		JPanel refPanel = new JPanel();
+		refPanel.setLayout(new GridLayout(3, 1, 2, 2));
+		refPanel.add(icon6PathPanel);
+		refPanel.add(icon7PathPanel);
+		refPanel.add(splashPathPanel);
 		JPanel northPanel = new JPanel();
-		northPanel.setLayout(new GridLayout(4, 1, 2, 2));
-		northPanel.add(icon6PathPanel);
-		northPanel.add(icon7PathPanel);
-		northPanel.add(splashPathPanel);
-		northPanel.add(scalePanel);
+		northPanel.setLayout(new BorderLayout(0, 2));
+		northPanel.add(refPanel, BorderLayout.NORTH);
+		northPanel.add(settingPanel, BorderLayout.SOUTH);
 
+		// Image Panels.
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout(5, 5));
 		mainPanel.add(northPanel, BorderLayout.NORTH);
@@ -271,7 +301,7 @@ public class MainFrame extends JFrame {
 		imagesPanel.add(splashImage);
 		mainPanel.add(imagesPanel, BorderLayout.CENTER);
 
-
+		// Output Path.
 		outputPath = new JTextField();
 		JButton refOutputPath = new JButton("...");
 		JPanel outputPathPanel = new JPanel();
@@ -299,6 +329,7 @@ public class MainFrame extends JFrame {
 			}
 		});
 
+		// Generate Button and Progress Bar.
 		JButton generateButton = new JButton(getResource("button.generate", "Generate"));
 		generateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -311,10 +342,11 @@ public class MainFrame extends JFrame {
 		progress.setStringPainted(true);
 
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.setLayout(new FlowLayout());
+		buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 2));
 		buttonPanel.add(progress);
 		buttonPanel.add(generateButton);
 
+		// Set Components for South Panel.
 		JPanel southPanel = new JPanel();
 		southPanel.setLayout(new GridLayout(2, 1, 2, 2));
 		southPanel.add(outputPathPanel);
@@ -365,6 +397,7 @@ public class MainFrame extends JFrame {
 				return;
 			}
 
+			// Path Check.
 			File icon6File, icon7File, splashFile;
 			icon6File = icon7File = splashFile = null;
 			if (icon6Path.getText().trim().length() > 0) {
@@ -380,6 +413,7 @@ public class MainFrame extends JFrame {
 				if (splashFile == null) return;
 			}
 
+			// Error Check.
 			File outputDir = null;
 			if (outputPath.getText().trim().length() <= 0) {
 				outputPath.requestFocusInWindow();
@@ -424,13 +458,14 @@ public class MainFrame extends JFrame {
 				}
 			}
 
+			// Write Images.
 			progress.setValue(0);
 			if (icon6File == null) {
 				progress.setValue(progress.getValue() + IOS6IconInfo.values().length);
 			} else {
 				BufferedImage image = ImageIO.read(icon6File);
 				for (IOS6IconInfo info : IOS6IconInfo.values()) {
-					writeIconImage(image, (int)info.getSize().getWidth(), (int)info.getSize().getHeight(), new File(outputDir, info.getFilename()));
+					writeIconImage(image, info, outputDir);
 				}
 			}
 			if (icon7File == null) {
@@ -438,7 +473,7 @@ public class MainFrame extends JFrame {
 			} else {
 				BufferedImage image = ImageIO.read(icon7File);
 				for (IOS7IconInfo info : IOS7IconInfo.values()) {
-					writeIconImage(image, (int)info.getSize().getWidth(), (int)info.getSize().getHeight(), new File(outputDir, info.getFilename()));
+					writeIconImage(image, info, outputDir);
 				}
 			}
 
@@ -449,13 +484,13 @@ public class MainFrame extends JFrame {
 				if (this.generateOldSplashImages.isSelected()) {
 					// Generate old size of Splash images when checkbox selected.
 					for (IOS6SplashInfo info : IOS6SplashInfo.values()) {
-						writeSplashImage(image, (int)info.getSize().getWidth(), (int)info.getSize().getHeight(), new File(outputDir, info.getFilename()));
+						writeSplashImage(image, info, outputDir);
 					}
 				} else {
 					progress.setValue(progress.getValue() + IOS6SplashInfo.values().length);
 				}
 				for (IOS7SplashInfo info : IOS7SplashInfo.values()) {
-					writeSplashImage(image, (int)info.getSize().getWidth(), (int)info.getSize().getHeight(), new File(outputDir, info.getFilename()));
+					writeSplashImage(image, info, outputDir);
 				}
 			}
 
@@ -466,7 +501,13 @@ public class MainFrame extends JFrame {
 		}
 	}
 
-	private void writeIconImage(BufferedImage src, int width, int height, File f) throws Exception {
+	private void writeIconImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
+		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
+		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
+
+		File f = new File(outputDir, info.getFilename());
+		int width = (int)info.getSize().getWidth();
+		int height = (int)info.getSize().getHeight();
 		BufferedImage buf = new BufferedImage(width, height, src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
 		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();
 		buf.getGraphics().drawImage(src.getScaledInstance(width, height, hints), 0, 0, this);
@@ -478,13 +519,20 @@ public class MainFrame extends JFrame {
 		progress.paint(progress.getGraphics());;
 	}
 
-	private void writeSplashImage(BufferedImage src, int width, int height, File f) throws Exception {
+	private void writeSplashImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
+		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
+		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
+
+		File f = new File(outputDir, info.getFilename());
+		int width = (int)info.getSize().getWidth();
+		int height = (int)info.getSize().getHeight();
 		BufferedImage buf = new BufferedImage(width, height, src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
 		int c = src.getRGB(0, 0);
 		Graphics g = buf.getGraphics();
 		g.setColor(new Color(ImageUtil.r(c), ImageUtil.g(c), ImageUtil.b(c), ImageUtil.a(c)));
 		g.fillRect(0, 0, width, height);
-		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
+
+		double p = (width > height || (!this.resizeSplashImage.isSelected() && info.isIphoneImage())) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
 		int w = (int) ((double)src.getWidth() * p);
 		int h = (int) ((double)src.getHeight() * p);
    		int x = (int) ((width - w) / 2);
@@ -568,24 +616,22 @@ class ComboBoxItem {
 }
 
 class ImageUtil {
-    public static int a(int c){
-        return c>>>24;
-    }
-    public static int r(int c){
-        return c>>16&0xff;
-    }
-    public static int g(int c){
-        return c>>8&0xff;
-    }
-    public static int b(int c){
-        return c&0xff;
-    }
-    public static int rgb
-    (int r,int g,int b){
-        return 0xff000000 | r <<16 | g <<8 | b;
-    }
-    public static int argb
-    (int a,int r,int g,int b){
-        return a<<24 | r <<16 | g <<8 | b;
-    }
+	public static int a(int c) {
+		return c >>> 24;
+	}
+	public static int r(int c) {
+		return c >> 16 & 0xff;
+	}
+	public static int g(int c) {
+		return c >> 8 & 0xff;
+	}
+	public static int b(int c) {
+		return c & 0xff;
+	}
+	public static int rgb(int r, int g, int b) {
+		return 0xff000000 | r << 16 | g << 8 | b;
+	}
+	public static int argb(int a, int r, int g, int b) {
+		return a << 24 | r << 16 | g << 8 | b;
+	}
 }

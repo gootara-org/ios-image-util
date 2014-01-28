@@ -7,7 +7,7 @@ This tiny java program generate all size of icon & splash png files those are re
 
 Only two icon files are needed(one for iOS7, another for iOS6 or lower), or just one icon file for all version of iOS.
 
-And better prepare a square image (1536 x 1536 pixels) for splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color.
+And better prepare a square image (1536 x 1536 pixels) for the splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color.
 
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true" />
 
@@ -161,25 +161,25 @@ Generate files below.
 	</tr>
 	<tr>
 		<td rowspan="4">(optional)</td>
-		<td>Default-Portrait-1004h.png</td>
+		<td>Default-Portrait.png</td>
 		<td align="right">768</td>
 		<td align="right">1004</td>
 		<td>iPad / iPad2 / iPad mini</td>
 	</tr>
 	<tr>
-		<td>Default-Portrait-1004h@2x.png</td>
+		<td>Default-Portrait@2x.png</td>
 		<td align="right">1536</td>
 		<td align="right">2008</td>
 		<td>iPad 3 or later</td>
 	</tr>
 	<tr>
-		<td>Default-Landscape-748h.png</td>
+		<td>Default-Landscape.png</td>
 		<td align="right">1024</td>
 		<td align="right">748</td>
 		<td>iPad / iPad2 / iPad mini</td>
 	</tr>
 	<tr>
-		<td>Default-Landscape-748h@2x.png</td>
+		<td>Default-Landscape@2x.png</td>
 		<td align="right">2048</td>
 		<td align="right">1496</td>
 		<td>iPad 3 or later</td>
@@ -210,8 +210,12 @@ or run with main-class.
 
 CHANGE LOG
 
-  2014/01/15 Change output filenames suitable for the xcode 5.
-             Add "Generate Old Size of Splash Images" checbox.(optional)
+2014/01/15
+- Change output filenames suitable for the xcode 5.
+- "Generate old size of Splash images for iPad" checkbox was added.(optional)
 
-
+2014/01/29
+- Add new output option. iPhone only, iPad only or both.
+- "Fit iPhone's Splash images to the screen" checkbox was added.
+- Change optional output filenames.
 

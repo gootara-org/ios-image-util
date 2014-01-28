@@ -163,25 +163,25 @@ iOS6用とiOS7用では若干アイコンの仕様が異なる為、別々に元
 	</tr>
 	<tr>
 		<td rowspan="4">(optional)</td>
-		<td>Default-Portrait-1004h.png</td>
+		<td>Default-Portrait.png</td>
 		<td align="right">768</td>
 		<td align="right">1004</td>
 		<td>iPad / iPad2 / iPad mini</td>
 	</tr>
 	<tr>
-		<td>Default-Portrait-1004h@2x.png</td>
+		<td>Default-Portrait@2x.png</td>
 		<td align="right">1536</td>
 		<td align="right">2008</td>
 		<td>iPad 3 or later</td>
 	</tr>
 	<tr>
-		<td>Default-Landscape-748h.png</td>
+		<td>Default-Landscape.png</td>
 		<td align="right">1024</td>
 		<td align="right">748</td>
 		<td>iPad / iPad2 / iPad mini</td>
 	</tr>
 	<tr>
-		<td>Default-Landscape-748h@2x.png</td>
+		<td>Default-Landscape@2x.png</td>
 		<td align="right">2048</td>
 		<td align="right">1496</td>
 		<td>iPad 3 or later</td>
@@ -212,7 +212,15 @@ or run with main-class.
 
 CHANGE LOG
 
-  2014/01/15 Change output filenames suitable for the xcode 5.
-             Add "Generate Old Size of Splash Images" checbox.(optional)
+2014/01/15
+- Change output filenames suitable for the xcode 5.
+- "Generate old size of Splash images for iPad" checkbox was added.(optional)
+
+2014/01/29
+- Add new output option. iPhone only, iPad only or both.
+- "Fit iPhone's Splash images to the screen" checkbox was added.
+- Change optional output filenames.
+
+
 
 
