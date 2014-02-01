@@ -33,28 +33,31 @@ public enum IOS6SplashInfo implements IOSImageInfo {
 //	SPLASH_480("Default.png", 320, 480, "iPhone 3G / 3GS"),
 //	SPLASH_480x2("Default@2x.png", 640, 960, "iPhone4 / 4S"),
 //	SPLASH_568x2("Default-568h@2x.png", 640, 1136, "iPhone 5 or later"),
-    //                   filename                    width   height  iPhone  iPad     description
-    SPLASH_PORTRAIT(    "Default-Portrait.png"     , 768   , 1004  , false , true  , "iPad / iPad2 / iPad mini"),
-    SPLASH_PORTRAITx2(  "Default-Portrait@2x.png"  , 1536  , 2008  , false , true  , "iPad 3 or later"),
-    SPLASH_LANDSCAPE(   "Default-Landscape.png"    , 1024  , 748   , false , true  , "iPad / iPad2 / iPad mini"),
-    SPLASH_LANDSCAPEx2( "Default-Landscape@2x.png" , 2048  , 1496  , false , true  , "iPad 3 or later"),
+    //                   filename                    width   height  iPhone  iPad    retina   description
+    SPLASH_PORTRAIT(    "Default-Portrait.png"     , 768   , 1004  , false , true  , false , "iPad / iPad2 / iPad mini"),
+    SPLASH_PORTRAITx2(  "Default-Portrait@2x.png"  , 1536  , 2008  , false , true  , true  , "iPad 3 or later"),
+    SPLASH_LANDSCAPE(   "Default-Landscape.png"    , 1024  , 748   , false , true  , false , "iPad / iPad2 / iPad mini"),
+    SPLASH_LANDSCAPEx2( "Default-Landscape@2x.png" , 2048  , 1496  , false , true  , true  , "iPad 3 or later"),
 	;
 
 	private String filename;
 	private Dimension size;
 	private boolean iphoneImage;
 	private boolean ipadImage;
+	private boolean retina;
 	private String description;
-	private IOS6SplashInfo(String filename, int width, int height, boolean iphoneImage, boolean ipadImage, String description) {
+	private IOS6SplashInfo(String filename, int width, int height, boolean iphoneImage, boolean ipadImage, boolean retina, String description) {
 		this.filename = filename;
 		this.size = new Dimension(width, height);
 		this.iphoneImage = iphoneImage;
 		this.ipadImage = ipadImage;
 		this.description = description;
+		this.retina = retina;
 	}
 	@Override public String getFilename() { return this.filename; }
 	@Override public Dimension getSize() { return this.size; }
 	@Override public boolean isIphoneImage() { return this.iphoneImage; }
 	@Override public boolean isIpadImage() { return this.ipadImage; }
+	@Override public boolean isRetina() { return this.retina; }
 	@Override public String getDescription() { return this.description; }
 }

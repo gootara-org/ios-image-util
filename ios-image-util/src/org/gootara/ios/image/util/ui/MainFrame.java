@@ -25,6 +25,7 @@ package org.gootara.ios.image.util.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
@@ -69,9 +70,10 @@ public class MainFrame extends JFrame {
 	private ResourceBundle resource;
 	private JTextField icon6Path, icon7Path, splashPath, outputPath;
 	private JComboBox<ComboBoxItem> scaleAlgorithm;
+	private JComboBox<String> splashScaling;
 	private ImagePanel icon6Image, icon7Image, splashImage;
 	private JProgressBar progress;
-	private JCheckBox generateOldSplashImages, resizeSplashImage;
+	private JCheckBox generateOldSplashImages;
 	private JRadioButton iPhoneOnly, iPadOnly, iBoth;
 
 	public MainFrame() {
@@ -174,7 +176,7 @@ public class MainFrame extends JFrame {
 		items.add(new ComboBoxItem(Image.SCALE_REPLICATE, "SCALE_REPLICATE"));
 		items.add(new ComboBoxItem(Image.SCALE_SMOOTH, "SCALE_SMOOTH"));
 		scaleAlgorithm = new JComboBox<ComboBoxItem>(items);
-		scaleAlgorithm.setFont(scaleAlgorithm.getFont().deriveFont(11.0f));
+		scaleAlgorithm.setFont(scaleAlgorithm.getFont().deriveFont(Font.PLAIN, 11.0f));
 		scaleAlgorithm.setSelectedIndex(4);
 		JLabel scaleLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
 		JPanel scalePanel = new JPanel();
@@ -196,15 +198,30 @@ public class MainFrame extends JFrame {
 		group.add(iPhoneOnly);
 		group.add(iPadOnly);
 
+		// Slpash Scaling
+		Vector<String> ssItems = new Vector<String>();
+		ssItems.add(getResource("item.splash.noresize", "No resizing(iPhone only)"));
+		ssItems.add(getResource("item.splash.noresize.both", "No resizing(iPhone & iPad)"));
+		ssItems.add(getResource("item.splash.resize", "Fit to the screen height(iPhone only)"));
+		ssItems.add(getResource("item.splash.fittoscreen", "Fit to the screen"));
+		splashScaling = new JComboBox<String>(ssItems);
+		splashScaling.setFont(splashScaling.getFont().deriveFont(Font.PLAIN, 11.0f));
+		splashScaling.setSelectedIndex(2);
+		splashScaling.setToolTipText(getResource("tooltip.splash.scaling", "The Non-Retina images will be scaled down in the fixed 50%, even if 'No resizing' is selected."));
+		JLabel ssLabel = new JLabel(getResource("label.splash.image", "Splash:"));
+		JPanel ssPanel = new JPanel();
+		ssPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		ssPanel.add(ssLabel);
+		ssPanel.add(splashScaling);
+
 		this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false);
-		this.resizeSplashImage = new JCheckBox(getResource("label.resize.splash", "Fit Splash Image to Screen (iPhone)"), false);
 
 		JPanel settingPanel = new JPanel();
 		settingPanel.setLayout(new GridLayout(2, 2, 2, 0));
 		settingPanel.add(scalePanel);
-		settingPanel.add(this.generateOldSplashImages);
+		settingPanel.add(ssPanel);
 		settingPanel.add(radioPanel);
-		settingPanel.add(this.resizeSplashImage);
+		settingPanel.add(this.generateOldSplashImages);
 
 		// Set Components for North Panel.
 		JPanel refPanel = new JPanel();
@@ -532,7 +549,20 @@ public class MainFrame extends JFrame {
 		g.setColor(new Color(ImageUtil.r(c), ImageUtil.g(c), ImageUtil.b(c), ImageUtil.a(c)));
 		g.fillRect(0, 0, width, height);
 
-		double p = (width > height || (!this.resizeSplashImage.isSelected() && info.isIphoneImage())) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
+//		double p = (width > height || (!this.resizeSplashImage.isSelected() && info.isIphoneImage())) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
+		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
+		if (splashScaling.getSelectedIndex() == 0) {
+			// No resizing(iPhone only)
+			if (info.isIphoneImage()) {
+				p = info.isRetina() ? 1.0d : 0.5d;
+			}
+		} else if (splashScaling.getSelectedIndex() == 1) {
+			// No resizing(iPhone & iPad)
+			p = info.isRetina() ? 1.0d : 0.5d;
+		} else if (splashScaling.getSelectedIndex() == 2) {
+			// Fit to the screen height(iPhone only)
+			p = (double)height / (double)src.getHeight();
+		} // else default
 		int w = (int) ((double)src.getWidth() * p);
 		int h = (int) ((double)src.getHeight() * p);
    		int x = (int) ((width - w) / 2);

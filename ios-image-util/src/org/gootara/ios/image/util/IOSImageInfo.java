@@ -34,4 +34,5 @@ public interface IOSImageInfo {
 	public String getDescription();
 	public boolean isIphoneImage();
 	public boolean isIpadImage();
+	public boolean isRetina();
 }

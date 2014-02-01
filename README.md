@@ -219,3 +219,8 @@ CHANGE LOG
 - "Fit iPhone's Splash images to the screen" checkbox was added.
 - Change optional output filenames.
 
+2014/02/01
+- Add two splash scaling options. (No resizing)
+
+
+
