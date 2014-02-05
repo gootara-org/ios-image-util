@@ -239,7 +239,9 @@ public class MainFrame extends JFrame {
 		mainPanel.setLayout(new BorderLayout(5, 5));
 		mainPanel.add(northPanel, BorderLayout.NORTH);
 
+
 		icon6Image = new ImagePanel(getResource("label.icon6.drop", "Drop iOS6 Icon PNG Here"));
+		icon6Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
 		icon6Image.setTransferHandler(new TransferHandler() {
 			public boolean importData(TransferSupport support) {
 				try {
@@ -264,6 +266,7 @@ public class MainFrame extends JFrame {
 		icon6Path.setTransferHandler(icon6Image.getTransferHandler());
 
 		icon7Image = new ImagePanel(getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here"));
+		icon7Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
 		icon7Image.setTransferHandler(new TransferHandler() {
 			public boolean importData(TransferSupport support) {
 				try {
@@ -288,6 +291,7 @@ public class MainFrame extends JFrame {
 		icon7Path.setTransferHandler(icon7Image.getTransferHandler());
 
 		splashImage = new ImagePanel(getResource("label.splash.drop", "Drop Splash Image PNG Here"));
+		splashImage.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
 		splashImage.setTransferHandler(new TransferHandler() {
 			public boolean importData(TransferSupport support) {
 				try {

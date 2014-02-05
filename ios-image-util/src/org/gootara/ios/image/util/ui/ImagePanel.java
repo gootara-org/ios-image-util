@@ -30,6 +30,9 @@ import java.awt.Image;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
+import java.text.BreakIterator;
+import java.util.ArrayList;
+import java.util.Locale;
 
 import javax.swing.JPanel;
 
@@ -41,7 +44,7 @@ public class ImagePanel extends JPanel {
 
 	private BufferedImage image;
 	private Image scaledImage;
-	private String placeHolder;
+	private String placeHolder, hyphenatorBoL, hyphnatorEoL;
 
 	public ImagePanel() {
 		this("");
@@ -51,6 +54,7 @@ public class ImagePanel extends JPanel {
 		this.image = null;
 		this.scaledImage = null;
 		this.setPlaceHolder(placeHolder);
+		this.setHyphenator("", "");
 
 		this.addComponentListener(new ComponentListener() {
 			@Override public void componentResized(ComponentEvent e) { createScaledImage(); repaint(); }
@@ -76,11 +80,10 @@ public class ImagePanel extends JPanel {
 			return;
     	}
     	if (image == null || scaledImage == null) {
+    		// Maybe padding, border and text-align will be implemented in the some future.
     		FontMetrics fm = this.getFontMetrics(this.getFont());
-    		String[] lines = this.getPlaceHolder().split("<br>");
-//    		ArrayList<String> lines = this.getPlaceHolderLines(fm);
-//    		int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + (fm.getAscent() / 2);
-    		int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.length) / 2) + (fm.getAscent() / 2);
+    		ArrayList<String> lines = this.getPlaceHolderLines(fm);
+    		int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + (fm.getAscent() / 2);
     		for (String line : lines) {
         		int x = (this.getWidth() - fm.stringWidth(line)) / 2;
         		g.setColor(new Color(128, 128, 128));
@@ -122,26 +125,39 @@ public class ImagePanel extends JPanel {
 		this.placeHolder = placeHolder;
 	}
 
-	/*
-	 * For japanese below.
+	/**
+	 * I tried to make a little seriously.
+	 **/
 	public ArrayList<String> getPlaceHolderLines(FontMetrics fm) {
 		ArrayList<String> lines = new ArrayList<String>();
-		String line = this.getPlaceHolder();
-		while (line.length() > 0) {
-			int i;
-			for (i = 1; i < line.length(); i++) {
-				if (this.getWidth() <= fm.stringWidth(line.substring(0, i))) {
-					if (i > 1) i--;
-					break;
-				}
-			}
-			lines.add(line.substring(0, i));
-			if (line.length() <= 1) break;
-			line = line.substring(i);
-		}
+		StringBuilder line = new StringBuilder();
+		Locale l = Locale.getDefault();
+		BreakIterator boundary = BreakIterator.getWordInstance(l.equals(Locale.JAPAN) || l.equals(Locale.JAPANESE) ? l : Locale.US);
+        boundary.setText(this.getPlaceHolder());
+        int startIndex = boundary.first();
+        for (int endIndex = boundary.next(); endIndex != BreakIterator.DONE; startIndex = endIndex, endIndex = boundary.next()) {
+        	String word = this.getPlaceHolder().substring(startIndex, endIndex);
+        	if (fm.stringWidth(line.toString()) + fm.stringWidth(word) > this.getWidth()) {
+        		// Very easy hyphenation. (just only one character)
+        		if (this.hyphenatorBoL != null && word.length() == 1 && this.hyphenatorBoL.indexOf(word.charAt(0)) >= 0) {
+        			line.append(word);
+        			word = new String();
+        		} else if (this.hyphnatorEoL != null && line.length() > 1 && this.hyphnatorEoL.indexOf(line.charAt(line.length() - 1)) >= 0) {
+        			word = line.substring(line.length() - 1).concat(word);
+        			line.setLength(line.length() - 1);
+        		}
+        		if (line.toString().replace('　', ' ').trim().length() > 0) {
+        			lines.add(line.toString());
+        		}
+        		line.setLength(0);
+        	}
+        	line.append(word);
+        }
+        if (line.length() > 0) {
+        	lines.add(line.toString());
+        }
 		return lines;
 	}
-	*/
 
 	private synchronized void createScaledImage() {
 		if (image == null) {
@@ -153,6 +169,11 @@ public class ImagePanel extends JPanel {
 		int w = (int) (size.getWidth() * p);
 		int h = (int) (size.getHeight() * p);
 		scaledImage = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+	}
+
+	public void setHyphenator(String beginingOfLine, String endOfLine) {
+		this.hyphenatorBoL = beginingOfLine;
+		this.hyphnatorEoL = endOfLine;
 	}
 }
 
