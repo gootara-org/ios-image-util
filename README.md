@@ -194,8 +194,13 @@ PREREQUISITES
 
 RECOMMENDED
 
+- You can compile this program with pure JDK or Eclipse or Ant or Maven. (Any way you want, this program does not depend on any external libraries.)
+
 - Eclipse Java Development Tools (Any version maybe. This program does not depend on any external libraries.)
 
+- Ant (Any version maybe. I tested with 1.9.3. Move to the directory same as build.xml on your console and just type 'ant'.)
+
+- Maven (Any version maybe. I tested with 3.1.1. Move to the directory same as pom.xml on your console and just type 'mvn clean compile jar:jar'.)
 
 
 COMMAND LINE
@@ -221,6 +226,9 @@ CHANGE LOG
 
 2014/02/01
 - Add two splash scaling options. (No resizing)
+
+2014/02/14
+- Add build.xml for Ant and pom.xml for Maven.
 
 
 

@@ -192,19 +192,24 @@ iOS6用とiOS7用では若干アイコンの仕様が異なる為、別々に元
 
 PREREQUISITES
 
-- JDK 1.6 or higher
+- JDK 1.6 以上
 
 RECOMMENDED
 
-- Eclipse Java Development Tools (Any version maybe. This program does not depend on any external libraries.)
+- いかなる外部ライブラリも利用していませんので、コンパイルは JDK のみで行えます。お好みで Eclipse、Ant、Maven 等も利用できます。
 
+- Eclipse Java Development Tools (外部ライブラリを使用していませんので、バージョンはなんでも構いません)
+
+- Ant (バージョンはなんでも構いません。1.9.3で動作確認しました。コンソール上で build.xml と同じディレクトリに移動して、単に「ant」を実行してください)
+
+- Maven (バージョンはなんでも構いません。3.1.1で動作確認しました。コンソール上で pom.xml と同じディレクトリに移動して、単に「mvn clean compile jar:jar」を実行してください)
 
 
 COMMAND LINE
 
 - java -jar ios-image-util.jar
 
-or run with main-class.
+または、以下のようにメインクラスを指定して実行してください。
 
 - java -classpath ios-image-util.jar org.gootara.ios.image.util.IOSImageUtil
 
@@ -223,6 +228,9 @@ CHANGE LOG
 
 2014/02/01
 - Add two splash scaling options. (No resizing)
+
+2014/02/14
+- Add build.xml for Ant and pom.xml for Maven.
 
 
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project ios-image-util">
+    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
+    <!--ANT 1.7 is required                                        -->
+
+    <target name="compile">
+        <mkdir dir="bin" />
+        <javac encoding="UTF-8" srcdir="src" destdir="bin" includeantruntime="false" includes="**/*.java" />
+        <copy file="src/application.properties" todir="bin" />
+        <copy file="src/application_ja.properties" todir="bin" />
+    </target>
+    <target name="create_run_jar" depends="compile">
+        <mkdir dir="jar" />
+        <jar destfile="jar/ios-image-util.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="org.gootara.ios.image.util.IOSImageUtil"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset dir="bin"/>
+        </jar>
+    </target>
+</project>

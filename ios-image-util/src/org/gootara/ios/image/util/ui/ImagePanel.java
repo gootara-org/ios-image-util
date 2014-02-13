@@ -80,7 +80,7 @@ public class ImagePanel extends JPanel {
 			return;
     	}
     	if (image == null || scaledImage == null) {
-    		// Maybe padding, border and text-align will be implemented in the some future.
+    		// Maybe padding, border and text-align will be implemented in some future.(but not need currently)
     		FontMetrics fm = this.getFontMetrics(this.getFont());
     		ArrayList<String> lines = this.getPlaceHolderLines(fm);
     		int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + (fm.getAscent() / 2);
@@ -126,7 +126,7 @@ public class ImagePanel extends JPanel {
 	}
 
 	/**
-	 * I tried to make a little seriously.
+	 * I tried to write a little seriously.
 	 **/
 	public ArrayList<String> getPlaceHolderLines(FontMetrics fm) {
 		ArrayList<String> lines = new ArrayList<String>();
@@ -146,14 +146,14 @@ public class ImagePanel extends JPanel {
         			word = line.substring(line.length() - 1).concat(word);
         			line.setLength(line.length() - 1);
         		}
-        		if (line.toString().replace('　', ' ').trim().length() > 0) {
+        		if (line.toString().replace('\u3000', ' ').trim().length() > 0) {
         			lines.add(line.toString());
         		}
         		line.setLength(0);
         	}
         	line.append(word);
         }
-        if (line.length() > 0) {
+        if (line.toString().replace('\u3000', ' ').trim().length() > 0) {
         	lines.add(line.toString());
         }
 		return lines;

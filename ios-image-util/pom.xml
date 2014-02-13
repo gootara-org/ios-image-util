@@ -1,0 +1,44 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gootara.ios.image.util</groupId>
+  <artifactId>ios-image-util</artifactId>
+  <version>with-mvn</version>
+  <name>IOSImageUtil</name>
+  <url>https://github.com/gootara-org/ios-image-util</url>
+  <properties>
+    <java-version>1.6</java-version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <build>
+    <!--
+    COMMAND LINE: mvn clean compile jar:jar
+
+    Maven jar output directory set to default(target/).
+    <directory>jar</directory>
+    -->
+    <sourceDirectory>src</sourceDirectory>
+    <outputDirectory>bin</outputDirectory>
+    <resources>
+      <resource>
+        <directory>src</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.gootara.ios.image.util.IOSImageUtil</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
