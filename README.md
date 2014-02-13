@@ -5,9 +5,9 @@ OVERVIEW
 
 This tiny java program generate all size of icon & splash png files those are required for iOS7, iOS6 and lower.
 
-Only two icon files are needed(one for iOS7, another for iOS6 or lower), or just one icon file for all version of iOS.
+Only two icon files are needed(one for iOS7, another for iOS6 or lower), or just one icon file for all version of iOS.(if you do not care the corner of icon which will be slightly shifted. A only one icon file will be enough in most cases, maybe.)
 
-And better prepare a square image (1536 x 1536 pixels) for the splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color.
+And better prepare a square image (1536 x 1536 pixels) for the splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color. (A square is not a requirement, but it's easy to make universal splash screen images.)
 
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true" />
 
@@ -194,9 +194,9 @@ PREREQUISITES
 
 RECOMMENDED
 
-- You can compile this program with pure JDK or Eclipse or Ant or Maven. (Any way you want, this program does not depend on any external libraries.)
+- You can compile this code with pure JDK or Eclipse or Ant or Maven. (Any way you want, this code does not depend on any external libraries.)
 
-- Eclipse Java Development Tools (Any version maybe. This program does not depend on any external libraries.)
+- Eclipse Java Development Tools (Any version maybe. This code does not depend on any external libraries.)
 
 - Ant (Any version maybe. I tested with 1.9.3. Move to the directory same as build.xml on your console and just type 'ant'.)
 
