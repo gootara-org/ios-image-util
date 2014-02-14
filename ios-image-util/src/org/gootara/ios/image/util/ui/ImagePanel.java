@@ -160,15 +160,18 @@ public class ImagePanel extends JPanel {
 	}
 
 	private synchronized void createScaledImage() {
-		if (image == null) {
+		if (this.scaledImage != null) {
+			this.scaledImage.flush();
 			this.scaledImage = null;
+		}
+		if (image == null) {
 			return;
 		}
 		Dimension size = this.getPreferredSize();
 		double p = (this.getWidth() > this.getHeight()) ? (double)this.getHeight() / size.getHeight() : (double)this.getWidth() / size.getWidth();
 		int w = (int) (size.getWidth() * p);
 		int h = (int) (size.getHeight() * p);
-		scaledImage = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+		this.scaledImage = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
 	}
 
 	public void setHyphenator(String beginingOfLine, String endOfLine) {

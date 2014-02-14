@@ -96,8 +96,10 @@ public class MainFrame extends JFrame {
 				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
 				if (icon6Path.getText().trim().length() > 0) {
 					File f = new File(icon6Path.getText());
-					if (f.getParentFile().exists()) {
-						chooser.setCurrentDirectory(f.getParentFile());
+					if (f.exists()) {
+						if (f.getParentFile() != null) {
+							chooser.setCurrentDirectory(f.getParentFile());
+						}
 						chooser.setSelectedFile(f);
 					}
 				}
@@ -125,8 +127,10 @@ public class MainFrame extends JFrame {
 				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
 				if (icon7Path.getText().trim().length() > 0) {
 					File f = new File(icon7Path.getText());
-					if (f.getParentFile().exists()) {
-						chooser.setCurrentDirectory(f.getParentFile());
+					if (f.exists()) {
+						if (f.getParentFile() != null) {
+							chooser.setCurrentDirectory(f.getParentFile());
+						}
 						chooser.setSelectedFile(f);
 					}
 				}
@@ -154,8 +158,10 @@ public class MainFrame extends JFrame {
 				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
 				if (splashPath.getText().trim().length() > 0) {
 					File f = new File(splashPath.getText());
-					if (f.getParentFile().exists()) {
-						chooser.setCurrentDirectory(f.getParentFile());
+					if (f.exists()) {
+						if (f.getParentFile() != null) {
+							chooser.setCurrentDirectory(f.getParentFile());
+						}
 						chooser.setSelectedFile(f);
 					}
 				}
@@ -337,7 +343,9 @@ public class MainFrame extends JFrame {
 				if (outputPath.getText().trim().length() > 0) {
 					File dir = new File(outputPath.getText());
 					if (dir.exists()) {
-						chooser.setCurrentDirectory(dir.getParentFile());
+						if (dir.getParentFile() != null) {
+							chooser.setCurrentDirectory(dir.getParentFile());
+						}
 						chooser.setSelectedFile(dir);
 					}
 				}
@@ -393,7 +401,14 @@ public class MainFrame extends JFrame {
 		try {
 			textField.setText(f.getCanonicalPath());
 			if (imagePanel != null) {
-				imagePanel.setImage(ImageIO.read(f));
+				BufferedImage image = ImageIO.read(f);
+				if (image == null) {
+					JOptionPane.showMessageDialog(this, "[" + f.getCanonicalPath() + "] " + getResource("error.illegal.image", "is illegal image."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+					textField.setText("");
+					imagePanel.setImage(null);
+					return;
+				}
+				imagePanel.setImage(image);
 				if (outputPath.getText().trim().length() <= 0) {
 					File g = new File(f.getParentFile(), "generated");
 					outputPath.setText(g.getCanonicalPath());
@@ -596,6 +611,15 @@ public class MainFrame extends JFrame {
 				JOptionPane.showMessageDialog(this, "[" + f.getCanonicalPath() + "] " + getResource("error.not.file", "is directory. Choose file."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
 				return null;
 			}
+
+			BufferedImage image = ImageIO.read(f);
+			if (image == null) {
+				JOptionPane.showMessageDialog(this, "[" + f.getCanonicalPath() + "] " + getResource("error.illegal.image", "is illegal image."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+				return null;
+			}
+			image.flush();
+			image = null;
+
 			return f;
 		} catch (Exception ex) {
 			handleException(ex);
