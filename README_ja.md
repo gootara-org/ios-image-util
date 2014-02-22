@@ -11,6 +11,8 @@ iOS6用とiOS7用では若干アイコンの仕様が異なる為、別々に元
 
 何か問題がある場合や仕様にご不満がある場合は、自由に改変してください。コンパイルをしたくない場合は、起動可能なjarファイルをご利用ください。
 
+また、Asset Catalogs 形式での出力に対応しました。
+
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen_ja.png?raw=true" />
 
 以下、出力されるファイル一覧。
@@ -232,5 +234,8 @@ CHANGE LOG
 2014/02/14
 - Add build.xml for Ant and pom.xml for Maven.
 
+2014/02/22
+- Support output with "Asset Catalogs" format.
+- Change word: "Splash" -> "Launch"
 
 

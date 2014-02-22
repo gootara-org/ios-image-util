@@ -3,11 +3,13 @@ ios-image-util
 
 OVERVIEW
 
-This tiny java program generate all size of icon & splash png files those are required for iOS7, iOS6 and lower.
+This tiny java program generate all size of icon & launch image png files those are required for iOS7, iOS6 or prior.
 
-Only two icon files are needed(one for iOS7, another for iOS6 or lower), or just one icon file for all version of iOS.(if you do not care the corner of icon which will be slightly shifted. Only one icon file will be enough in most cases, maybe.)
+Only two icon files are needed(one for iOS7, another for iOS6 or prior), or just one icon file for all version of iOS.(if you do not care the corner of icon which will be slightly shifted. Only one icon file will be enough in most cases, maybe.)
 
-And better prepare a square image (1536 x 1536 pixels) for the splash screen. The image will be put in the center of each size of splash screen with the color of upper-left point as a background-color. (A square is not a requirement, but it's easy way to make universal splash screen images.)
+And better prepare a square png (1536 x 1536 pixels) for the launch images. The image will be put in the center of each size of launch images with the color of upper-left point as a background-color. (A square is not a requirement, but it's easy way to make universal launch images.)
+
+Also support output with "Asset Catalogs" format.
 
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true" />
 
@@ -116,7 +118,7 @@ Generate files below.
 		<td>iTunes Artwork(Retina)</td>
 	</tr>
 	<tr>
-		<td rowspan="11">Splash</td>
+		<td rowspan="11">Launch</td>
 		<td rowspan="7">(default)</td>
 		<td>Default.png</td>
 		<td align="right">320</td>
@@ -230,5 +232,8 @@ CHANGE LOG
 2014/02/14
 - Add build.xml for Ant and pom.xml for Maven.
 
+2014/02/22
+- Support output with "Asset Catalogs" format.
+- Change word: "Splash" -> "Launch"
 
 

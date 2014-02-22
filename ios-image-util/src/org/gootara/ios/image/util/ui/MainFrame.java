@@ -35,7 +35,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Vector;
@@ -60,7 +63,10 @@ import org.gootara.ios.image.util.IOS6IconInfo;
 import org.gootara.ios.image.util.IOS6SplashInfo;
 import org.gootara.ios.image.util.IOS7IconInfo;
 import org.gootara.ios.image.util.IOS7SplashInfo;
+import org.gootara.ios.image.util.IOSAssetCatalogs;
+import org.gootara.ios.image.util.IOSIconAssetCatalogs;
 import org.gootara.ios.image.util.IOSImageInfo;
+import org.gootara.ios.image.util.IOSSplashAssetCatalogs;
 
 /**
  * @author gootara.org
@@ -73,7 +79,7 @@ public class MainFrame extends JFrame {
 	private JComboBox<String> splashScaling;
 	private ImagePanel icon6Image, icon7Image, splashImage;
 	private JProgressBar progress;
-	private JCheckBox generateOldSplashImages;
+	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs;
 	private JRadioButton iPhoneOnly, iPadOnly, iBoth;
 
 	public MainFrame() {
@@ -359,6 +365,25 @@ public class MainFrame extends JFrame {
 		});
 
 		// Generate Button and Progress Bar.
+
+		this.generateAsAssetCatalogs = new JCheckBox(getResource("label.generate.as.asset.catalogs", "Generate As Asset Catalogs"), false);
+		this.generateAsAssetCatalogs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					String generated = getResource("string.dir.generate", "generated");
+					String assets = getResource("string.dir.assets", "Images.xcassets");
+					if (generateAsAssetCatalogs.isSelected() && outputPath.getText().endsWith(generated)) {
+						outputPath.setText((new File(new File(outputPath.getText()).getParentFile(), assets)).getCanonicalPath());
+					}
+					if (!generateAsAssetCatalogs.isSelected() && outputPath.getText().endsWith(assets)) {
+						outputPath.setText((new File(new File(outputPath.getText()).getParentFile(), generated)).getCanonicalPath());
+					}
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
+			}
+		});
+
 		JButton generateButton = new JButton(getResource("button.generate", "Generate"));
 		generateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -372,6 +397,7 @@ public class MainFrame extends JFrame {
 
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 2));
+		buttonPanel.add(this.generateAsAssetCatalogs);
 		buttonPanel.add(progress);
 		buttonPanel.add(generateButton);
 
@@ -410,7 +436,7 @@ public class MainFrame extends JFrame {
 				}
 				imagePanel.setImage(image);
 				if (outputPath.getText().trim().length() <= 0) {
-					File g = new File(f.getParentFile(), "generated");
+					File g = new File(f.getParentFile(), this.generateAsAssetCatalogs.isSelected() ? this.getResource("string.dir.assets", "Images.xcassets") : this.getResource("string.dir.generate", "generated"));
 					outputPath.setText(g.getCanonicalPath());
 				}
 			}
@@ -494,6 +520,22 @@ public class MainFrame extends JFrame {
 				}
 			}
 
+			File iconOutputDir = outputDir;
+			File splashOutputDir = outputDir;
+			if (this.generateAsAssetCatalogs.isSelected()) {
+				// Asset Catalogs
+				iconOutputDir = new File(outputDir, getResource("string.dir.appicon", "AppIcon.appiconset"));
+				if (!iconOutputDir.exists() && !iconOutputDir.mkdirs()) {
+					JOptionPane.showMessageDialog(this, "[" + iconOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				splashOutputDir = new File(outputDir, getResource("string.dir.launchimage", "LaunchImage.launchimage"));
+				if (!splashOutputDir.exists() && !splashOutputDir.mkdirs()) {
+					JOptionPane.showMessageDialog(this, "[" + splashOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			}
+
 			// Write Images.
 			progress.setValue(0);
 			if (icon6File == null) {
@@ -501,7 +543,7 @@ public class MainFrame extends JFrame {
 			} else {
 				BufferedImage image = ImageIO.read(icon6File);
 				for (IOS6IconInfo info : IOS6IconInfo.values()) {
-					writeIconImage(image, info, outputDir);
+					writeIconImage(image, info, iconOutputDir);
 				}
 			}
 			if (icon7File == null) {
@@ -509,7 +551,7 @@ public class MainFrame extends JFrame {
 			} else {
 				BufferedImage image = ImageIO.read(icon7File);
 				for (IOS7IconInfo info : IOS7IconInfo.values()) {
-					writeIconImage(image, info, outputDir);
+					writeIconImage(image, info, iconOutputDir);
 				}
 			}
 
@@ -520,14 +562,20 @@ public class MainFrame extends JFrame {
 				if (this.generateOldSplashImages.isSelected()) {
 					// Generate old size of Splash images when checkbox selected.
 					for (IOS6SplashInfo info : IOS6SplashInfo.values()) {
-						writeSplashImage(image, info, outputDir);
+						writeSplashImage(image, info, splashOutputDir);
 					}
 				} else {
 					progress.setValue(progress.getValue() + IOS6SplashInfo.values().length);
 				}
 				for (IOS7SplashInfo info : IOS7SplashInfo.values()) {
-					writeSplashImage(image, info, outputDir);
+					writeSplashImage(image, info, splashOutputDir);
 				}
+			}
+
+			if (this.generateAsAssetCatalogs.isSelected()) {
+				// Contents json
+				writeIconJson(iconOutputDir);
+				writeSplashJson(splashOutputDir);
 			}
 
 			JOptionPane.showMessageDialog(this, getResource("label.finish.generate", "The images are generated."), getResource("title.information", "Information"), JOptionPane.INFORMATION_MESSAGE);
@@ -538,6 +586,7 @@ public class MainFrame extends JFrame {
 	}
 
 	private void writeIconImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
+		progress.setValue(progress.getValue() + 1);
 		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
 		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
 
@@ -551,11 +600,11 @@ public class MainFrame extends JFrame {
 		ImageIO.write(buf, "png", f);
 		buf.flush();
 		buf = null;
-		progress.setValue(progress.getValue() + 1);
 		progress.paint(progress.getGraphics());;
 	}
 
 	private void writeSplashImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
+		progress.setValue(progress.getValue() + 1);
 		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
 		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
 
@@ -592,8 +641,62 @@ public class MainFrame extends JFrame {
 		ImageIO.write(buf, "png", f);
 		buf.flush();
 		buf = null;
-		progress.setValue(progress.getValue() + 1);
-		progress.paint(progress.getGraphics());;
+		progress.paint(progress.getGraphics());
+	}
+
+	private void writeIconJson(File outputDir) throws IOException {
+		BufferedWriter writer = null;
+		try {
+			File f = new File(outputDir, this.getResource("string.filename.contents.json", "Contents.json"));
+			writer = new BufferedWriter(new FileWriter(f));
+			writer.write(IOSAssetCatalogs.JSON_HEADER);
+			boolean firstItem = true;
+			for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
+				if (asset.isIphone() && iPadOnly.isSelected()) continue;
+				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+				if (firstItem) {
+					firstItem = false;
+				} else {
+					writer.write(",\n");
+				}
+				writer.write(asset.toJson());
+			}
+			writer.write(IOSAssetCatalogs.JSON_FOOTER);
+		} catch (IOException ioex) {
+			throw ioex;
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
+		}
+	}
+
+	private void writeSplashJson(File outputDir) throws IOException {
+		BufferedWriter writer = null;
+		try {
+			File f = new File(outputDir, this.getResource("string.filename.contents.json", "Contents.json"));
+			writer = new BufferedWriter(new FileWriter(f));
+			writer.write(IOSAssetCatalogs.JSON_HEADER);
+			boolean firstItem = true;
+			for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
+				if (asset.isIphone() && iPadOnly.isSelected()) continue;
+				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+				if (!generateOldSplashImages.isSelected() && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR)) continue;
+				if (firstItem) {
+					firstItem = false;
+				} else {
+					writer.write(",\n");
+				}
+				writer.write(asset.toJson());
+			}
+			writer.write(IOSAssetCatalogs.JSON_FOOTER);
+		} catch (IOException ioex) {
+			throw ioex;
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
+		}
 	}
 
 	private File checkFile(JTextField path) {
