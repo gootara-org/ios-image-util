@@ -441,6 +441,8 @@ public class MainFrame extends JFrame {
 	public boolean isBatchMode() { return this.batchMode; }
 	public boolean isSilentMode() { return this.silentMode; }
 	public boolean isVerboseMode() { return this.verboseMode; }
+	// hidden option.
+	public void setScalingAlgorithm(int idx) { scaleAlgorithm.setSelectedIndex(idx); }
 
 	private void addProgress(int i) {
 		if (this.isBatchMode()) {

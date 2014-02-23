@@ -66,7 +66,7 @@ public class IOSImageUtil {
 		String argc = null;
 		boolean noerr = true;
 		try {
-			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-asset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale");
+			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-asset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm");
 			int i;
 
 			for (i = 0; i < args.length; i++) {
@@ -95,6 +95,8 @@ public class IOSImageUtil {
 				if (arg.equals("-ipadonly")) { mainFrame.selectIpadOnly(); }
 				if (arg.equals("-to-status-bar")) { mainFrame.setGenerateOldSplashImages(true); }
 				if (arg.equals("-lscale")) { i++; mainFrame.setSplashScaling(Integer.parseInt(args[i])); }
+				// hidden option.
+				if (arg.equals("-algorithm")) { i++; mainFrame.setScalingAlgorithm(Integer.parseInt(args[i])); }
 			}
 
 		} catch (ArrayIndexOutOfBoundsException ex) {
