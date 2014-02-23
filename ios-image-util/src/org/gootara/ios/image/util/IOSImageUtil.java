@@ -22,6 +22,9 @@
  */
 package org.gootara.ios.image.util;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.gootara.ios.image.util.ui.MainFrame;
 
 /**
@@ -33,7 +36,90 @@ public class IOSImageUtil {
 	public static void main(String[] args) throws Exception {
 		MainFrame mainFrame = new MainFrame();
 		mainFrame.setSize(640, 480);
-		mainFrame.setVisible(true);
+
+		if (args.length > 0) {
+			if (!initialize(mainFrame, args)) {
+				System.exit(1);
+			}
+		}
+
+		if (mainFrame.isBatchMode()) {
+			if (!mainFrame.isSilentMode()) System.out.println((new java.util.Date()).toString());
+			if (mainFrame.generate()) {
+				System.exit(0);
+			} else {
+				usage();
+				System.exit(1);
+			}
+		} else {
+			mainFrame.setVisible(true);
+		}
+	}
+
+	private static boolean initialize(MainFrame mainFrame, String[] args) {
+		boolean noerr = true;
+		try {
+			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-asset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale");
+			int i;
+
+			for (i = 0; i < args.length; i++) {
+				String arg = args[i].toLowerCase();
+				if (arg.startsWith("/")) arg = "-".concat(arg.substring(1));
+
+				if (arg.equals("-b") || arg.equals("-batch")) { mainFrame.setBatchMode(true); }
+				if (arg.equals("-v") || arg.equals("-verbose")) { mainFrame.setVerboseMode(true); }
+				if (arg.equals("-asset")) { mainFrame.setGenerateAsAssetCatalogs(true); }
+				if (arg.equals("-h") || arg.equals("-help")) { usage(); return false; }
+			}
+
+			for (i = 0; i < args.length; i++) {
+				String arg = args[i].toLowerCase();
+				if (arg.startsWith("/")) arg = "-".concat(arg.substring(1));
+				if (!options.contains(arg)) { System.err.println(String.format("Illegal option: %s", arg)); usage(); noerr = false; break; }
+
+				if (arg.equals("-silent")) { mainFrame.setSilentMode(true); }
+				if (arg.equals("-icon6")) { i++; if (!mainFrame.setIcon6Path(args[i])) { noerr = false; break; } }
+				if (arg.equals("-icon7")) { i++; if (!mainFrame.setIcon7Path(args[i])) { noerr = false; break; } }
+				if (arg.equals("-launch")) { i++; if (!mainFrame.setSplashPath(args[i])) { noerr = false; break; } }
+				if (arg.equals("-output")) { i++; mainFrame.setOutputPath(args[i]); }
+				if (arg.equals("-iphoneonly")) { mainFrame.selectIphoneOnly(); }
+				if (arg.equals("-ipadonly")) { mainFrame.selectIpadOnly(); }
+				if (arg.equals("-to-status-bar")) { mainFrame.setGenerateOldSplashImages(true); }
+				if (arg.equals("-lscale")) { i++; mainFrame.setSplashScaling(Integer.parseInt(args[i])); }
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace(System.err);
+			System.err.println();
+			usage();
+			return false;
+		}
+
+		return noerr;
+	}
+
+	private static void usage() {
+		System.out.println();
+		System.out.println("Usage: java -jar ios-image-util.jar [options]");
+		System.out.println();
+		System.out.println("Options:");
+		System.out.println("  -h, -help                   show this help message and exit");
+		System.out.println("  -b, -batch                  run as batch mode (no gui)");
+		System.out.println("  -v, -verbose                verbose mode (available with batch mode only)");
+		System.out.println("  -silent                     no log (available with batch mode only)");
+		System.out.println("  -icon6 [icon png path]      iOS 6 icon png file location (full path)");
+		System.out.println("  -icon7 [icon png path]      iOS 7 icon png file loaction (full path)");
+		System.out.println("  -launch [launch image path] launch image png file location (full path)");
+		System.out.println("  -output [output directory]  output directory location");
+		System.out.println("  -iphoneonly                 output iPhone images only (default all)");
+		System.out.println("  -ipadonly                   output iPad images only (default all)");
+		System.out.println("  -to-status-bar              generate 'to-status-bar' launch images");
+		System.out.println("  -asset                      generate images as asset catalogs");
+		System.out.println("  -lscale [0-3]               launch image scaling");
+		System.out.println("                                0: no resizing (iPhone only)");
+		System.out.println("                                1: no resizing (iPhone & iPad)");
+		System.out.println("                                2: fit to the screen height (default)");
+		System.out.println("                                3: fit to the screen");
 	}
 
 }

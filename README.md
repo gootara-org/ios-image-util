@@ -1,15 +1,18 @@
 ios-image-util
 ==============
 
-OVERVIEW
-
-This tiny java program generate all size of icon & launch image png files those are required for iOS7, iOS6 or prior.
+OVERVIEW:
+---------
+This tiny java application generate all size of icon & launch image png files those are required for iOS7, iOS6 or prior.
 
 Only two icon files are needed(one for iOS7, another for iOS6 or prior), or just one icon file for all version of iOS.(if you do not care the corner of icon which will be slightly shifted. Only one icon file will be enough in most cases, maybe.)
 
 And better prepare a square png (1536 x 1536 pixels) for the launch images. The image will be put in the center of each size of launch images with the color of upper-left point as a background-color. (A square is not a requirement, but it's easy way to make universal launch images.)
 
-Also support output with "Asset Catalogs" format.
+Also Support output with "Asset Catalogs" format.
+
+Each setting can be specified by using command line options with gui.
+Further the generate process can be automated by using command line options with no gui.
 
 <img src="https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true" />
 
@@ -190,12 +193,12 @@ Generate files below.
 
 
 
-PREREQUISITES
-
+PREREQUISITES:
+--------------
 - JDK 1.6 or higher
 
-RECOMMENDED
-
+RECOMMENDED:
+------------
 - You can compile this code with pure JDK or Eclipse or Ant or Maven. (Any way you want, this code does not depend on any external libraries.)
 
 - Eclipse Java Development Tools (Any version maybe. This code does not depend on any external libraries.)
@@ -205,18 +208,36 @@ RECOMMENDED
 - Maven (Any version maybe. I tested with 3.1.1. Move to the directory same as pom.xml on your console and just type 'mvn clean compile jar:jar'.)
 
 
-COMMAND LINE
-
+COMMAND LINE:
+-------------
 - java -jar ios-image-util.jar
 
-or run with main-class.
+  or run with main-class.
 
 - java -classpath ios-image-util.jar org.gootara.ios.image.util.IOSImageUtil
 
+COMMAND LINE OPTIONS:
+---------------------
+    -h, -help                   show this help message and exit
+    -b, -batch                  run as batch mode (no gui)
+    -v, -verbose                verbose mode (available with batch mode only)
+    -silent                     no log (available with batch mode only)
+    -icon6 [icon png path]      iOS 6 icon png file location (full path)
+    -icon7 [icon png path]      iOS 7 icon png file loaction (full path)
+    -launch [launch image path] launch image png file location (full path)
+    -output [output directory]  output directory location
+    -iphoneonly                 output iPhone images only (default all)
+    -ipadonly                   output iPad images only (default all)
+    -to-status-bar              generate 'to-status-bar' launch images
+    -asset                      generate images as asset catalogs
+    -lscale [0-3]               launch image scaling
+                                  0: no resizing (iPhone only)
+                                  1: no resizing (iPhone & iPad)
+                                  2: fit to the screen height (default)
+                                  3: fit to the screen
 
-
-CHANGE LOG
-
+CHANGE LOG:
+-----------
 2014/01/15
 - Change output filenames suitable for the xcode 5.
 - "Generate old size of Splash images for iPad" checkbox was added.(optional)
@@ -236,4 +257,8 @@ CHANGE LOG
 - Support output with "Asset Catalogs" format.
 - Change word: "Splash" -> "Launch"
 
+2014/02/24
+- Support command line options.
+  Each setting can be specified by using command line options with gui.
+  Also the generate process can be automated by using command line options with no gui.
 

@@ -81,6 +81,9 @@ public class MainFrame extends JFrame {
 	private JProgressBar progress;
 	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs;
 	private JRadioButton iPhoneOnly, iPadOnly, iBoth;
+	private boolean batchMode = false;
+	private boolean silentMode = false;
+	private boolean verboseMode = false;
 
 	public MainFrame() {
 		resource = ResourceBundle.getBundle("application");
@@ -98,23 +101,7 @@ public class MainFrame extends JFrame {
 		icon6PathPanel.add(refIcon6Path, BorderLayout.EAST);
 		refIcon6Path.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
-				if (icon6Path.getText().trim().length() > 0) {
-					File f = new File(icon6Path.getText());
-					if (f.exists()) {
-						if (f.getParentFile() != null) {
-							chooser.setCurrentDirectory(f.getParentFile());
-						}
-						chooser.setSelectedFile(f);
-					}
-				}
-				chooser.setApproveButtonText(getResource("button.approve", "Choose"));
-				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				int returnVal = chooser.showOpenDialog(null);
-				if(returnVal == JFileChooser.APPROVE_OPTION) {
-					setFilePath(icon6Path, chooser.getSelectedFile(), icon6Image);
-			    }
+				setFilePathActionPerformed(icon6Path, icon6Image);
 			}
 		});
 
@@ -129,23 +116,7 @@ public class MainFrame extends JFrame {
 		icon7PathPanel.add(refIcon7Path, BorderLayout.EAST);
 		refIcon7Path.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
-				if (icon7Path.getText().trim().length() > 0) {
-					File f = new File(icon7Path.getText());
-					if (f.exists()) {
-						if (f.getParentFile() != null) {
-							chooser.setCurrentDirectory(f.getParentFile());
-						}
-						chooser.setSelectedFile(f);
-					}
-				}
-				chooser.setApproveButtonText(getResource("button.approve", "Choose"));
-				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				int returnVal = chooser.showOpenDialog(null);
-				if(returnVal == JFileChooser.APPROVE_OPTION) {
-					setFilePath(icon7Path, chooser.getSelectedFile(), icon7Image);
-			    }
+				setFilePathActionPerformed(icon7Path, icon7Image);
 			}
 		});
 
@@ -160,23 +131,7 @@ public class MainFrame extends JFrame {
 		splashPathPanel.add(refSplashPath, BorderLayout.EAST);
 		refSplashPath.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
-				if (splashPath.getText().trim().length() > 0) {
-					File f = new File(splashPath.getText());
-					if (f.exists()) {
-						if (f.getParentFile() != null) {
-							chooser.setCurrentDirectory(f.getParentFile());
-						}
-						chooser.setSelectedFile(f);
-					}
-				}
-				chooser.setApproveButtonText(getResource("button.approve", "Choose"));
-				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				int returnVal = chooser.showOpenDialog(null);
-				if(returnVal == JFileChooser.APPROVE_OPTION) {
-					setFilePath(splashPath, chooser.getSelectedFile(), splashImage);
-			    }
+				setFilePathActionPerformed(splashPath, splashImage);
 			}
 		});
 
@@ -345,6 +300,7 @@ public class MainFrame extends JFrame {
 		outputPathPanel.add(refOutputPath, BorderLayout.EAST);
 		refOutputPath.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				setFilePathActionPerformed(splashPath, splashImage);
 				JFileChooser chooser = new JFileChooser();
 				if (outputPath.getText().trim().length() > 0) {
 					File dir = new File(outputPath.getText());
@@ -423,18 +379,38 @@ public class MainFrame extends JFrame {
 		});
 	}
 
-	private void setFilePath(JTextField textField, File f, ImagePanel imagePanel) {
+	private void setFilePathActionPerformed(JTextField textField, ImagePanel imagePanel) {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
+		if (textField.getText().trim().length() > 0) {
+			File f = new File(textField.getText());
+			if (f.exists()) {
+				if (f.getParentFile() != null) {
+					chooser.setCurrentDirectory(f.getParentFile());
+				}
+				chooser.setSelectedFile(f);
+			}
+		}
+		chooser.setApproveButtonText(getResource("button.approve", "Choose"));
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		int returnVal = chooser.showOpenDialog(null);
+		if(returnVal == JFileChooser.APPROVE_OPTION) {
+			setFilePath(textField, chooser.getSelectedFile(), imagePanel);
+	    }
+	}
+
+	private boolean setFilePath(JTextField textField, File f, ImagePanel imagePanel) {
 		try {
 			textField.setText(f.getCanonicalPath());
+			if (checkFile(textField) == null) {
+				textField.setText("");
+				imagePanel.setImage(null);
+				return false;
+			}
 			if (imagePanel != null) {
-				BufferedImage image = ImageIO.read(f);
-				if (image == null) {
-					JOptionPane.showMessageDialog(this, "[" + f.getCanonicalPath() + "] " + getResource("error.illegal.image", "is illegal image."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-					textField.setText("");
-					imagePanel.setImage(null);
-					return;
+				if (!this.isBatchMode()) {
+					imagePanel.setImage(ImageIO.read(f));
 				}
-				imagePanel.setImage(image);
 				if (outputPath.getText().trim().length() <= 0) {
 					File g = new File(f.getParentFile(), this.generateAsAssetCatalogs.isSelected() ? this.getResource("string.dir.assets", "Images.xcassets") : this.getResource("string.dir.generate", "generated"));
 					outputPath.setText(g.getCanonicalPath());
@@ -443,20 +419,85 @@ public class MainFrame extends JFrame {
 		} catch (Exception ex) {
 			handleException(ex);
 			textField.setText("");
-			imagePanel.setImage(null);
+			if (imagePanel != null) imagePanel.setImage(null);
+			return false;
+		}
+		return true;
+	}
+
+	// for command line option switches.
+	public boolean setIcon6Path(String path) { return setFilePath(icon6Path, new File(path), icon6Image); }
+	public boolean setIcon7Path(String path) { return setFilePath(icon7Path, new File(path), icon7Image); }
+	public boolean setSplashPath(String path) { return setFilePath(splashPath, new File(path), splashImage); }
+	public void setOutputPath(String path) throws IOException { outputPath.setText((new File(path)).getCanonicalPath()); }
+	public void setSplashScaling(int idx) { try { splashScaling.setSelectedIndex(idx); } catch (Exception ex) { handleException(ex); } }
+	public void setGenerateOldSplashImages(boolean b) { this.generateOldSplashImages.setSelected(b); }
+	public void setGenerateAsAssetCatalogs(boolean b) { this.generateAsAssetCatalogs.setSelected(b); }
+	public void selectIphoneOnly() { this.iBoth.setSelected(false);this.iPadOnly.setSelected(false);this.iPhoneOnly.setSelected(true); }
+	public void selectIpadOnly() { this.iBoth.setSelected(false);this.iPhoneOnly.setSelected(false);this.iPadOnly.setSelected(true); }
+	public void setBatchMode(boolean b) { this.batchMode = b; }
+	public void setSilentMode(boolean b) { this.silentMode = b; }
+	public void setVerboseMode(boolean b) { this.verboseMode = b; }
+	public boolean isBatchMode() { return this.batchMode; }
+	public boolean isSilentMode() { return this.silentMode; }
+	public boolean isVerboseMode() { return this.verboseMode; }
+
+	private void addProgress(int i) {
+		if (this.isBatchMode()) {
+			if (!this.isSilentMode() && !this.isVerboseMode()) for (int j = 0; j < i; j++) { System.out.print("*"); }
+		} else {
+			progress.setValue(progress.getValue() + i);
 		}
 	}
 
-	private void handleException(Exception ex) {
-		ex.printStackTrace();
-		JOptionPane.showMessageDialog(this, ex.getMessage(), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+	private void verbose(File f) throws IOException {
+		if (!this.isBatchMode() || !this.isVerboseMode() || this.isSilentMode()) {
+			return;
+		}
+		System.out.println(String.format("[%s] is generated.", f.getCanonicalPath()));
 	}
 
-	private void generate() {
+	private void handleException(Exception ex) {
+		ex.printStackTrace(System.err);
+		alert(ex.getMessage());
+	}
+
+	private void information(String message) {
+		if (this.isBatchMode()) {
+			if (!this.isSilentMode()) System.out.println(message);
+		} else {
+			JOptionPane.showMessageDialog(this, message, getResource("title.information", "Information"), JOptionPane.INFORMATION_MESSAGE);
+		}
+	}
+
+	private void alert(String message) {
+		if (this.isBatchMode()) {
+			System.err.println(message);
+		} else {
+			JOptionPane.showMessageDialog(this, message, getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private boolean confirm(String message) {
+		if (this.isBatchMode()) {
+			return true;
+		}
+		return (JOptionPane.showConfirmDialog(this, message, getResource("title.confirm", "Confirm"), JOptionPane.OK_CANCEL_OPTION) != JOptionPane.CANCEL_OPTION);
+	}
+
+	private boolean yesNo(String message) {
+		if (this.isBatchMode()) {
+			return true;
+		}
+		return (JOptionPane.showConfirmDialog(this, message, getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+
+	}
+
+	public boolean generate() {
 		try {
 			if (icon6Path.getText().trim().length() <= 0 && icon7Path.getText().trim().length() <= 0 && splashPath.getText().trim().length() <= 0) {
-				JOptionPane.showMessageDialog(this, getResource("error.not.choosen", "Choose at least one Icon or Splash PNG file."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-				return;
+				alert(getResource("error.not.choosen", "Choose at least one Icon or Splash PNG file."));
+				return false;
 			}
 
 			// Path Check.
@@ -464,59 +505,59 @@ public class MainFrame extends JFrame {
 			icon6File = icon7File = splashFile = null;
 			if (icon6Path.getText().trim().length() > 0) {
 				icon6File = checkFile(icon6Path);
-				if (icon6File == null) return;
+				if (icon6File == null) return false;
 			}
 			if (icon7Path.getText().trim().length() > 0) {
 				icon7File = checkFile(icon7Path);
-				if (icon7File == null) return;
+				if (icon7File == null) return false;
 			}
 			if (splashPath.getText().trim().length() > 0) {
 				splashFile = checkFile(splashPath);
-				if (splashFile == null) return;
+				if (splashFile == null) return false;
 			}
 
 			// Error Check.
 			File outputDir = null;
 			if (outputPath.getText().trim().length() <= 0) {
 				outputPath.requestFocusInWindow();
-				JOptionPane.showMessageDialog(this, getResource("error.not.choosen.output.path", "Choose output dir."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-				return;
+				alert(getResource("error.not.choosen.output.path", "Choose output dir."));
+				return false;
 			}
 
 			outputDir = new File(outputPath.getText());
 			if (!outputDir.exists()) {
-				if (JOptionPane.showConfirmDialog(this, "[" + outputPath.getText() + "] " + getResource("confirm.output.path.create", "is not exists. Create it?"), getResource("title.confirm", "Confirm"), JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
-					return;
+				if (!confirm("[" + outputPath.getText() + "] " + getResource("confirm.output.path.create", "is not exists. Create it?"))) {
+					return false;
 				}
 				if (!outputDir.mkdirs()) {
 					outputPath.requestFocusInWindow();
 					outputPath.selectAll();
-					JOptionPane.showMessageDialog(this, "[" + outputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-					return;
+					alert("[" + outputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
+					return false;
 				}
 			}
 			if (!outputDir.isDirectory()) {
 				outputPath.requestFocusInWindow();
 				outputPath.selectAll();
-				JOptionPane.showMessageDialog(this, "[" + outputDir.getCanonicalPath() + "] " + getResource("error.not.directory", "is not directory. Choose directory."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-				return;
+				alert("[" + outputDir.getCanonicalPath() + "] " + getResource("error.not.directory", "is not directory. Choose directory."));
+				return false;
 			}
 
 			if (icon6File == null && icon7File != null) {
-				if (JOptionPane.showConfirmDialog(this, getResource("question.use.icon7.instead", "An iOS6 Icon PNG file is not choosen. Use iOS7 Icon PNG file instead?"), getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+				if (yesNo(getResource("question.use.icon7.instead", "An iOS6 Icon PNG file is not choosen. Use iOS7 Icon PNG file instead?"))) {
 					icon6File = icon7File;
 				}
 			}
 
 			if (icon6File != null && icon7File == null) {
-				if (JOptionPane.showConfirmDialog(this, getResource("question.use.icon6.instead", "An iOS7 Icon PNG file is not choosen. Use iOS6 Icon PNG file instead?"),getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+				if (yesNo(getResource("question.use.icon6.instead", "An iOS7 Icon PNG file is not choosen. Use iOS6 Icon PNG file instead?"))) {
 					icon7File = icon6File;
 				}
 			}
 
 			if (splashFile == null) {
-				if (JOptionPane.showConfirmDialog(this, getResource("confirm.splash.not.generate", "The Splash image will not be generated."), getResource("title.confirm", "Confirm"), JOptionPane.OK_CANCEL_OPTION) == JOptionPane.CANCEL_OPTION) {
-					return;
+				if (!confirm(getResource("confirm.splash.not.generate", "The Splash image will not be generated."))) {
+					return false;
 				}
 			}
 
@@ -526,20 +567,31 @@ public class MainFrame extends JFrame {
 				// Asset Catalogs
 				iconOutputDir = new File(outputDir, getResource("string.dir.appicon", "AppIcon.appiconset"));
 				if (!iconOutputDir.exists() && !iconOutputDir.mkdirs()) {
-					JOptionPane.showMessageDialog(this, "[" + iconOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-					return;
+					alert("[" + iconOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
+					return false;
 				}
 				splashOutputDir = new File(outputDir, getResource("string.dir.launchimage", "LaunchImage.launchimage"));
 				if (!splashOutputDir.exists() && !splashOutputDir.mkdirs()) {
-					JOptionPane.showMessageDialog(this, "[" + splashOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-					return;
+					alert("[" + splashOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
+					return false;
 				}
 			}
 
 			// Write Images.
-			progress.setValue(0);
+			if (this.isBatchMode()) {
+				if (!this.isSilentMode() && !this.isVerboseMode()) {
+					System.out.print("0%");
+					for (int i = 2; i < progress.getMaximum() - 2; i++) { System.out.print(" "); }
+					System.out.println("100%");
+					System.out.print("+");
+					for (int i = 1; i < progress.getMaximum() - 1; i++) { System.out.print("-"); }
+					System.out.println("+");
+				}
+			} else {
+				progress.setValue(0);
+			}
 			if (icon6File == null) {
-				progress.setValue(progress.getValue() + IOS6IconInfo.values().length);
+				addProgress(IOS6IconInfo.values().length);
 			} else {
 				BufferedImage image = ImageIO.read(icon6File);
 				for (IOS6IconInfo info : IOS6IconInfo.values()) {
@@ -547,16 +599,22 @@ public class MainFrame extends JFrame {
 				}
 			}
 			if (icon7File == null) {
-				progress.setValue(progress.getValue() + IOS7IconInfo.values().length);
+				addProgress(IOS7IconInfo.values().length);
 			} else {
 				BufferedImage image = ImageIO.read(icon7File);
 				for (IOS7IconInfo info : IOS7IconInfo.values()) {
 					writeIconImage(image, info, iconOutputDir);
 				}
 			}
+			if (this.generateAsAssetCatalogs.isSelected()) {
+				// Contents json
+				if (icon6File != null || icon7File != null) {
+					writeIconJson(iconOutputDir);
+				}
+			}
 
 			if (splashFile == null) {
-				progress.setValue(progress.getValue() + IOS6SplashInfo.values().length + IOS7SplashInfo.values().length);
+				addProgress(IOS6SplashInfo.values().length + IOS7SplashInfo.values().length);
 			} else {
 				BufferedImage image = ImageIO.read(splashFile);
 				if (this.generateOldSplashImages.isSelected()) {
@@ -565,28 +623,34 @@ public class MainFrame extends JFrame {
 						writeSplashImage(image, info, splashOutputDir);
 					}
 				} else {
-					progress.setValue(progress.getValue() + IOS6SplashInfo.values().length);
+					addProgress(IOS6SplashInfo.values().length);
 				}
 				for (IOS7SplashInfo info : IOS7SplashInfo.values()) {
 					writeSplashImage(image, info, splashOutputDir);
 				}
+
+				if (this.generateAsAssetCatalogs.isSelected()) {
+					// Contents json
+					writeSplashJson(splashOutputDir);
+				}
 			}
 
-			if (this.generateAsAssetCatalogs.isSelected()) {
-				// Contents json
-				writeIconJson(iconOutputDir);
-				writeSplashJson(splashOutputDir);
+			if (this.isBatchMode() && !this.isSilentMode() && !this.isVerboseMode()) {
+				System.out.println();
 			}
-
-			JOptionPane.showMessageDialog(this, getResource("label.finish.generate", "The images are generated."), getResource("title.information", "Information"), JOptionPane.INFORMATION_MESSAGE);
-			progress.setValue(0);
+			information(getResource("label.finish.generate", "The images are generated."));
+			if (!this.isBatchMode()) {
+				progress.setValue(0);
+			}
 		} catch (Exception ex) {
 			handleException(ex);
+			return false;
 		}
+		return true;
 	}
 
 	private void writeIconImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
-		progress.setValue(progress.getValue() + 1);
+		addProgress(1);
 		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
 		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
 
@@ -600,11 +664,12 @@ public class MainFrame extends JFrame {
 		ImageIO.write(buf, "png", f);
 		buf.flush();
 		buf = null;
-		progress.paint(progress.getGraphics());;
+		if (this.isVisible()) progress.paint(progress.getGraphics());
+		verbose(f);
 	}
 
 	private void writeSplashImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
-		progress.setValue(progress.getValue() + 1);
+		addProgress(1);
 		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
 		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
 
@@ -641,7 +706,8 @@ public class MainFrame extends JFrame {
 		ImageIO.write(buf, "png", f);
 		buf.flush();
 		buf = null;
-		progress.paint(progress.getGraphics());
+		if (this.isVisible()) progress.paint(progress.getGraphics());
+		verbose(f);
 	}
 
 	private void writeIconJson(File outputDir) throws IOException {
@@ -662,6 +728,7 @@ public class MainFrame extends JFrame {
 				writer.write(asset.toJson());
 			}
 			writer.write(IOSAssetCatalogs.JSON_FOOTER);
+			verbose(f);
 		} catch (IOException ioex) {
 			throw ioex;
 		} finally {
@@ -690,6 +757,7 @@ public class MainFrame extends JFrame {
 				writer.write(asset.toJson());
 			}
 			writer.write(IOSAssetCatalogs.JSON_FOOTER);
+			verbose(f);
 		} catch (IOException ioex) {
 			throw ioex;
 		} finally {
@@ -705,19 +773,19 @@ public class MainFrame extends JFrame {
 			if (!f.exists()) {
 				path.requestFocusInWindow();
 				path.selectAll();
-				JOptionPane.showMessageDialog(this, "[" + f.getCanonicalPath() + "] " + getResource("error.not.exists", "is not exists."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+				alert("[" + f.getCanonicalPath() + "] " + getResource("error.not.exists", "is not exists."));
 				return null;
 			}
 			if (f.isDirectory()) {
 				path.requestFocusInWindow();
 				path.selectAll();
-				JOptionPane.showMessageDialog(this, "[" + f.getCanonicalPath() + "] " + getResource("error.not.file", "is directory. Choose file."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+				alert("[" + f.getCanonicalPath() + "] " + getResource("error.not.file", "is directory. Choose file."));
 				return null;
 			}
 
 			BufferedImage image = ImageIO.read(f);
 			if (image == null) {
-				JOptionPane.showMessageDialog(this, "[" + f.getCanonicalPath() + "] " + getResource("error.illegal.image", "is illegal image."), getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+				alert("[" + f.getCanonicalPath() + "] " + getResource("error.illegal.image", "is illegal image."));
 				return null;
 			}
 			image.flush();

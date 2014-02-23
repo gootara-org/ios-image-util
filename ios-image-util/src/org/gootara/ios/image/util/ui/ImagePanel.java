@@ -168,9 +168,11 @@ public class ImagePanel extends JPanel {
 			return;
 		}
 		Dimension size = this.getPreferredSize();
+		if (size.width <= 0 || size.height <= 0) return;
 		double p = (this.getWidth() > this.getHeight()) ? (double)this.getHeight() / size.getHeight() : (double)this.getWidth() / size.getWidth();
 		int w = (int) (size.getWidth() * p);
 		int h = (int) (size.getHeight() * p);
+		if (w <= 0 || h <= 0) return;
 		this.scaledImage = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
 	}
 
