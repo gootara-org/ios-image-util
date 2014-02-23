@@ -430,7 +430,7 @@ public class MainFrame extends JFrame {
 	public boolean setIcon7Path(String path) { return setFilePath(icon7Path, new File(path), icon7Image); }
 	public boolean setSplashPath(String path) { return setFilePath(splashPath, new File(path), splashImage); }
 	public void setOutputPath(String path) throws IOException { outputPath.setText((new File(path)).getCanonicalPath()); }
-	public void setSplashScaling(int idx) { try { splashScaling.setSelectedIndex(idx); } catch (Exception ex) { handleException(ex); } }
+	public void setSplashScaling(int idx) { splashScaling.setSelectedIndex(idx); }
 	public void setGenerateOldSplashImages(boolean b) { this.generateOldSplashImages.setSelected(b); }
 	public void setGenerateAsAssetCatalogs(boolean b) { this.generateAsAssetCatalogs.setSelected(b); }
 	public void selectIphoneOnly() { this.iBoth.setSelected(false);this.iPadOnly.setSelected(false);this.iPhoneOnly.setSelected(true); }

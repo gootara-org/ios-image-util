@@ -57,12 +57,14 @@ public class IOSImageUtil {
 	}
 
 	private static boolean initialize(MainFrame mainFrame, String[] args) {
+		String argc = null;
 		boolean noerr = true;
 		try {
 			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-asset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale");
 			int i;
 
 			for (i = 0; i < args.length; i++) {
+				argc = args[i];
 				String arg = args[i].toLowerCase();
 				if (arg.startsWith("/")) arg = "-".concat(arg.substring(1));
 
@@ -73,6 +75,7 @@ public class IOSImageUtil {
 			}
 
 			for (i = 0; i < args.length; i++) {
+				argc = args[i];
 				String arg = args[i].toLowerCase();
 				if (arg.startsWith("/")) arg = "-".concat(arg.substring(1));
 				if (!options.contains(arg)) { System.err.println(String.format("Illegal option: %s", arg)); usage(); noerr = false; break; }
@@ -88,9 +91,22 @@ public class IOSImageUtil {
 				if (arg.equals("-lscale")) { i++; mainFrame.setSplashScaling(Integer.parseInt(args[i])); }
 			}
 
-		} catch (Throwable t) {
-			t.printStackTrace(System.err);
+		} catch (ArrayIndexOutOfBoundsException ex) {
 			System.err.println();
+			if (argc != null) System.err.println(String.format("Illegal option: %s", argc));
+			System.err.println(String.format("Missing argument. (%s)", ex.getMessage()));
+			usage();
+			return false;
+		} catch (IllegalArgumentException ex) {
+			System.err.println();
+			if (argc != null) System.err.println(String.format("Illegal option: %s", argc));
+			System.err.println(String.format("Illegal argument. (%s)", ex.getMessage()));
+			usage();
+			return false;
+		} catch (Throwable t) {
+			System.err.println();
+			if (argc != null) System.err.println(String.format("Illegal option: %s", argc));
+			t.printStackTrace(System.err);
 			usage();
 			return false;
 		}
