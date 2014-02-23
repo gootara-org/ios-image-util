@@ -110,7 +110,7 @@ public class IOSImageUtil {
 		System.out.println("  -icon6 [icon png path]      iOS 6 icon png file location (full path)");
 		System.out.println("  -icon7 [icon png path]      iOS 7 icon png file loaction (full path)");
 		System.out.println("  -launch [launch image path] launch image png file location (full path)");
-		System.out.println("  -output [output directory]  output directory location");
+		System.out.println("  -output [output directory]  output directory location (full path)");
 		System.out.println("  -iphoneonly                 output iPhone images only (default all)");
 		System.out.println("  -ipadonly                   output iPad images only (default all)");
 		System.out.println("  -to-status-bar              generate 'to-status-bar' launch images");

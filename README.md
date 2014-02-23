@@ -225,7 +225,7 @@ COMMAND LINE OPTIONS:
     -icon6 [icon png path]      iOS 6 icon png file location (full path)
     -icon7 [icon png path]      iOS 7 icon png file loaction (full path)
     -launch [launch image path] launch image png file location (full path)
-    -output [output directory]  output directory location
+    -output [output directory]  output directory location (full path)
     -iphoneonly                 output iPhone images only (default all)
     -ipadonly                   output iPad images only (default all)
     -to-status-bar              generate 'to-status-bar' launch images
