@@ -39,6 +39,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Vector;
@@ -59,10 +60,7 @@ import javax.swing.JTextField;
 import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.gootara.ios.image.util.IOS6IconInfo;
-import org.gootara.ios.image.util.IOS6SplashInfo;
-import org.gootara.ios.image.util.IOS7IconInfo;
-import org.gootara.ios.image.util.IOS7SplashInfo;
+import org.gootara.ios.image.util.IOSArtworkInfo;
 import org.gootara.ios.image.util.IOSAssetCatalogs;
 import org.gootara.ios.image.util.IOSIconAssetCatalogs;
 import org.gootara.ios.image.util.IOSImageInfo;
@@ -346,7 +344,7 @@ public class MainFrame extends JFrame {
 			}
 
 		});
-		progress = new JProgressBar(0, IOS6IconInfo.values().length + IOS7IconInfo.values().length + IOS6SplashInfo.values().length + IOS7SplashInfo.values().length);
+		progress = new JProgressBar(0, IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
 		progress.setValue(0);
 		progress.setStringPainted(true);
 
@@ -495,6 +493,8 @@ public class MainFrame extends JFrame {
 	}
 
 	public boolean generate() {
+		double targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
+
 		try {
 			if (icon6Path.getText().trim().length() <= 0 && icon7Path.getText().trim().length() <= 0 && splashPath.getText().trim().length() <= 0) {
 				alert(getResource("error.not.choosen", "Choose at least one Icon or Splash PNG file."));
@@ -525,6 +525,7 @@ public class MainFrame extends JFrame {
 				return false;
 			}
 
+			// Make sure output directory is exists.
 			outputDir = new File(outputPath.getText());
 			if (!outputPath.getText().equals(outputDir.getCanonicalPath())) {
 				outputPath.setText(outputDir.getCanonicalPath());
@@ -548,15 +549,19 @@ public class MainFrame extends JFrame {
 				return false;
 			}
 
+			// generate images for iOS6, or not
 			if (icon6File == null && icon7File != null) {
 				if (yesNo(getResource("question.use.icon7.instead", "An iOS6 Icon PNG file is not choosen. Use iOS7 Icon PNG file instead?"))) {
 					icon6File = icon7File;
 				} else {
 					this.generateOldSplashImages.setSelected(false);
 					information(getResource("info.ios6.image.not.generate", "The iOS6 image files will not be generated."));
+					// images for iOS6 will not be generated.
+					targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_7;
 				}
 			}
 
+			// images for iOS7 must be generated.
 			if (icon6File != null && icon7File == null) {
 				if (confirm(getResource("question.use.icon6.instead", "An iOS7 Icon PNG file is not choosen. Use iOS6 Icon PNG file instead?"))) {
 					icon7File = icon6File;
@@ -566,6 +571,7 @@ public class MainFrame extends JFrame {
 				}
 			}
 
+			// generate images for launch, or not
 			if (splashFile == null) {
 				if (!confirm(getResource("confirm.splash.not.generate", "The Splash image will not be generated."))) {
 					return false;
@@ -601,49 +607,85 @@ public class MainFrame extends JFrame {
 			} else {
 				progress.setValue(0);
 			}
-			if (icon6File == null) {
-				addProgress(IOS6IconInfo.values().length);
+
+			// generate images
+			StringBuilder buffer = new StringBuilder();
+			HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
+
+			if (icon6File == null && icon7File == null) {
+				addProgress(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length);
 			} else {
-				BufferedImage image = ImageIO.read(icon6File);
-				for (IOS6IconInfo info : IOS6IconInfo.values()) {
-					writeIconImage(image, info, iconOutputDir);
+				// generate icons
+				BufferedImage iOS6IconImage = (icon6File == null ? null : ImageIO.read(icon6File));
+				BufferedImage iOS7IconImage = (icon7File == null ? null : ImageIO.read(icon7File));
+
+				for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
+					addProgress(1);
+					BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? iOS6IconImage : iOS7IconImage;
+					if (image == null) continue;
+					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
+					if (asset.isIpad() && this.iPhoneOnly.isSelected()) continue;
+					if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
+
+					if (this.generateAsAssetCatalogs.isSelected()) {
+						if (buffer.length() > 0) buffer.append(",\n");
+						buffer.append(asset.toJson());
+					}
+
+					if (filesOutput.containsKey(asset.getFilename())) {
+						// upper version is more strong
+						if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+					}
+
+					writeIconImage(image, asset.getIOSImageInfo(), iconOutputDir);
+					filesOutput.put(asset.getFilename(), asset);
 				}
-			}
-			if (icon7File == null) {
-				addProgress(IOS7IconInfo.values().length);
-			} else {
-				BufferedImage image = ImageIO.read(icon7File);
-				for (IOS7IconInfo info : IOS7IconInfo.values()) {
-					writeIconImage(image, info, iconOutputDir);
+				if (this.generateAsAssetCatalogs.isSelected()) {
+					this.writeContentsJson(iconOutputDir, buffer);
 				}
-			}
-			if (this.generateAsAssetCatalogs.isSelected()) {
-				// Contents json
-				if (icon6File != null || icon7File != null) {
-					writeIconJson(iconOutputDir, icon6File != null);
+				buffer.setLength(0);
+				filesOutput.clear();
+
+				// generate artwork
+				for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
+					addProgress(1);
+					writeIconImage(iOS7IconImage == null ? iOS6IconImage : iOS7IconImage, artwork, outputDir);
 				}
+				if (iOS6IconImage != null) iOS6IconImage.flush();
+				if (iOS7IconImage != null) iOS7IconImage.flush();
 			}
 
 			if (splashFile == null) {
-				addProgress(IOS6SplashInfo.values().length + IOS7SplashInfo.values().length);
+				addProgress(IOSSplashAssetCatalogs.values().length);
 			} else {
-				BufferedImage image = ImageIO.read(splashFile);
-				if (this.generateOldSplashImages.isSelected()) {
-					// Generate old size of Splash images when checkbox selected.
-					for (IOS6SplashInfo info : IOS6SplashInfo.values()) {
-						writeSplashImage(image, info, splashOutputDir);
-					}
-				} else {
-					addProgress(IOS6SplashInfo.values().length);
-				}
-				for (IOS7SplashInfo info : IOS7SplashInfo.values()) {
-					writeSplashImage(image, info, splashOutputDir);
-				}
+				// generate launch images
+				BufferedImage splashImage = ImageIO.read(splashFile);
+				for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
+					addProgress(1);
+					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
+					if (asset.isIpad() && this.iPhoneOnly.isSelected()) continue;
+					if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
+					if (asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !this.generateOldSplashImages.isSelected()) continue;
 
-				if (this.generateAsAssetCatalogs.isSelected()) {
-					// Contents json
-					writeSplashJson(splashOutputDir, icon6File != null);
+					if (this.generateAsAssetCatalogs.isSelected()) {
+						if (buffer.length() > 0) buffer.append(",\n");
+						buffer.append(asset.toJson());
+					}
+
+					if (filesOutput.containsKey(asset.getFilename())) {
+						// upper version is more strong
+						if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+					}
+
+					writeSplashImage(splashImage, asset, splashOutputDir);
+					filesOutput.put(asset.getFilename(), asset);
 				}
+				if (this.generateAsAssetCatalogs.isSelected()) {
+					this.writeContentsJson(splashOutputDir, buffer);
+				}
+				buffer.setLength(0);
+				filesOutput.clear();
+				splashImage.flush();
 			}
 
 			if (this.isBatchMode() && !this.isSilentMode() && !this.isVerboseMode()) {
@@ -661,10 +703,6 @@ public class MainFrame extends JFrame {
 	}
 
 	private void writeIconImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
-		addProgress(1);
-		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
-		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
-
 		File f = new File(outputDir, info.getFilename());
 		int width = (int)info.getSize().getWidth();
 		int height = (int)info.getSize().getHeight();
@@ -679,14 +717,10 @@ public class MainFrame extends JFrame {
 		verbose(f);
 	}
 
-	private void writeSplashImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
-		addProgress(1);
-		if (this.iPhoneOnly.isSelected() && !info.isIphoneImage()) return;
-		if (this.iPadOnly.isSelected() && !info.isIpadImage()) return;
-
-		File f = new File(outputDir, info.getFilename());
-		int width = (int)info.getSize().getWidth();
-		int height = (int)info.getSize().getHeight();
+	private void writeSplashImage(BufferedImage src, IOSSplashAssetCatalogs asset, File outputDir) throws Exception {
+		File f = new File(outputDir, asset.getFilename());
+		int width = (int)asset.getIOSImageInfo().getSize().getWidth();
+		int height = (int)asset.getIOSImageInfo().getSize().getHeight();
 		BufferedImage buf = new BufferedImage(width, height, src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
 		int c = src.getRGB(0, 0);
 		Graphics g = buf.getGraphics();
@@ -697,15 +731,13 @@ public class MainFrame extends JFrame {
 		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
 		if (splashScaling.getSelectedIndex() == 0) {
 			// No resizing(iPhone only)
-			if (info.isIphoneImage()) {
-				p = info.isRetina() ? 1.0d : 0.5d;
-			}
+			if (asset.isIphone()) p = asset.getIOSImageInfo().isRetina() ? 1.0d : 0.5d;
 		} else if (splashScaling.getSelectedIndex() == 1) {
 			// No resizing(iPhone & iPad)
-			p = info.isRetina() ? 1.0d : 0.5d;
+			p = asset.getIOSImageInfo().isRetina() ? 1.0d : 0.5d;
 		} else if (splashScaling.getSelectedIndex() == 2) {
 			// Fit to the screen height(iPhone only)
-			p = (double)height / (double)src.getHeight();
+			if (asset.isIphone()) p = (double)height / (double)src.getHeight();
 		} // else default
 		int w = (int) ((double)src.getWidth() * p);
 		int h = (int) ((double)src.getHeight() * p);
@@ -721,55 +753,13 @@ public class MainFrame extends JFrame {
 		verbose(f);
 	}
 
-	private void writeIconJson(File outputDir, boolean iOS6Out) throws IOException {
+	private void writeContentsJson(File outputDir, StringBuilder buffer) throws IOException {
 		BufferedWriter writer = null;
 		try {
 			File f = new File(outputDir, this.getResource("string.filename.contents.json", "Contents.json"));
 			writer = new BufferedWriter(new FileWriter(f));
 			writer.write(IOSAssetCatalogs.JSON_HEADER);
-			boolean firstItem = true;
-			for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
-				if (asset.isIphone() && iPadOnly.isSelected()) continue;
-				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
-				if (asset.isIphone() && !iOS6Out && (asset.getIOSImageInfo() instanceof IOS6IconInfo || !asset.getIOSImageInfo().isIphoneImage())) continue;
-				if (asset.isIpad() && !iOS6Out && (asset.getIOSImageInfo() instanceof IOS6IconInfo || !asset.getIOSImageInfo().isIpadImage())) continue;
-				if (firstItem) {
-					firstItem = false;
-				} else {
-					writer.write(",\n");
-				}
-				writer.write(asset.toJson());
-			}
-			writer.write(IOSAssetCatalogs.JSON_FOOTER);
-			verbose(f);
-		} catch (IOException ioex) {
-			throw ioex;
-		} finally {
-			if (writer != null) {
-				writer.close();
-			}
-		}
-	}
-
-	private void writeSplashJson(File outputDir, boolean iOS6Out) throws IOException {
-		BufferedWriter writer = null;
-		try {
-			File f = new File(outputDir, this.getResource("string.filename.contents.json", "Contents.json"));
-			writer = new BufferedWriter(new FileWriter(f));
-			writer.write(IOSAssetCatalogs.JSON_HEADER);
-			boolean firstItem = true;
-			for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
-				if (asset.isIphone() && iPadOnly.isSelected()) continue;
-				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
-				if (!generateOldSplashImages.isSelected() && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR)) continue;
-				if (!iOS6Out && asset.getMinimumSystemVersion() < 7.0) continue;
-				if (firstItem) {
-					firstItem = false;
-				} else {
-					writer.write(",\n");
-				}
-				writer.write(asset.toJson());
-			}
+			writer.write(buffer.toString());
 			writer.write(IOSAssetCatalogs.JSON_FOOTER);
 			verbose(f);
 		} catch (IOException ioex) {

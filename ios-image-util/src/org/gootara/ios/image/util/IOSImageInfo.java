@@ -31,8 +31,5 @@ import java.awt.Dimension;
 public interface IOSImageInfo {
 	public String getFilename();
 	public Dimension getSize();
-	public String getDescription();
-	public boolean isIphoneImage();
-	public boolean isIpadImage();
 	public boolean isRetina();
 }

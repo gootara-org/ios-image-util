@@ -28,36 +28,33 @@ import java.awt.Dimension;
  * @author gootara.org
  *
  */
-public enum IOS6SplashInfo implements IOSImageInfo {
-	// Move to IOS7SplashInfo.java
-//	SPLASH_480("Default.png", 320, 480, "iPhone 3G / 3GS"),
-//	SPLASH_480x2("Default@2x.png", 640, 960, "iPhone4 / 4S"),
-//	SPLASH_568x2("Default-568h@2x.png", 640, 1136, "iPhone 5 or later"),
-    //                   filename                    width   height  iPhone  iPad    retina   description
-    SPLASH_PORTRAIT(    "Default-Portrait.png"     , 768   , 1004  , false , true  , false , "iPad / iPad2 / iPad mini"),
-    SPLASH_PORTRAITx2(  "Default-Portrait@2x.png"  , 1536  , 2008  , false , true  , true  , "iPad 3 or later"),
-    SPLASH_LANDSCAPE(   "Default-Landscape.png"    , 1024  , 748   , false , true  , false , "iPad / iPad2 / iPad mini"),
-    SPLASH_LANDSCAPEx2( "Default-Landscape@2x.png" , 2048  , 1496  , false , true  , true  , "iPad 3 or later"),
+public enum IOSIconInfo implements IOSImageInfo {
+    //                 filename                width    height  retina      description
+    ICON_29(          "Icon-Small.png"        , 29    , 29    , false ), // iPhone3G / 3GS / iPad / iPad2 / iPad mini
+    ICON_29x2(        "Icon-Small@2x.png"     , 58    , 58    , true  ), // iPhone4 / iPad3 or later
+    ICON_40(          "Icon-Small-40.png"     , 40    , 40    , false ), // iPad2 / iPad mini
+    ICON_40x2(        "Icon-Small-40@2x.png"  , 80    , 80    , true  ), // iPhone4 / iPad3 or later
+    ICON_50(          "Icon-Small-50.png"     , 50    , 50    , false ), // iPad / iPad2 / iPad mini
+    ICON_50x2(        "Icon-Small-50@2x.png"  , 100   , 100   , true  ), // iPad3 or later
+    ICON_57(          "Icon.png"              , 57    , 57    , false ), // iPhone 3G / 3GS
+    ICON_57x2(        "Icon@2x.png"           , 114   , 114   , true  ), // iPhone4 or later
+//  ICON_60(          "Icon-60.png"           , 60    , 60    , false ), // (not exists)
+    ICON_60x2(        "Icon-60@2x.png"        , 120   , 120   , true  ), // iPhone4 or later
+    ICON_72(          "Icon-72.png"           , 72    , 72    , false ), // iPad / iPad2 / iPad mini
+    ICON_72x2(        "Icon-72@2x.png"        , 144   , 144   , true  ), // iPad3 or later
+    ICON_76(          "Icon-76.png"           , 76    , 76    , false ), // iPad / iPad2 / iPad mini
+    ICON_76x2(        "Icon-76@2x.png"        , 152   , 152   , true  ), // iPad3 or later
 	;
 
 	private String filename;
 	private Dimension size;
-	private boolean iphoneImage;
-	private boolean ipadImage;
 	private boolean retina;
-	private String description;
-	private IOS6SplashInfo(String filename, int width, int height, boolean iphoneImage, boolean ipadImage, boolean retina, String description) {
+	private IOSIconInfo(String filename, int width, int height, boolean retina) {
 		this.filename = filename;
 		this.size = new Dimension(width, height);
-		this.iphoneImage = iphoneImage;
-		this.ipadImage = ipadImage;
-		this.description = description;
 		this.retina = retina;
 	}
 	@Override public String getFilename() { return this.filename; }
 	@Override public Dimension getSize() { return this.size; }
-	@Override public boolean isIphoneImage() { return this.iphoneImage; }
-	@Override public boolean isIpadImage() { return this.ipadImage; }
 	@Override public boolean isRetina() { return this.retina; }
-	@Override public String getDescription() { return this.description; }
 }
