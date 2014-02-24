@@ -170,6 +170,10 @@ public class ImagePanel extends JPanel {
 		Dimension size = this.getPreferredSize();
 		if (size.width <= 0 || size.height <= 0) return;
 		double p = (this.getWidth() > this.getHeight()) ? (double)this.getHeight() / size.getHeight() : (double)this.getWidth() / size.getWidth();
+		if (size.width != size.height) {
+			double p2 = (size.width < size.height) ? (double)this.getHeight() / size.getHeight() : (double)this.getWidth() / size.getWidth();
+			if (p2 < p) { p = p2; }
+		}
 		int w = (int) (size.getWidth() * p);
 		int h = (int) (size.getHeight() * p);
 		if (w <= 0 || h <= 0) return;
