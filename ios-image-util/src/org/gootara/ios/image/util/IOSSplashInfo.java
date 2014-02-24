@@ -29,18 +29,18 @@ import java.awt.Dimension;
  *
  */
 public enum IOSSplashInfo implements IOSImageInfo {
-    //                       filename                         width   height  retina      description
-    SPLASH_480(             "Default.png"                   , 320   , 480   , false ), // iPhone 3G / 3GS
-    SPLASH_480x2(           "Default@2x.png"                , 640   , 960   , true  ), // iPhone4 / 4S
-    SPLASH_568x2(           "Default-568h@2x.png"           , 640   , 1136  , true  ), // iPhone 5 or later
-    SPLASH_PORTRAIT(        "Default-Portrait~ipad.png"     , 768   , 1024  , false ), // iPad / iPad2 / iPad mini
-    SPLASH_PORTRAITx2(      "Default-Portrait@2x~ipad.png"  , 1536  , 2048  , true  ), // iPad 3 or later
-    SPLASH_LANDSCAPE(       "Default-Landscape~ipad.png"    , 1024  , 768   , false ), // iPad / iPad2 / iPad mini
-    SPLASH_LANDSCAPEx2(     "Default-Landscape@2x~ipad.png" , 2048  , 1536  , true  ), // iPad 3 or later
-    SPLASH_PORTRAIT_STB(    "Default-Portrait.png"          , 768   , 1004  , false ), // iPad / iPad2 / iPad mini
-    SPLASH_PORTRAIT_STBx2(  "Default-Portrait@2x.png"       , 1536  , 2008  , true  ), // iPad 3 or later
-    SPLASH_LANDSCAPE_STB(   "Default-Landscape.png"         , 1024  , 748   , false ), // iPad / iPad2 / iPad mini
-    SPLASH_LANDSCAPE_STBx2( "Default-Landscape@2x.png"      , 2048  , 1496  , true  ), // iPad 3 or later
+    //                        filename                         width   height  retina      description
+    SPLASH_480             ( "Default.png"                   , 320   , 480   , false ), // iPhone 3G / 3GS
+    SPLASH_480x2           ( "Default@2x.png"                , 640   , 960   , true  ), // iPhone4 / 4S
+    SPLASH_568x2           ( "Default-568h@2x.png"           , 640   , 1136  , true  ), // iPhone 5 or later
+    SPLASH_PORTRAIT        ( "Default-Portrait~ipad.png"     , 768   , 1024  , false ), // iPad / iPad2 / iPad mini
+    SPLASH_PORTRAITx2      ( "Default-Portrait@2x~ipad.png"  , 1536  , 2048  , true  ), // iPad 3 or later
+    SPLASH_LANDSCAPE       ( "Default-Landscape~ipad.png"    , 1024  , 768   , false ), // iPad / iPad2 / iPad mini
+    SPLASH_LANDSCAPEx2     ( "Default-Landscape@2x~ipad.png" , 2048  , 1536  , true  ), // iPad 3 or later
+    SPLASH_PORTRAIT_STB    ( "Default-Portrait.png"          , 768   , 1004  , false ), // iPad / iPad2 / iPad mini
+    SPLASH_PORTRAIT_STBx2  ( "Default-Portrait@2x.png"       , 1536  , 2008  , true  ), // iPad 3 or later
+    SPLASH_LANDSCAPE_STB   ( "Default-Landscape.png"         , 1024  , 748   , false ), // iPad / iPad2 / iPad mini
+    SPLASH_LANDSCAPE_STBx2 ( "Default-Landscape@2x.png"      , 2048  , 1496  , true  ), // iPad 3 or later
 	;
 
 	private String filename;

@@ -73,8 +73,8 @@ import org.gootara.ios.image.util.IOSSplashAssetCatalogs;
 public class MainFrame extends JFrame {
 	private ResourceBundle resource;
 	private JTextField icon6Path, icon7Path, splashPath, outputPath;
-	private JComboBox<ComboBoxItem> scaleAlgorithm;
-	private JComboBox<String> splashScaling;
+	private JComboBox scaleAlgorithm;
+	private JComboBox splashScaling;
 	private ImagePanel icon6Image, icon7Image, splashImage;
 	private JProgressBar progress;
 	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs;
@@ -140,14 +140,11 @@ public class MainFrame extends JFrame {
 		items.add(new ComboBoxItem(Image.SCALE_FAST, "SCALE_FAST"));
 		items.add(new ComboBoxItem(Image.SCALE_REPLICATE, "SCALE_REPLICATE"));
 		items.add(new ComboBoxItem(Image.SCALE_SMOOTH, "SCALE_SMOOTH"));
-		scaleAlgorithm = new JComboBox<ComboBoxItem>(items);
+		scaleAlgorithm = new JComboBox(items);
 		scaleAlgorithm.setFont(scaleAlgorithm.getFont().deriveFont(Font.PLAIN, 11.0f));
 		scaleAlgorithm.setSelectedIndex(4);
 		JLabel scaleLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
 		JPanel scalePanel = new JPanel();
-//		scalePanel.setLayout(new BorderLayout(2, 2));
-//		scalePanel.add(scaleLabel, BorderLayout.WEST);
-//		scalePanel.add(scaleAlgorithm, BorderLayout.CENTER);
 		scalePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
 		scalePanel.add(scaleLabel);
 		scalePanel.add(scaleAlgorithm);
@@ -169,7 +166,7 @@ public class MainFrame extends JFrame {
 		ssItems.add(getResource("item.splash.noresize.both", "No resizing(iPhone & iPad)"));
 		ssItems.add(getResource("item.splash.resize", "Fit to the screen height(iPhone only)"));
 		ssItems.add(getResource("item.splash.fittoscreen", "Fit to the screen"));
-		splashScaling = new JComboBox<String>(ssItems);
+		splashScaling = new JComboBox(ssItems);
 		splashScaling.setFont(splashScaling.getFont().deriveFont(Font.PLAIN, 11.0f));
 		splashScaling.setSelectedIndex(2);
 		splashScaling.setToolTipText(getResource("tooltip.splash.scaling", "The Non-Retina images will be scaled down in the fixed 50%, even if 'No resizing' is selected."));
@@ -706,7 +703,12 @@ public class MainFrame extends JFrame {
 		File f = new File(outputDir, info.getFilename());
 		int width = (int)info.getSize().getWidth();
 		int height = (int)info.getSize().getHeight();
-		BufferedImage buf = new BufferedImage(width, height, src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
+		BufferedImage buf = null;
+		try {
+			buf = new BufferedImage(width, height, src.getType() != BufferedImage.TYPE_CUSTOM && src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
+		} catch (IllegalArgumentException ex) {
+			buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		}
 		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();
 		buf.getGraphics().drawImage(src.getScaledInstance(width, height, hints), 0, 0, this);
 
@@ -721,13 +723,17 @@ public class MainFrame extends JFrame {
 		File f = new File(outputDir, asset.getFilename());
 		int width = (int)asset.getIOSImageInfo().getSize().getWidth();
 		int height = (int)asset.getIOSImageInfo().getSize().getHeight();
-		BufferedImage buf = new BufferedImage(width, height, src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
+		BufferedImage buf = null;
+		try {
+			buf = new BufferedImage(width, height, src.getType() != BufferedImage.TYPE_CUSTOM && src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
+		} catch (IllegalArgumentException ex) {
+			buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		}
 		int c = src.getRGB(0, 0);
 		Graphics g = buf.getGraphics();
 		g.setColor(new Color(ImageUtil.r(c), ImageUtil.g(c), ImageUtil.b(c), ImageUtil.a(c)));
 		g.fillRect(0, 0, width, height);
 
-//		double p = (width > height || (!this.resizeSplashImage.isSelected() && info.isIphoneImage())) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
 		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
 		if (splashScaling.getSelectedIndex() == 0) {
 			// No resizing(iPhone only)
@@ -850,6 +856,7 @@ class ComboBoxItem {
 	public String toString() {
 		return this.getItemName();
 	}
+
 }
 
 class ImageUtil {
