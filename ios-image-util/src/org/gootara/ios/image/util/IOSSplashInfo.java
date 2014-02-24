@@ -25,8 +25,10 @@ package org.gootara.ios.image.util;
 import java.awt.Dimension;
 
 /**
- * @author gootara.org
+ * The informations of launch image for iOS.
  *
+ * @author gootara.org
+ * @see org.gootara.ios.image.util.IOSImageInfo
  */
 public enum IOSSplashInfo implements IOSImageInfo {
     //                        filename                         width   height  retina      description

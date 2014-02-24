@@ -67,8 +67,9 @@ import org.gootara.ios.image.util.IOSImageInfo;
 import org.gootara.ios.image.util.IOSSplashAssetCatalogs;
 
 /**
- * @author gootara.org
+ * The main window frame of IOSImageUtil.
  *
+ * @author gootara.org
  */
 public class MainFrame extends JFrame {
 	private ResourceBundle resource;
@@ -83,6 +84,9 @@ public class MainFrame extends JFrame {
 	private boolean silentMode = false;
 	private boolean verboseMode = false;
 
+	/**
+	 * Constructor.
+	 */
 	public MainFrame() {
 		resource = ResourceBundle.getBundle("application");
 
@@ -373,6 +377,12 @@ public class MainFrame extends JFrame {
 		});
 	}
 
+	/**
+	 * Set file path from file chooser dialog.
+	 *
+	 * @param textField		TextField to set the file path
+	 * @param imagePanel	ImagePnel to set the image
+	 */
 	private void setFilePathActionPerformed(JTextField textField, ImagePanel imagePanel) {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
@@ -393,6 +403,14 @@ public class MainFrame extends JFrame {
 	    }
 	}
 
+	/**
+	 * Set file path..
+	 *
+	 * @param textField		TextField to set the file path
+	 * @param f				File to set.
+	 * @param imagePanel	ImagePnel to set the image
+	 * @return	true - no problem / false - error occured
+	 */
 	private boolean setFilePath(JTextField textField, File f, ImagePanel imagePanel) {
 		try {
 			textField.setText(f.getCanonicalPath());
@@ -438,6 +456,11 @@ public class MainFrame extends JFrame {
 	// hidden option.
 	public void setScalingAlgorithm(int idx) { scaleAlgorithm.setSelectedIndex(idx); }
 
+	/**
+	 * Add progress.
+	 *
+	 * @param i	value to add
+	 */
 	private void addProgress(int i) {
 		if (this.isBatchMode()) {
 			if (!this.isSilentMode() && !this.isVerboseMode()) for (int j = 0; j < i; j++) { System.out.print("*"); }
@@ -446,6 +469,12 @@ public class MainFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * Output the file path to System.out.
+	 *
+	 * @param f	File to output
+	 * @throws IOException
+	 */
 	private void verbose(File f) throws IOException {
 		if (!this.isBatchMode() || !this.isVerboseMode() || this.isSilentMode()) {
 			return;
@@ -453,11 +482,21 @@ public class MainFrame extends JFrame {
 		System.out.println(String.format("[%s] is generated.", f.getCanonicalPath()));
 	}
 
+	/**
+	 * Output stack trace and show alert.
+	 *
+	 * @param ex	exception
+	 */
 	private void handleException(Exception ex) {
 		ex.printStackTrace(System.err);
 		alert(ex.getMessage());
 	}
 
+	/**
+	 * Output message to System.out.
+	 *
+	 * @param message	message
+	 */
 	private void information(String message) {
 		if (this.isBatchMode()) {
 			if (!this.isSilentMode()) System.out.println(message);
@@ -466,6 +505,11 @@ public class MainFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * Show alert.
+	 *
+	 * @param message	alert message
+	 */
 	private void alert(String message) {
 		if (this.isBatchMode()) {
 			System.err.println(message);
@@ -474,6 +518,13 @@ public class MainFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * Show confirm.
+	 * Always 'true' with the batch mode.
+	 *
+	 * @param message	message
+	 * @return	true - ok / false - cancel
+	 */
 	private boolean confirm(String message) {
 		if (this.isBatchMode()) {
 			return true;
@@ -481,6 +532,13 @@ public class MainFrame extends JFrame {
 		return (JOptionPane.showConfirmDialog(this, message, getResource("title.confirm", "Confirm"), JOptionPane.OK_CANCEL_OPTION) != JOptionPane.CANCEL_OPTION);
 	}
 
+	/**
+	 * Show yes / no dialog.
+	 * Always 'false' with the batch mode.
+	 *
+	 * @param message	message
+	 * @return true - yes / false - no
+	 */
 	private boolean yesNo(String message) {
 		if (this.isBatchMode()) {
 			return false;
@@ -489,6 +547,11 @@ public class MainFrame extends JFrame {
 
 	}
 
+	/**
+	 * Do generate images.
+	 *
+	 * @return true - sucess / false - failed
+	 */
 	public boolean generate() {
 		double targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
 
@@ -699,6 +762,14 @@ public class MainFrame extends JFrame {
 		return true;
 	}
 
+	/**
+	 * Write icon image to the file.
+	 *
+	 * @param src		source image
+	 * @param info		image information
+	 * @param outputDir	output directory
+	 * @throws Exception	exception
+	 */
 	private void writeIconImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
 		File f = new File(outputDir, info.getFilename());
 		int width = (int)info.getSize().getWidth();
@@ -719,6 +790,14 @@ public class MainFrame extends JFrame {
 		verbose(f);
 	}
 
+	/**
+	 * Write launch image to the file.
+	 *
+	 * @param src		source image
+	 * @param asset		asset catalogs
+	 * @param outputDir	output directory
+	 * @throws Exception	exception
+	 */
 	private void writeSplashImage(BufferedImage src, IOSSplashAssetCatalogs asset, File outputDir) throws Exception {
 		File f = new File(outputDir, asset.getFilename());
 		int width = (int)asset.getIOSImageInfo().getSize().getWidth();
@@ -759,6 +838,13 @@ public class MainFrame extends JFrame {
 		verbose(f);
 	}
 
+	/**
+	 * Write json string to the file.
+	 *
+	 * @param outputDir	output directory
+	 * @param buffer	json string (main body)
+	 * @throws IOException	excepiton
+	 */
 	private void writeContentsJson(File outputDir, StringBuilder buffer) throws IOException {
 		BufferedWriter writer = null;
 		try {
@@ -777,6 +863,12 @@ public class MainFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * The error check of the file path.
+	 *
+	 * @param path	file path
+	 * @return	null when error occured
+	 */
 	private File checkFile(JTextField path) {
 		try {
 			File f = new File(path.getText());
@@ -812,6 +904,13 @@ public class MainFrame extends JFrame {
 		return null;
 	}
 
+	/**
+	 * Get resource string.
+	 *
+	 * @param key	key
+	 * @param def	default string
+	 * @return	resource string
+	 */
 	private String getResource(String key, String def) {
 		if (resource.containsKey(key)) {
 			return resource.getString(key);
@@ -820,61 +919,135 @@ public class MainFrame extends JFrame {
 	}
 }
 
+/**
+ * ComboBox item.
+ *
+ * @author gootara.org
+ */
 class ComboBoxItem {
 	private int itemValue;
 	private String itemName;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param value	value
+	 * @param name	value to display
+	 */
 	public ComboBoxItem(int value, String name) {
 		this.setItemValue(value);
 		this.setItemName(name);
 	}
+
 	/**
+	 * Get item value.
+	 *
 	 * @return itemValue
 	 */
 	public int getItemValue() {
 		return itemValue;
 	}
+
 	/**
+	 * Set item value.
+	 *
 	 * @param itemValue set itemValue
 	 */
 	public void setItemValue(int itemValue) {
 		this.itemValue = itemValue;
 	}
+
 	/**
+	 * Get item value to display.
+	 *
 	 * @return itemName
 	 */
 	public String getItemName() {
 		return itemName;
 	}
+
 	/**
+	 * Set item value to display.
+	 *
 	 * @param itemName set itemName
 	 */
 	public void setItemName(String itemName) {
 		this.itemName = itemName;
 	}
 
-	public String toString() {
+	@Override public String toString() {
 		return this.getItemName();
 	}
 
 }
 
+/**
+ * The utility class for images.
+ *
+ * @author gootara.org
+ */
 class ImageUtil {
+	/**
+	 * Get alpha.
+	 *
+	 * @param c	rgb color
+	 * @return	alpha
+	 */
 	public static int a(int c) {
 		return c >>> 24;
 	}
+
+	/**
+	 * Get red.
+	 *
+	 * @param c	rgb color
+	 * @return	red
+	 */
 	public static int r(int c) {
 		return c >> 16 & 0xff;
 	}
+
+	/**
+	 * Get green.
+	 *
+	 * @param c	rgb color
+	 * @return	green
+	 */
 	public static int g(int c) {
 		return c >> 8 & 0xff;
 	}
+
+	/**
+	 * Get blue.
+	 *
+	 * @param c	rgb color
+	 * @return	blue
+	 */
 	public static int b(int c) {
 		return c & 0xff;
 	}
+
+	/**
+	 * Get rgb color.
+	 *
+	 * @param r	red
+	 * @param g	green
+	 * @param b	blue
+	 * @return	rgb color
+	 */
 	public static int rgb(int r, int g, int b) {
 		return 0xff000000 | r << 16 | g << 8 | b;
 	}
+
+	/**
+	 * Get argb color.
+	 *
+	 * @param a	alpha
+	 * @param r	red
+	 * @param g	green
+	 * @param b	blue
+	 * @return	argb color
+	 */
 	public static int argb(int a, int r, int g, int b) {
 		return a << 24 | r << 16 | g << 8 | b;
 	}

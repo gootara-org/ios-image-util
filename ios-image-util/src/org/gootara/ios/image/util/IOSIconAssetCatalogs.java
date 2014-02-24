@@ -23,8 +23,10 @@
 package org.gootara.ios.image.util;
 
 /**
- * @author gootara.org
+ * The asset catalogs of icon for iOS.
  *
+ * @author gootara.org
+ * @see org.gootara.ios.image.util.IOSAssetCatalogs
  */
 public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	IPHONE_29   (IOSIconInfo.ICON_29   , iPhone , SYSTEM_VERSION_ANY),
@@ -61,8 +63,7 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	@Override public String getScale() { return (info.isRetina() ? "2x" : "1x"); }
 	@Override public boolean isIphone() { return this.getIdiom().equals(iPhone); }
 	@Override public boolean isIpad() { return this.getIdiom().equals(iPad); }
-
-	public String toJson() {
+	@Override public String toJson() {
 		StringBuilder sb = new StringBuilder("    {\n");
 		sb.append(String.format("      \"size\" : \"%dx%d\",\n", info.getSize().width / (info.isRetina() ? 2 : 1), info.getSize().height / (info.isRetina() ? 2 : 1)));
 		sb.append(String.format("      \"idiom\" : \"%s\",\n", this.getIdiom()));

@@ -25,11 +25,29 @@ package org.gootara.ios.image.util;
 import java.awt.Dimension;
 
 /**
- * @author gootara.org
+ * The information of images for iOS.
  *
+ * @author gootara.org
  */
 public interface IOSImageInfo {
+	/**
+	 * Get image filename.
+	 *
+	 * @return filename
+	 */
 	public String getFilename();
+
+	/**
+	 * Get image size.
+	 *
+	 * @return image size
+	 */
 	public Dimension getSize();
+
+	/**
+	 * Is image for retina or not
+	 *
+	 * @return true - for retina / false - not for retina
+	 */
 	public boolean isRetina();
 }

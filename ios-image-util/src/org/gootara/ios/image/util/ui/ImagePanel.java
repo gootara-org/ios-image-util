@@ -46,10 +46,18 @@ public class ImagePanel extends JPanel {
 	private Image scaledImage;
 	private String placeHolder, hyphenatorBoL, hyphnatorEoL;
 
+	/**
+	 * Constructor.
+	 */
 	public ImagePanel() {
 		this("");
 	}
 
+	/**
+	 * Constructor with the placeholder.
+	 *
+	 * @param placeHolder placeHolder
+	 */
 	public ImagePanel(String placeHolder) {
 		this.image = null;
 		this.scaledImage = null;
@@ -64,17 +72,27 @@ public class ImagePanel extends JPanel {
 		});
 	}
 
+	/**
+	 * Set image to display.
+	 *
+	 * @param image image
+	 */
 	public void setImage(BufferedImage image){
 		this.image = image;
 		createScaledImage();
 		this.repaint();
 	}
 
+	/**
+	 * Get image.
+	 *
+	 * @return image
+	 */
 	public BufferedImage getImage(){
 		return this.image;
 	}
 
-	public void paintComponent(Graphics g) {
+	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
     	if(!isShowing()){
 			return;
@@ -100,18 +118,20 @@ public class ImagePanel extends JPanel {
 		g.drawRect(0,  0, this.getWidth() - 1, this.getHeight() - 1);
     }
 
-    public Dimension getPreferredSize() {
+    @Override public Dimension getPreferredSize() {
     	if (image == null) {
     		return (new Dimension(0, 0));
     	}
     	return (new Dimension(image.getWidth(), image.getHeight()));
     }
 
-    public void update(Graphics g) {
+    @Override public void update(Graphics g) {
     	paint(g);
     }
 
 	/**
+	 * Get the placeholder.
+	 *
 	 * @return placeHolder
 	 */
 	public String getPlaceHolder() {
@@ -119,6 +139,8 @@ public class ImagePanel extends JPanel {
 	}
 
 	/**
+	 * Set the placeholder.
+	 *
 	 * @param placeHolder set placeHolder
 	 */
 	public void setPlaceHolder(String placeHolder) {
@@ -126,9 +148,13 @@ public class ImagePanel extends JPanel {
 	}
 
 	/**
-	 * I tried to write a little seriously.
-	 **/
+	 * Get the placeholder which is divided by width and words.
+	 *
+	 * @param fm FontMetrics
+	 * @return the placeholder which is divided by width and words.
+	 */
 	public ArrayList<String> getPlaceHolderLines(FontMetrics fm) {
+		// I tried to write a little seriously.
 		ArrayList<String> lines = new ArrayList<String>();
 		StringBuilder line = new StringBuilder();
 		Locale l = Locale.getDefault();
@@ -159,6 +185,9 @@ public class ImagePanel extends JPanel {
 		return lines;
 	}
 
+	/**
+	 * Create scaled image.
+	 */
 	private synchronized void createScaledImage() {
 		if (this.scaledImage != null) {
 			this.scaledImage.flush();
@@ -180,6 +209,12 @@ public class ImagePanel extends JPanel {
 		this.scaledImage = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
 	}
 
+	/**
+	 * Set hyphenator.
+	 *
+	 * @param beginingOfLine
+	 * @param endOfLine
+	 */
 	public void setHyphenator(String beginingOfLine, String endOfLine) {
 		this.hyphenatorBoL = beginingOfLine;
 		this.hyphnatorEoL = endOfLine;

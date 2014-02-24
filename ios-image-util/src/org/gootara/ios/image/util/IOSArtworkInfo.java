@@ -25,14 +25,15 @@ package org.gootara.ios.image.util;
 import java.awt.Dimension;
 
 /**
- * @author gootara.org
+ * The informations of artwork for iOS.
  *
+ * @author gootara.org
+ * @see org.gootara.ios.image.util.IOSImageInfo
  */
 public enum IOSArtworkInfo implements IOSImageInfo {
     //                 filename                width    height  retina      description
     ITUNES_ARTWORK(   "iTunesArtwork"         , 512   , 512   , false ), // -
     ITUNES_ARTWORKx2( "iTunesArtwork@2x"      , 1024  , 1024  , true  ), // -
-
 	;
 
 	private String filename;

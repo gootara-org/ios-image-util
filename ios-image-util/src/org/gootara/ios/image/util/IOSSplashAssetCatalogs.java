@@ -23,8 +23,10 @@
 package org.gootara.ios.image.util;
 
 /**
- * @author gootara.org
+ * The asset catalogs of launch image for iOS.
  *
+ * @author gootara.org
+ * @see org.gootara.ios.image.util.IOSAssetCatalogs
  */
 public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 	// iOS7 or posterior
@@ -71,11 +73,7 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 	@Override public String getScale() { return (info.isRetina() ? "2x" : "1x"); }
 	@Override public boolean isIphone() { return this.getIdiom().equals(iPhone); }
 	@Override public boolean isIpad() { return this.getIdiom().equals(iPad); }
-
-	public String getExtent() { return this.extent; }
-	public String getSubType() { return this.subtype; }
-
-	public String toJson() {
+	@Override public String toJson() {
 		StringBuilder sb = new StringBuilder("    {\n");
 		sb.append(String.format("      \"orientation\" : \"%s\",\n", (this.info.getSize().getWidth() > this.info.getSize().getHeight() ? "landscape" : "portrait")));
 		sb.append(String.format("      \"idiom\" : \"%s\",\n", this.getIdiom()));
@@ -91,4 +89,18 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 		sb.append("    }");
 		return sb.toString();
 	}
+
+	/**
+	 * Get extent.
+	 *
+	 * @return extent
+	 */
+	public String getExtent() { return this.extent; }
+
+	/**
+	 * Get subtype.
+	 *
+	 * @return subtype
+	 */
+	public String getSubType() { return this.subtype; }
 }

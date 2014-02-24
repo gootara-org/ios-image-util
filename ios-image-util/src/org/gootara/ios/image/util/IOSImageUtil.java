@@ -28,8 +28,9 @@ import java.util.List;
 import org.gootara.ios.image.util.ui.MainFrame;
 
 /**
- * @author gootara.org
+ * The main class of IOSImageUtil.
  *
+ * @author gootara.org
  */
 public class IOSImageUtil {
 
@@ -62,6 +63,13 @@ public class IOSImageUtil {
 		}
 	}
 
+	/**
+	 * Initializing.
+	 *
+	 * @param mainFrame	application's main frame
+	 * @param args arguments from command-line
+	 * @return true - success / false - failed
+	 */
 	private static boolean initialize(MainFrame mainFrame, String[] args) {
 		String argc = null;
 		boolean noerr = true;
@@ -122,6 +130,9 @@ public class IOSImageUtil {
 		return noerr;
 	}
 
+	/**
+	 * Show usage to System.out.
+	 */
 	private static void usage() {
 		System.out.println();
 		System.out.println("Usage: java -jar ios-image-util.jar [options]");
