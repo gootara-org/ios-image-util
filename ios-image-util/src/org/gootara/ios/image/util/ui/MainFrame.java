@@ -300,7 +300,6 @@ public class MainFrame extends JFrame {
 		outputPathPanel.add(refOutputPath, BorderLayout.EAST);
 		refOutputPath.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setFilePathActionPerformed(splashPath, splashImage);
 				JFileChooser chooser = new JFileChooser();
 				if (outputPath.getText().trim().length() > 0) {
 					File dir = new File(outputPath.getText());
@@ -402,12 +401,12 @@ public class MainFrame extends JFrame {
 	private boolean setFilePath(JTextField textField, File f, ImagePanel imagePanel) {
 		try {
 			textField.setText(f.getCanonicalPath());
-			if (checkFile(textField) == null) {
-				textField.setText("");
-				imagePanel.setImage(null);
-				return false;
-			}
 			if (imagePanel != null) {
+				if (checkFile(textField) == null) {
+					textField.setText("");
+					if (imagePanel != null) imagePanel.setImage(null);
+					return false;
+				}
 				if (!this.isBatchMode()) {
 					imagePanel.setImage(ImageIO.read(f));
 				}
@@ -489,7 +488,7 @@ public class MainFrame extends JFrame {
 
 	private boolean yesNo(String message) {
 		if (this.isBatchMode()) {
-			return true;
+			return false;
 		}
 		return (JOptionPane.showConfirmDialog(this, message, getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
 
@@ -527,6 +526,10 @@ public class MainFrame extends JFrame {
 			}
 
 			outputDir = new File(outputPath.getText());
+			if (!outputPath.getText().equals(outputDir.getCanonicalPath())) {
+				outputPath.setText(outputDir.getCanonicalPath());
+				outputDir = new File(outputPath.getText());
+			}
 			if (!outputDir.exists()) {
 				if (!confirm("[" + outputPath.getText() + "] " + getResource("confirm.output.path.create", "is not exists. Create it?"))) {
 					return false;
@@ -548,12 +551,18 @@ public class MainFrame extends JFrame {
 			if (icon6File == null && icon7File != null) {
 				if (yesNo(getResource("question.use.icon7.instead", "An iOS6 Icon PNG file is not choosen. Use iOS7 Icon PNG file instead?"))) {
 					icon6File = icon7File;
+				} else {
+					this.generateOldSplashImages.setSelected(false);
+					information(getResource("info.ios6.image.not.generate", "The iOS6 image files will not be generated."));
 				}
 			}
 
 			if (icon6File != null && icon7File == null) {
-				if (yesNo(getResource("question.use.icon6.instead", "An iOS7 Icon PNG file is not choosen. Use iOS6 Icon PNG file instead?"))) {
+				if (confirm(getResource("question.use.icon6.instead", "An iOS7 Icon PNG file is not choosen. Use iOS6 Icon PNG file instead?"))) {
 					icon7File = icon6File;
+				} else {
+					icon7Path.requestFocusInWindow();
+					return false;
 				}
 			}
 
@@ -611,7 +620,7 @@ public class MainFrame extends JFrame {
 			if (this.generateAsAssetCatalogs.isSelected()) {
 				// Contents json
 				if (icon6File != null || icon7File != null) {
-					writeIconJson(iconOutputDir);
+					writeIconJson(iconOutputDir, icon6File != null);
 				}
 			}
 
@@ -633,7 +642,7 @@ public class MainFrame extends JFrame {
 
 				if (this.generateAsAssetCatalogs.isSelected()) {
 					// Contents json
-					writeSplashJson(splashOutputDir);
+					writeSplashJson(splashOutputDir, icon6File != null);
 				}
 			}
 
@@ -712,7 +721,7 @@ public class MainFrame extends JFrame {
 		verbose(f);
 	}
 
-	private void writeIconJson(File outputDir) throws IOException {
+	private void writeIconJson(File outputDir, boolean iOS6Out) throws IOException {
 		BufferedWriter writer = null;
 		try {
 			File f = new File(outputDir, this.getResource("string.filename.contents.json", "Contents.json"));
@@ -722,6 +731,8 @@ public class MainFrame extends JFrame {
 			for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
 				if (asset.isIphone() && iPadOnly.isSelected()) continue;
 				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+				if (asset.isIphone() && !iOS6Out && (asset.getIOSImageInfo() instanceof IOS6IconInfo || !asset.getIOSImageInfo().isIphoneImage())) continue;
+				if (asset.isIpad() && !iOS6Out && (asset.getIOSImageInfo() instanceof IOS6IconInfo || !asset.getIOSImageInfo().isIpadImage())) continue;
 				if (firstItem) {
 					firstItem = false;
 				} else {
@@ -740,7 +751,7 @@ public class MainFrame extends JFrame {
 		}
 	}
 
-	private void writeSplashJson(File outputDir) throws IOException {
+	private void writeSplashJson(File outputDir, boolean iOS6Out) throws IOException {
 		BufferedWriter writer = null;
 		try {
 			File f = new File(outputDir, this.getResource("string.filename.contents.json", "Contents.json"));
@@ -751,6 +762,7 @@ public class MainFrame extends JFrame {
 				if (asset.isIphone() && iPadOnly.isSelected()) continue;
 				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
 				if (!generateOldSplashImages.isSelected() && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR)) continue;
+				if (!iOS6Out && asset.getMinimumSystemVersion() < 7.0) continue;
 				if (firstItem) {
 					firstItem = false;
 				} else {
@@ -772,6 +784,10 @@ public class MainFrame extends JFrame {
 	private File checkFile(JTextField path) {
 		try {
 			File f = new File(path.getText());
+			if (!path.getText().equals(f.getCanonicalPath())) {
+				path.setText(f.getCanonicalPath());
+				f = new File(path.getText());
+			}
 			if (!f.exists()) {
 				path.requestFocusInWindow();
 				path.selectAll();

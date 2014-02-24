@@ -27,14 +27,14 @@ package org.gootara.ios.image.util;
  *
  */
 public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
-	IPHONE_29  (IOS6IconInfo.ICON_29   , IOSAssetCatalogs.iPhone),
-	IPHONE_29x2(IOS6IconInfo.ICON_29x2 , IOSAssetCatalogs.iPhone),
+	IPHONE_29  (IOS7IconInfo.ICON_29   , IOSAssetCatalogs.iPhone),
+	IPHONE_29x2(IOS7IconInfo.ICON_29x2 , IOSAssetCatalogs.iPhone),
 	IPHONE_40x2(IOS7IconInfo.ICON_40x2 , IOSAssetCatalogs.iPhone),
 	IPHONE_57  (IOS6IconInfo.ICON_57   , IOSAssetCatalogs.iPhone),
 	IPHONE_57x2(IOS6IconInfo.ICON_57x2 , IOSAssetCatalogs.iPhone),
 	IPHONE_60x2(IOS7IconInfo.ICON_60x2 , IOSAssetCatalogs.iPhone),
-	IPAD_29  (IOS6IconInfo.ICON_29   , IOSAssetCatalogs.iPad),
-	IPAD_29x2(IOS6IconInfo.ICON_29x2 , IOSAssetCatalogs.iPad),
+	IPAD_29  (IOS7IconInfo.ICON_29   , IOSAssetCatalogs.iPad),
+	IPAD_29x2(IOS7IconInfo.ICON_29x2 , IOSAssetCatalogs.iPad),
 	IPAD_40  (IOS7IconInfo.ICON_40   , IOSAssetCatalogs.iPad),
 	IPAD_40x2(IOS7IconInfo.ICON_40x2 , IOSAssetCatalogs.iPad),
 	IPAD_50  (IOS6IconInfo.ICON_50   , IOSAssetCatalogs.iPad),
@@ -52,6 +52,7 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 		this.idiom = idiom;
 	}
 
+	@Override public IOSImageInfo getIOSImageInfo() { return this.info; }
 	@Override public String getIdiom() { return this.idiom; }
 	@Override public String getFilename() { return info.getFilename(); }
 	@Override public String getScale() { return (info.isRetina() ? "2x" : "1x"); }

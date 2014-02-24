@@ -31,6 +31,8 @@ import java.awt.Dimension;
 public enum IOS7IconInfo implements IOSImageInfo {
     //                 filename                width    height  iPhone  iPad    retina   description
 //  ICON_60(          "Icon-60.png"           , 60    , 60    , false , false , false , "-"),
+    ICON_29(          "Icon-Small.png"        , 29    , 29    , false , true  , false , "iPhone3G / 3GS / iPad / iPad2 / iPad mini"),
+    ICON_29x2(        "Icon-Small@2x.png"     , 58    , 58    , true  , true  , true  , "iPhone4 / iPad3 or later"),
     ICON_60x2(        "Icon-60@2x.png"        , 120   , 120   , true  , false , true  , "iPhone4 or later"),
     ICON_76(          "Icon-76.png"           , 76    , 76    , false , true  , false , "iPad / iPad2 / iPad mini"),
     ICON_76x2(        "Icon-76@2x.png"        , 152   , 152   , false , true  , true  , "iPad3 or later"),

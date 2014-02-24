@@ -35,7 +35,7 @@ public enum IOS6IconInfo implements IOSImageInfo {
     ICON_72(    "Icon-72.png"         , 72    , 72    , false , true  , false , "iPad / iPad2 / iPad mini"),
     ICON_72x2(  "Icon-72@2x.png"      , 144   , 144   , false , true  , true  , "iPad3 or later"),
     ICON_29(    "Icon-Small.png"      , 29    , 29    , true  , true  , false , "iPhone3G / 3GS / iPad / iPad2 / iPad mini"),
-    ICON_29x2(  "Icon-Small@2x.png"   , 58    , 58    , true  , true  , true  , "iPhone4 / iPad3 or later"),
+//  ICON_29x2(  "Icon-Small@2x.png"   , 58    , 58    , true  , true  , true  , "iPhone4 / iPad3 or later"),
     ICON_50(    "Icon-Small-50.png"   , 50    , 50    , false , true  , false  , "iPad / iPad2 / iPad mini"),
     ICON_50x2(  "Icon-Small-50@2x.png", 100   , 100   , false , true  , true  , "iPad3 or later"),
 	;

@@ -32,6 +32,7 @@ public interface IOSAssetCatalogs {
 	static final String iPhone = "iphone";
 	static final String iPad = "ipad";
 
+	public IOSImageInfo getIOSImageInfo();
 	public String getIdiom();
 	public String getFilename();
 	public String getScale();

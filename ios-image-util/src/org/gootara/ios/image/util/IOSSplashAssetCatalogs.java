@@ -64,6 +64,7 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 		this.subtype = subtype;
 	}
 
+	@Override public IOSImageInfo getIOSImageInfo() { return this.info; }
 	@Override public String getIdiom() { return this.idiom; }
 	@Override public String getFilename() { return info.getFilename(); }
 	@Override public String getScale() { return (info.isRetina() ? "2x" : "1x"); }
@@ -71,6 +72,7 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 	@Override public boolean isIpad() { return this.getIdiom().equals(IOSAssetCatalogs.iPad); }
 
 	public String getExtent() { return this.extent; }
+	public double getMinimumSystemVersion() { return this.minimumSystemVersion; }
 
 	public String toJson() {
 		StringBuilder sb = new StringBuilder("    {\n");
