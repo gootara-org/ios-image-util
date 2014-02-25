@@ -35,6 +35,7 @@ import org.gootara.ios.image.util.ui.MainFrame;
 public class IOSImageUtil {
 
 	public static void main(String[] args) throws Exception {
+		long l1 = System.currentTimeMillis();
 		MainFrame mainFrame = new MainFrame();
 		mainFrame.setSize(640, 480);
 
@@ -46,8 +47,10 @@ public class IOSImageUtil {
 
 		if (mainFrame.isBatchMode()) {
 			int exitCode = 0;
-			long l1 = System.currentTimeMillis();
-			if (!mainFrame.isSilentMode()) System.out.println(String.format("START: %s", (new java.util.Date(l1)).toString()));
+			if (!mainFrame.isSilentMode()) {
+				System.out.println(String.format("START: %s", (new java.util.Date(l1)).toString()));
+				System.out.println(String.format("  Initializing takes %.2f secs.", ((double)(System.currentTimeMillis() - l1) / 1000d)));
+			}
 			if (!mainFrame.generate()) {
 				exitCode = 1;
 				usage();
@@ -55,7 +58,7 @@ public class IOSImageUtil {
 			long l2 = System.currentTimeMillis();
 			if (!mainFrame.isSilentMode()) {
 				System.out.println(String.format("FINISH: %s", (new java.util.Date(l2)).toString()));
-				System.out.println(String.format("  takes %.2f secs.", ((double)(l2 - l1) / 1000d)));
+				System.out.println(String.format("  Generate images takes %.2f secs.", ((double)(l2 - l1) / 1000d)));
 			}
 			System.exit(exitCode);
 		} else {
