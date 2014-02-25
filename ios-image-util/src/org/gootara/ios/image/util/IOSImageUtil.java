@@ -155,6 +155,8 @@ public class IOSImageUtil {
 		System.out.println("                                1: no resizing (iPhone & iPad)");
 		System.out.println("                                2: fit to the screen height (default)");
 		System.out.println("                                3: fit to the screen");
+		System.out.println("                                4: fill screen (prefer long side)");
+		System.out.println("                                5: fill screen (no aspect ratio)");
 	}
 
 }

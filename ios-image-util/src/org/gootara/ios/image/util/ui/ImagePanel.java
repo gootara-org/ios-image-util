@@ -77,7 +77,11 @@ public class ImagePanel extends JPanel {
 	 *
 	 * @param image image
 	 */
-	public void setImage(BufferedImage image){
+	public void setImage(BufferedImage image) {
+		if (this.image != null) {
+			this.image.flush();
+			this.image = null;
+		}
 		this.image = image;
 		createScaledImage();
 		this.repaint();
@@ -207,6 +211,21 @@ public class ImagePanel extends JPanel {
 		int h = (int) (size.getHeight() * p);
 		if (w <= 0 || h <= 0) return;
 		this.scaledImage = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+	}
+
+	/**
+	 * Clear images.
+	 */
+	public void clear() {
+		if (this.image != null) {
+			this.image.flush();
+			this.image = null;
+		}
+		if (this.scaledImage != null) {
+			this.scaledImage.flush();
+			this.scaledImage = null;
+		}
+		System.gc();
 	}
 
 	/**

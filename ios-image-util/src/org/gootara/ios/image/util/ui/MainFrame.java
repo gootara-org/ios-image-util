@@ -170,6 +170,8 @@ public class MainFrame extends JFrame {
 		ssItems.add(getResource("item.splash.noresize.both", "No resizing(iPhone & iPad)"));
 		ssItems.add(getResource("item.splash.resize", "Fit to the screen height(iPhone only)"));
 		ssItems.add(getResource("item.splash.fittoscreen", "Fit to the screen"));
+		ssItems.add(getResource("item.splash.fittolongside", "Fit to long side"));
+		ssItems.add(getResource("item.splash.noaspectratio", "Fit to launch image size(no aspect ratio)"));
 		splashScaling = new JComboBox(ssItems);
 		splashScaling.setFont(splashScaling.getFont().deriveFont(Font.PLAIN, 11.0f));
 		splashScaling.setSelectedIndex(2);
@@ -415,13 +417,14 @@ public class MainFrame extends JFrame {
 		try {
 			textField.setText(f.getCanonicalPath());
 			if (imagePanel != null) {
-				if (checkFile(textField) == null) {
+				ImageFile imageFile = checkFile(textField);
+				if (imageFile == null) {
 					textField.setText("");
-					if (imagePanel != null) imagePanel.setImage(null);
+					if (imagePanel != null) imagePanel.clear();
 					return false;
 				}
 				if (!this.isBatchMode()) {
-					imagePanel.setImage(ImageIO.read(f));
+					imagePanel.setImage(imageFile.getImage());
 				}
 				if (outputPath.getText().trim().length() <= 0) {
 					File g = new File(f.getParentFile(), this.generateAsAssetCatalogs.isSelected() ? this.getResource("string.dir.assets", "Images.xcassets") : this.getResource("string.dir.generate", "generated"));
@@ -431,7 +434,7 @@ public class MainFrame extends JFrame {
 		} catch (Exception ex) {
 			handleException(ex);
 			textField.setText("");
-			if (imagePanel != null) imagePanel.setImage(null);
+			if (imagePanel != null) imagePanel.clear();
 			return false;
 		}
 		return true;
@@ -562,19 +565,22 @@ public class MainFrame extends JFrame {
 			}
 
 			// Path Check.
-			File icon6File, icon7File, splashFile;
+			ImageFile icon6File, icon7File, splashFile;
 			icon6File = icon7File = splashFile = null;
 			if (icon6Path.getText().trim().length() > 0) {
 				icon6File = checkFile(icon6Path);
 				if (icon6File == null) return false;
+				if (!this.isBatchMode()) icon6Image.setImage(icon6File.getImage());
 			}
 			if (icon7Path.getText().trim().length() > 0) {
 				icon7File = checkFile(icon7Path);
 				if (icon7File == null) return false;
+				if (!this.isBatchMode()) icon7Image.setImage(icon7File.getImage());
 			}
 			if (splashPath.getText().trim().length() > 0) {
 				splashFile = checkFile(splashPath);
 				if (splashFile == null) return false;
+				if (!this.isBatchMode()) splashImage.setImage(splashFile.getImage());
 			}
 
 			// Error Check.
@@ -676,12 +682,9 @@ public class MainFrame extends JFrame {
 				addProgress(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length);
 			} else {
 				// generate icons
-				BufferedImage iOS6IconImage = (icon6File == null ? null : ImageIO.read(icon6File));
-				BufferedImage iOS7IconImage = (icon7File == null ? null : ImageIO.read(icon7File));
-
 				for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
 					addProgress(1);
-					BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? iOS6IconImage : iOS7IconImage;
+					BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? icon6File.getImage() : icon7File.getImage();
 					if (image == null) continue;
 					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
 					if (asset.isIpad() && this.iPhoneOnly.isSelected()) continue;
@@ -709,17 +712,14 @@ public class MainFrame extends JFrame {
 				// generate artwork
 				for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
 					addProgress(1);
-					writeIconImage(iOS7IconImage == null ? iOS6IconImage : iOS7IconImage, artwork, outputDir);
+					writeIconImage(icon7File == null ? icon6File.getImage() : icon7File.getImage(), artwork, outputDir);
 				}
-				if (iOS6IconImage != null) iOS6IconImage.flush();
-				if (iOS7IconImage != null) iOS7IconImage.flush();
 			}
 
 			if (splashFile == null) {
 				addProgress(IOSSplashAssetCatalogs.values().length);
 			} else {
 				// generate launch images
-				BufferedImage splashImage = ImageIO.read(splashFile);
 				for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
 					addProgress(1);
 					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
@@ -737,7 +737,7 @@ public class MainFrame extends JFrame {
 						if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
 					}
 
-					writeSplashImage(splashImage, asset, splashOutputDir);
+					writeSplashImage(splashFile.getImage(), asset, splashOutputDir);
 					filesOutput.put(asset.getFilename(), asset);
 				}
 				if (this.generateAsAssetCatalogs.isSelected()) {
@@ -745,7 +745,6 @@ public class MainFrame extends JFrame {
 				}
 				buffer.setLength(0);
 				filesOutput.clear();
-				splashImage.flush();
 			}
 
 			if (this.isBatchMode() && !this.isSilentMode() && !this.isVerboseMode()) {
@@ -786,7 +785,7 @@ public class MainFrame extends JFrame {
 		ImageIO.write(buf, "png", f);
 		buf.flush();
 		buf = null;
-		if (this.isVisible()) progress.paint(progress.getGraphics());
+		if (this.isVisible() && !this.isBatchMode()) progress.paint(progress.getGraphics());
 		verbose(f);
 	}
 
@@ -823,9 +822,15 @@ public class MainFrame extends JFrame {
 		} else if (splashScaling.getSelectedIndex() == 2) {
 			// Fit to the screen height(iPhone only)
 			if (asset.isIphone()) p = (double)height / (double)src.getHeight();
-		} // else default
+		} else if (splashScaling.getSelectedIndex() == 4) {
+			p = (width < height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
+		}// else default
 		int w = (int) ((double)src.getWidth() * p);
 		int h = (int) ((double)src.getHeight() * p);
+		if (splashScaling.getSelectedIndex() == 5) {
+			w = width;
+			h = height;
+		}
    		int x = (int) ((width - w) / 2);
    		int y = (int) ((height - h) / 2);
 		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();
@@ -834,7 +839,7 @@ public class MainFrame extends JFrame {
 		ImageIO.write(buf, "png", f);
 		buf.flush();
 		buf = null;
-		if (this.isVisible()) progress.paint(progress.getGraphics());
+		if (this.isVisible() && !this.isBatchMode()) progress.paint(progress.getGraphics());
 		verbose(f);
 	}
 
@@ -869,7 +874,7 @@ public class MainFrame extends JFrame {
 	 * @param path	file path
 	 * @return	null when error occured
 	 */
-	private File checkFile(JTextField path) {
+	private ImageFile checkFile(JTextField path) {
 		try {
 			File f = new File(path.getText());
 			if (!path.getText().equals(f.getCanonicalPath())) {
@@ -894,10 +899,8 @@ public class MainFrame extends JFrame {
 				alert("[" + f.getCanonicalPath() + "] " + getResource("error.illegal.image", "is illegal image."));
 				return null;
 			}
-			image.flush();
-			image = null;
 
-			return f;
+			return new ImageFile(image, f);
 		} catch (Exception ex) {
 			handleException(ex);
 		}
@@ -916,6 +919,65 @@ public class MainFrame extends JFrame {
 			return resource.getString(key);
 		}
 		return def;
+	}
+}
+
+class ImageFile
+{
+	private BufferedImage image;
+	private File file;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param image	image
+	 * @param file	file
+	 */
+	public ImageFile(BufferedImage image, File file) {
+		this.setImage(image);
+		this.setFile(file);
+	}
+
+	/**
+	 * Get image.
+	 *
+	 * @return image
+	 */
+	public BufferedImage getImage() {
+		return image;
+	}
+	/**
+	 * Set image.
+	 *
+	 * @param image set image
+	 */
+	public void setImage(BufferedImage image) {
+		this.image = image;
+	}
+	/**
+	 * Get file
+	 *
+	 * @return file
+	 */
+	public File getFile() {
+		return file;
+	}
+	/**
+	 * Set file
+	 *
+	 * @param file set file
+	 */
+	public void setFile(File file) {
+		this.file = file;
+	}
+
+	/**
+	 * Clear image buffer.
+	 */
+	public void clear() {
+		if (image != null) image.flush();
+		image = null;
+		file = null;
 	}
 }
 

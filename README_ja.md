@@ -237,6 +237,8 @@ COMMAND LINE OPTIONS:
                                   1: no resizing (iPhone & iPad)
                                   2: fit to the screen height (default)
                                   3: fit to the screen
+                                  4: fill screen (prefer long side)
+                                  5: fill screen (no aspect ratio)
 
 CHANGE LOG:
 -----------
@@ -263,4 +265,9 @@ CHANGE LOG:
 - Support command line options.
   Each setting can be specified by using command line options with gui.
   Also the generate process can be automated by using command line options with no gui.
+
+2014/02/25
+- Refactoring and performance improvement.
+- Add launch image scaling option 'fill screen (prefer long side)' and 'fill screen (no aspect ratio)'.
+
 
