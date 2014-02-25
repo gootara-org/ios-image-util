@@ -35,34 +35,39 @@ import org.gootara.ios.image.util.ui.MainFrame;
 public class IOSImageUtil {
 
 	public static void main(String[] args) throws Exception {
-		long l1 = System.currentTimeMillis();
-		MainFrame mainFrame = new MainFrame();
-		mainFrame.setSize(640, 480);
+		try {
+			long l1 = System.currentTimeMillis();
+			MainFrame mainFrame = new MainFrame();
+			mainFrame.setSize(640, 480);
 
-		if (args.length > 0) {
-			if (!initialize(mainFrame, args)) {
-				System.exit(1);
+			if (args.length > 0) {
+				if (!initialize(mainFrame, args)) {
+					System.exit(1);
+				}
 			}
-		}
 
-		if (mainFrame.isBatchMode()) {
-			int exitCode = 0;
-			if (!mainFrame.isSilentMode()) {
-				System.out.println(String.format("START: %s", (new java.util.Date(l1)).toString()));
-				System.out.println(String.format("  Initializing takes %.2f secs.", ((double)(System.currentTimeMillis() - l1) / 1000d)));
+			if (mainFrame.isBatchMode()) {
+				int exitCode = 0;
+				if (!mainFrame.isSilentMode()) {
+					System.out.println(String.format("START: %s", (new java.util.Date(l1)).toString()));
+					System.out.println(String.format("  Initializing takes %.2f secs.", ((double)(System.currentTimeMillis() - l1) / 1000d)));
+				}
+				if (!mainFrame.generate()) {
+					exitCode = 1;
+					usage();
+				}
+				long l2 = System.currentTimeMillis();
+				if (!mainFrame.isSilentMode()) {
+					System.out.println(String.format("FINISH: %s", (new java.util.Date(l2)).toString()));
+					System.out.println(String.format("  Generate images takes %.2f secs.", ((double)(l2 - l1) / 1000d)));
+				}
+				System.exit(exitCode);
+			} else {
+				mainFrame.setVisible(true);
 			}
-			if (!mainFrame.generate()) {
-				exitCode = 1;
-				usage();
-			}
-			long l2 = System.currentTimeMillis();
-			if (!mainFrame.isSilentMode()) {
-				System.out.println(String.format("FINISH: %s", (new java.util.Date(l2)).toString()));
-				System.out.println(String.format("  Generate images takes %.2f secs.", ((double)(l2 - l1) / 1000d)));
-			}
-			System.exit(exitCode);
-		} else {
-			mainFrame.setVisible(true);
+		} catch (Throwable t) {
+			t.printStackTrace(System.err);
+			System.exit(1);
 		}
 	}
 
