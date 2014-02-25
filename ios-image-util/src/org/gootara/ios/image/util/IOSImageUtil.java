@@ -34,7 +34,7 @@ import org.gootara.ios.image.util.ui.MainFrame;
  */
 public class IOSImageUtil {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		try {
 			long l1 = System.currentTimeMillis();
 			MainFrame mainFrame = new MainFrame();
