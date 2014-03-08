@@ -367,11 +367,13 @@ public class MainFrame extends JFrame {
 				if (outputPath.getText().trim().length() > 0) {
 					File dir = new File(outputPath.getText());
 					if (dir.exists()) {
-						if (dir.getParentFile() != null) {
-							chooser.setCurrentDirectory(dir.getParentFile());
-						}
-						chooser.setSelectedFile(dir);
+						chooser.setCurrentDirectory(dir);
+					} else if (dir.getParentFile() != null && dir.getParentFile().exists()) {
+						chooser.setCurrentDirectory(dir.getParentFile());
 					}
+				} else {
+					File dir = getChosenDirectory();
+					if (dir != null) chooser.setCurrentDirectory(dir);
 				}
 				chooser.setApproveButtonText(getResource("button.approve", "Choose"));
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -455,12 +457,15 @@ public class MainFrame extends JFrame {
 		chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
 		if (textField.getText().trim().length() > 0) {
 			File f = new File(textField.getText());
+			if (f.getParentFile() != null && f.getParentFile().exists()) {
+				chooser.setCurrentDirectory(f.getParentFile());
+			}
 			if (f.exists()) {
-				if (f.getParentFile() != null) {
-					chooser.setCurrentDirectory(f.getParentFile());
-				}
 				chooser.setSelectedFile(f);
 			}
+		} else {
+			File dir = getChosenDirectory();
+			if (dir != null) chooser.setCurrentDirectory(dir);
 		}
 		chooser.setApproveButtonText(getResource("button.approve", "Choose"));
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -507,6 +512,29 @@ public class MainFrame extends JFrame {
 			return false;
 		}
 		return true;
+	}
+
+	private File getChosenDirectory() {
+		File dir = getChosenDirectory(icon7Path);
+		if (dir != null) return dir;
+		dir = getChosenDirectory(splashPath);
+		if (dir != null) return dir;
+		dir = getChosenDirectory(icon6Path);
+		if (dir != null) return dir;
+		dir = getChosenDirectory(outputPath);
+		if (dir != null) return dir;
+		return null;
+	}
+
+	private File getChosenDirectory(JTextField textField) {
+		if (textField == null || textField.getText().trim().length() <= 0) {
+			return null;
+		}
+		File f = new File(textField.getText());
+		if (!f.exists()) {
+			return null;
+		}
+		return f.isDirectory() ? f : f.getParentFile();
 	}
 
 	// for command line option switches.
