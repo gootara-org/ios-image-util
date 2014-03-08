@@ -589,7 +589,7 @@ public class MainFrame extends JFrame {
 	 */
 	private void handleException(Exception ex) {
 		ex.printStackTrace(System.err);
-		alert(ex.getMessage());
+		alert(ex.toString() + " (" + ex.getMessage() + ")");
 	}
 
 	/**
@@ -787,7 +787,7 @@ public class MainFrame extends JFrame {
 				// generate icons
 				for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
 					addProgress(1);
-					BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? icon6File.getImage() : icon7File.getImage();
+					BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (icon6File == null ? icon7File.getImage() : icon6File.getImage()) : icon7File.getImage();
 					if (image == null) continue;
 					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
 					if (asset.isIpad() && this.iPhoneOnly.isSelected()) continue;
