@@ -82,7 +82,7 @@ public class IOSImageUtil {
 		String argc = null;
 		boolean noerr = true;
 		try {
-			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-asset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm");
+			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-asset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor");
 			int i;
 
 			for (i = 0; i < args.length; i++) {
@@ -113,6 +113,16 @@ public class IOSImageUtil {
 				if (arg.equals("-lscale")) { i++; mainFrame.setSplashScaling(Integer.parseInt(args[i])); }
 				// hidden option.
 				if (arg.equals("-algorithm")) { i++; mainFrame.setScalingAlgorithm(Integer.parseInt(args[i])); }
+				if (arg.equals("-imagetype")) { i++; mainFrame.setImageType(Integer.parseInt(args[i])); }
+				if (arg.equals("-lbgcolor")) { i++; }
+			}
+
+			for (i = 0; i < args.length; i++) {
+				argc = args[i];
+				String arg = args[i].toLowerCase();
+				if (arg.startsWith("/")) arg = "-".concat(arg.substring(1));
+
+				if (arg.equals("-lbgcolor")) { i++; mainFrame.setSplashBackgroundColor(args[i]); }
 			}
 
 		} catch (ArrayIndexOutOfBoundsException ex) {
@@ -165,6 +175,8 @@ public class IOSImageUtil {
 		System.out.println("                                3: fit to the screen");
 		System.out.println("                                4: fill screen (prefer long side)");
 		System.out.println("                                5: fill screen (no aspect ratio)");
+		System.out.println("  -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent");
+		System.out.println("  -imagetype [0-13]           choose image type (@see BufferedImage)");
 	}
 
 }

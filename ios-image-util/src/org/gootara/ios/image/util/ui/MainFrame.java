@@ -32,9 +32,13 @@ import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -48,6 +52,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -72,10 +77,10 @@ import org.gootara.ios.image.util.IOSSplashAssetCatalogs;
  * @author gootara.org
  */
 public class MainFrame extends JFrame {
+	public static final String PLACEHOLDER_SPLASH_BGCOL = "(e.g. ffffff)";
 	private ResourceBundle resource;
-	private JTextField icon6Path, icon7Path, splashPath, outputPath;
-	private JComboBox scaleAlgorithm;
-	private JComboBox splashScaling;
+	private JTextField icon6Path, icon7Path, splashPath, outputPath, splashBackgroundColor;
+	private JComboBox scaleAlgorithm, splashScaling, imageType;
 	private ImagePanel icon6Image, icon7Image, splashImage;
 	private JProgressBar progress;
 	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs;
@@ -153,17 +158,6 @@ public class MainFrame extends JFrame {
 		scalePanel.add(scaleLabel);
 		scalePanel.add(scaleAlgorithm);
 
-		// Checkboxes and Radio Buttons.
-		JPanel radioPanel = new JPanel();
-		radioPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		radioPanel.add(this.iBoth = new JRadioButton(getResource("label.output.both", "Output Both"), true));
-		radioPanel.add(this.iPhoneOnly = new JRadioButton(getResource("label.iphone.only", "iPhone Only")));
-		radioPanel.add(this.iPadOnly = new JRadioButton(getResource("label.ipad.only", "iPad Only")));
-		ButtonGroup group = new ButtonGroup();
-		group.add(iBoth);
-		group.add(iPhoneOnly);
-		group.add(iPadOnly);
-
 		// Slpash Scaling
 		Vector<String> ssItems = new Vector<String>();
 		ssItems.add(getResource("item.splash.noresize", "No resizing(iPhone only)"));
@@ -182,18 +176,86 @@ public class MainFrame extends JFrame {
 		ssPanel.add(ssLabel);
 		ssPanel.add(splashScaling);
 
+		// choose image types
+		Vector<ComboBoxItem> imageTypes = new Vector<ComboBoxItem>();
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_CUSTOM         , "(same as source)"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_RGB        , "TYPE_INT_RGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_ARGB       , "TYPE_INT_ARGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_ARGB_PRE   , "TYPE_INT_ARGB_PRE"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_BGR        , "TYPE_INT_BGR"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_3BYTE_BGR      , "TYPE_3BYTE_BGR"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_4BYTE_ABGR     , "TYPE_4BYTE_ABGR"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_4BYTE_ABGR_PRE , "TYPE_4BYTE_ABGR_PRE"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_565_RGB , "TYPE_USHORT_565_RGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_555_RGB , "TYPE_USHORT_555_RGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_GRAY      , "TYPE_BYTE_GRAY"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_GRAY    , "TYPE_USHORT_GRAY"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_BINARY    , "TYPE_BYTE_BINARY"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_INDEXED   , "TYPE_BYTE_INDEXED"));
+		imageType = new JComboBox(imageTypes);
+		imageType.setFont(imageType.getFont().deriveFont(Font.PLAIN, 11.0f));
+		imageType.setSelectedIndex(0);
+		JPanel imageTypePanel = new JPanel();
+		imageTypePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		imageTypePanel.add(new JLabel(getResource("label.image.type", "Image Type:")));
+		imageTypePanel.add(imageType);
+
+		// specify launch image background color
+		splashBackgroundColor = new JTextField(8);
+		splashBackgroundColor.setFont(splashBackgroundColor.getFont().deriveFont(Font.PLAIN, 11.0f));
+		splashBackgroundColor.setToolTipText(getResource("tooltip.splash.bgcolor", "tooltip.splash.bgcolor"));
+		splashBackgroundColor.addFocusListener(new FocusListener() {
+			public void focusGained(FocusEvent e) {
+				if (splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
+					splashBackgroundColor.setText("");
+					splashBackgroundColor.setForeground(Color.BLACK);
+				}
+			}
+			public void focusLost(FocusEvent e) {
+				setSplashBackgroundColor(splashBackgroundColor.getText());
+			}
+		});
+		JButton splashBGColorButton = new JButton("...");
+		splashBGColorButton.setFont(splashBGColorButton.getFont().deriveFont(Font.PLAIN, 11.0f));
+		splashBGColorButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Color col = JColorChooser.showDialog(splashBackgroundColor, "Color Chooser", ImageUtil.stringToColor(splashBackgroundColor.getText()));
+				if (col != null) {
+					setSplashBackgroundColor(ImageUtil.colorToRgbString(col));
+				}
+			}
+		});
+		JPanel splashBGColorPanel = new JPanel();
+		splashBGColorPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		splashBGColorPanel.add(new JLabel(getResource("label.splash.bgcolor", "Launch image bgcolor:")));
+		splashBGColorPanel.add(splashBackgroundColor);
+		splashBGColorPanel.add(splashBGColorButton);
+
+		// Checkboxes and Radio Buttons.
+		JPanel radioPanel = new JPanel();
+		radioPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		radioPanel.add(this.iBoth = new JRadioButton(getResource("label.output.both", "Output Both"), true));
+		radioPanel.add(this.iPhoneOnly = new JRadioButton(getResource("label.iphone.only", "iPhone Only")));
+		radioPanel.add(this.iPadOnly = new JRadioButton(getResource("label.ipad.only", "iPad Only")));
+		ButtonGroup group = new ButtonGroup();
+		group.add(iBoth);
+		group.add(iPhoneOnly);
+		group.add(iPadOnly);
+
 		this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false);
 
 		JPanel settingPanel = new JPanel();
-		settingPanel.setLayout(new GridLayout(2, 2, 2, 0));
+		settingPanel.setLayout(new GridLayout(3, 2, 2, 2));
 		settingPanel.add(scalePanel);
 		settingPanel.add(ssPanel);
+		settingPanel.add(imageTypePanel);
+		settingPanel.add(splashBGColorPanel);
 		settingPanel.add(radioPanel);
 		settingPanel.add(this.generateOldSplashImages);
 
 		// Set Components for North Panel.
 		JPanel refPanel = new JPanel();
-		refPanel.setLayout(new GridLayout(3, 1, 2, 2));
+		refPanel.setLayout(new GridLayout(3, 1, 2, 0));
 		refPanel.add(icon6PathPanel);
 		refPanel.add(icon7PathPanel);
 		refPanel.add(splashPathPanel);
@@ -377,6 +439,9 @@ public class MainFrame extends JFrame {
 			@Override public void windowDeiconified(WindowEvent arg0) {}
 			@Override public void windowIconified(WindowEvent arg0) {}
 		});
+
+		// initial initialize
+		this.setSplashBackgroundColor("");
 	}
 
 	/**
@@ -406,7 +471,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	 * Set file path..
+	 * Set file path.
 	 *
 	 * @param textField		TextField to set the file path
 	 * @param f				File to set.
@@ -429,6 +494,10 @@ public class MainFrame extends JFrame {
 				if (outputPath.getText().trim().length() <= 0) {
 					File g = new File(f.getParentFile(), this.generateAsAssetCatalogs.isSelected() ? this.getResource("string.dir.assets", "Images.xcassets") : this.getResource("string.dir.generate", "generated"));
 					outputPath.setText(g.getCanonicalPath());
+				}
+				if (imagePanel == splashImage) {
+					int c = imageFile.getImage().getRGB(0, 0);
+					this.setSplashBackgroundColor(ImageUtil.colorToArgbString(new Color(ImageUtil.r(c), ImageUtil.g(c), ImageUtil.b(c), ImageUtil.a(c))));
 				}
 			}
 		} catch (Exception ex) {
@@ -458,6 +527,34 @@ public class MainFrame extends JFrame {
 	public boolean isVerboseMode() { return this.verboseMode; }
 	// hidden option.
 	public void setScalingAlgorithm(int idx) { scaleAlgorithm.setSelectedIndex(idx); }
+	public void setImageType(int idx) { imageType.setSelectedIndex(idx); }
+
+	/**
+	 * Set launch image background color.
+	 *
+	 * @param s color string
+	 */
+	public void setSplashBackgroundColor(String s) {
+		splashBackgroundColor.setText(s);
+		Color col = ImageUtil.stringToColor(s);
+		if (col == null) {
+			if (splashBackgroundColor.getText().trim().length() <= 0) {
+				splashBackgroundColor.setText(PLACEHOLDER_SPLASH_BGCOL);
+				splashBackgroundColor.setForeground(Color.LIGHT_GRAY);
+				splashBackgroundColor.setBackground(Color.WHITE);
+				splashImage.setBackground(null);
+			}
+		} else {
+			while (s.length() < 6) s = "0".concat(s);
+			if (s.length() > 8) s = s.substring(0, 8);
+			if (s.length() == 7) s = "0".concat(s);
+			col = ImageUtil.stringToColor(s);
+			splashBackgroundColor.setText(s);
+			splashBackgroundColor.setBackground(new Color(col.getRed(), col.getGreen(), col.getBlue()));
+			splashBackgroundColor.setForeground(col.getRed()+col.getGreen()+col.getBlue()>384?Color.BLACK:Color.WHITE);
+			splashImage.setBackground(splashBackgroundColor.getBackground());
+		}
+	}
 
 	/**
 	 * Add progress.
@@ -473,7 +570,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	 * Output the file path to System.out.
+	 * Output file path to System.out.
 	 *
 	 * @param f	File to output
 	 * @throws IOException
@@ -496,7 +593,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	 * Output message to System.out.
+	 * Show information message.
 	 *
 	 * @param message	message
 	 */
@@ -590,6 +687,12 @@ public class MainFrame extends JFrame {
 				alert(getResource("error.not.choosen.output.path", "Choose output dir."));
 				return false;
 			}
+			if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
+				if (ImageUtil.stringToColor(splashBackgroundColor.getText()) == null) {
+					alert("[" + splashBackgroundColor.getText() + "]" + getResource("error.illegal.bgcolor", "is illegal bgcolor."));
+					return false;
+				}
+			}
 
 			// Make sure output directory is exists.
 			outputDir = new File(outputPath.getText());
@@ -660,7 +763,7 @@ public class MainFrame extends JFrame {
 				}
 			}
 
-			// Write Images.
+			// start generate Images.
 			if (this.isBatchMode()) {
 				if (!this.isSilentMode() && !this.isVerboseMode()) {
 					System.out.print("0%");
@@ -773,16 +876,11 @@ public class MainFrame extends JFrame {
 		File f = new File(outputDir, info.getFilename());
 		int width = (int)info.getSize().getWidth();
 		int height = (int)info.getSize().getHeight();
-		BufferedImage buf = null;
-		try {
-			buf = new BufferedImage(width, height, src.getType() != BufferedImage.TYPE_CUSTOM && src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
-		} catch (IllegalArgumentException ex) {
-			buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		}
+		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();
 		buf.getGraphics().drawImage(src.getScaledInstance(width, height, hints), 0, 0, this);
 
-		ImageIO.write(buf, "png", f);
+		ImageIO.write(fixImageColor(buf, src), "png", f);
 		buf.flush();
 		buf = null;
 		if (this.isVisible() && !this.isBatchMode()) progress.paint(progress.getGraphics());
@@ -801,15 +899,14 @@ public class MainFrame extends JFrame {
 		File f = new File(outputDir, asset.getFilename());
 		int width = (int)asset.getIOSImageInfo().getSize().getWidth();
 		int height = (int)asset.getIOSImageInfo().getSize().getHeight();
-		BufferedImage buf = null;
-		try {
-			buf = new BufferedImage(width, height, src.getType() != BufferedImage.TYPE_CUSTOM && src.getColorModel().getPixelSize() > 8 ? src.getType() : BufferedImage.TYPE_INT_ARGB);
-		} catch (IllegalArgumentException ex) {
-			buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		}
+		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		int c = src.getRGB(0, 0);
 		Graphics g = buf.getGraphics();
 		g.setColor(new Color(ImageUtil.r(c), ImageUtil.g(c), ImageUtil.b(c), ImageUtil.a(c)));
+		if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
+			Color col = ImageUtil.stringToColor(splashBackgroundColor.getText());
+			if (col != null) g.setColor(col);
+		}
 		g.fillRect(0, 0, width, height);
 
 		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
@@ -836,11 +933,81 @@ public class MainFrame extends JFrame {
 		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();
 		buf.getGraphics().drawImage(src.getScaledInstance(w, h, hints), x, y, this);
 
-		ImageIO.write(buf, "png", f);
+		ImageIO.write(fixImageColor(buf, src), "png", f);
 		buf.flush();
 		buf = null;
 		if (this.isVisible() && !this.isBatchMode()) progress.paint(progress.getGraphics());
 		verbose(f);
+	}
+
+	/**
+	 * Apply source image type or combobox image type.
+	 *
+	 * @param buf buffered image
+	 * @param src source image
+	 * @return fixed image
+	 */
+	private BufferedImage fixImageColor(BufferedImage buf, BufferedImage src) {
+		try {
+			int srcColorType = src.getType();
+			int dstColorType = ((ComboBoxItem)imageType.getSelectedItem()).getItemValue();
+			if ((srcColorType != BufferedImage.TYPE_INT_ARGB && srcColorType != BufferedImage.TYPE_CUSTOM) || (dstColorType != BufferedImage.TYPE_INT_ARGB && dstColorType != BufferedImage.TYPE_CUSTOM)) {
+				BufferedImage tmp = null;
+				ColorModel cm = src.getColorModel();
+				if ((cm instanceof IndexColorModel) && cm.hasAlpha()) {
+					if (dstColorType != BufferedImage.TYPE_CUSTOM) {
+						tmp = new BufferedImage(1, 1, dstColorType);
+						if (tmp.getColorModel() instanceof IndexColorModel) {
+							tmp = new BufferedImage(buf.getWidth(), buf.getHeight(), srcColorType, (IndexColorModel)cm);
+						} else {
+							tmp = new BufferedImage(buf.getWidth(), buf.getHeight(), dstColorType);
+						}
+					} else {
+						tmp = new BufferedImage(buf.getWidth(), buf.getHeight(), srcColorType, (IndexColorModel)cm);
+					}
+				} else {
+					if (dstColorType != BufferedImage.TYPE_CUSTOM) {
+						tmp = new BufferedImage(buf.getWidth(), buf.getHeight(), dstColorType);
+						if (cm.hasAlpha() && (tmp.getColorModel() instanceof IndexColorModel)) {
+							// index color with transparent
+							tmp.getGraphics().drawImage(buf, 0, 0, this);
+							IndexColorModel icm = (IndexColorModel)tmp.getColorModel();
+							int mapSize = icm.getMapSize();
+							byte[] reds = new byte[mapSize];
+							byte[] greens = new byte[mapSize];
+							byte[] blues = new byte[mapSize];
+							icm.getReds(reds);
+							icm.getGreens(greens);
+							icm.getBlues(blues);
+							tmp.flush();
+							tmp = new BufferedImage(buf.getWidth(), buf.getHeight(), dstColorType, new IndexColorModel(8, mapSize, reds, greens, blues, 0));
+						}
+					} else {
+						tmp = new BufferedImage(buf.getWidth(), buf.getWidth(), srcColorType);
+					}
+				}
+				tmp.getGraphics().drawImage(buf, 0, 0, this);
+				if (cm.hasAlpha() && (tmp.getColorModel() instanceof IndexColorModel) && tmp.getColorModel().hasAlpha()) {
+					// fix transparent
+					ColorModel tmpColorModel = tmp.getColorModel();
+					for (int x = 0; x < buf.getWidth(); x++) {
+						for (int y = 0; y < buf.getHeight(); y++) {
+							int bufRGB = buf.getRGB(x, y);
+							if (bufRGB == 0) {
+								tmp.setRGB(x, y, 0);
+							} else if (tmpColorModel.getAlpha(tmp.getRGB(x, y)) == 0) {
+								tmp.setRGB(x, y, bufRGB);
+							}
+						}
+					}
+				}
+				buf.flush();
+				return tmp;
+			}
+		} catch (IllegalArgumentException ex) {
+			System.out.println("Failed apply color model. TYPE_INT_ARGB applied. (" + ex.getMessage() + ")");
+		}
+		return buf;
 	}
 
 	/**
@@ -1113,4 +1280,81 @@ class ImageUtil {
 	public static int argb(int a, int r, int g, int b) {
 		return a << 24 | r << 16 | g << 8 | b;
 	}
+
+	/**
+	 * String to Color.
+	 * The color specified in ARGB or RGB(hexadecimal). 'FFFFFF' white, '000000' black, '00FFFFFF' white 100% transparent.
+	 *
+	 * @param s	color string
+	 * @return color
+	 */
+	public static Color stringToColor(String s) {
+		if (s == null || s.trim().length() <= 0) {
+			return null;
+		}
+		if (s.toLowerCase().trim().equals(MainFrame.PLACEHOLDER_SPLASH_BGCOL)) {
+			return null;
+		}
+		if (s.toLowerCase().startsWith("0x")) {
+			s = s.substring(2);
+		}
+		try {
+			if (s.length() <= 6) {
+				return rgbStringToColor(s);
+			} else if (s.length() <= 8) {
+				return argbStringToColor(s);
+			}
+		} catch (Exception ex) {
+			// Illegal color. ignore.
+		}
+		return null;
+	}
+
+	/**
+	 * RGB string to Color.
+	 * 'FFFFFF' white, '000000' black.
+	 *
+	 * @param rgb RGB color string
+	 * @return color
+	 */
+	public static Color rgbStringToColor(String rgb) {
+		int c = Integer.parseInt(rgb, 16);
+		return new Color(r(c), g(c), b(c));
+	}
+
+	/**
+	 * ARGB string to Color.
+	 * '00FFFFFF' white 100% transparent.
+	 *
+	 * @param argb ARGB color string
+	 * @return color
+	 */
+	public static Color argbStringToColor(String argb) {
+		int c = (int)Long.parseLong(argb, 16);
+		return new Color(r(c), g(c), b(c), a(c));
+	}
+
+	/**
+	 * Color to RGB string.
+	 *
+	 * @param c color
+	 * @return RGB string
+	 */
+	public static String colorToRgbString(Color c) {
+		if (c == null) return "";
+		// not work. return String.format("%02h%02h%02h", c.getRed(), c.getGreen(), c.getBlue());
+		return String.format("%2h%2h%2h", c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0');
+	}
+
+	/**
+	 * Color to ARGB string.
+	 *
+	 * @param c color
+	 * @return ARGB string
+	 */
+	public static String colorToArgbString(Color c) {
+		if (c == null) return "";
+		return String.format("%2h%2h%2h%2h", c.getAlpha(), c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0');
+	}
+
 }

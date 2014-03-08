@@ -28,9 +28,9 @@ package org.gootara.ios.image.util;
  * @author gootara.org
  */
 public interface IOSAssetCatalogs {
-	/** Content.json header. */
+	/** Content.json header */
 	public static final String JSON_HEADER = "{\n  \"images\" : [\n";
-	/** Content.json footer. */
+	/** Content.json footer */
 	public static final String JSON_FOOTER = "\n  ],\n  \"info\" : {\n    \"version\" : 1,\n    \"author\" : \"xcode\"\n  }\n}";
 	public static final double SYSTEM_VERSION_ANY = 0.0d;
 	public static final double SYSTEM_VERSION_7   = 7.0d;
