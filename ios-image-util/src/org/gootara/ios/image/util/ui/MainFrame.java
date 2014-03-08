@@ -983,7 +983,7 @@ public class MainFrame extends JFrame {
 							tmp = new BufferedImage(buf.getWidth(), buf.getHeight(), dstColorType, new IndexColorModel(8, mapSize, reds, greens, blues, 0));
 						}
 					} else {
-						tmp = new BufferedImage(buf.getWidth(), buf.getWidth(), srcColorType);
+						tmp = new BufferedImage(buf.getWidth(), buf.getHeight(), srcColorType);
 					}
 				}
 				tmp.getGraphics().drawImage(buf, 0, 0, this);
