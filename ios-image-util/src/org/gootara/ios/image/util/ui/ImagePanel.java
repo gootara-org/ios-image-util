@@ -63,6 +63,7 @@ public class ImagePanel extends JPanel {
 		this.scaledImage = null;
 		this.setPlaceHolder(placeHolder);
 		this.setHyphenator("", "");
+		this.setForeground(new Color(128, 128, 128));
 
 		this.addComponentListener(new ComponentListener() {
 			@Override public void componentResized(ComponentEvent e) { createScaledImage(); repaint(); }
@@ -98,40 +99,40 @@ public class ImagePanel extends JPanel {
 
 	@Override public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-    	if(!isShowing()){
+		if(!isShowing()){
 			return;
-    	}
-    	if (image == null || scaledImage == null) {
-    		// Maybe padding, border and text-align will be implemented in some future.(but not need currently)
-    		FontMetrics fm = this.getFontMetrics(this.getFont());
-    		ArrayList<String> lines = this.getPlaceHolderLines(fm);
-    		int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + (fm.getAscent() / 2);
-    		for (String line : lines) {
-        		int x = (this.getWidth() - fm.stringWidth(line)) / 2;
-        		g.setColor(new Color(128, 128, 128));
-        		g.drawString(line, x, y);
-        		y += fm.getHeight();
-    		}
+		}
+		if (image == null || scaledImage == null) {
+			// Maybe padding, border and text-align will be implemented in some future.(but not need currently)
+			FontMetrics fm = this.getFontMetrics(this.getFont());
+			ArrayList<String> lines = this.getPlaceHolderLines(fm);
+			int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + (fm.getAscent() / 2);
+			for (String line : lines) {
+				int x = (this.getWidth() - fm.stringWidth(line)) / 2;
+				g.setColor(this.getForeground());
+				g.drawString(line, x, y);
+				y += fm.getHeight();
+			}
 
-    	} else {
-    		int x = (int) ((this.getWidth() - this.scaledImage.getWidth(this)) / 2);
-    		int y = (int) ((this.getHeight() - this.scaledImage.getHeight(this)) / 2);
-    		g.drawImage(scaledImage, x, y, this);
-    	}
-		g.setColor(new Color(128, 128, 128));
+		} else {
+			int x = (int) ((this.getWidth() - this.scaledImage.getWidth(this)) / 2);
+			int y = (int) ((this.getHeight() - this.scaledImage.getHeight(this)) / 2);
+			g.drawImage(scaledImage, x, y, this);
+		}
+		g.setColor(this.getForeground());
 		g.drawRect(0,  0, this.getWidth() - 1, this.getHeight() - 1);
-    }
+	}
 
-    @Override public Dimension getPreferredSize() {
-    	if (image == null) {
-    		return (new Dimension(0, 0));
-    	}
-    	return (new Dimension(image.getWidth(), image.getHeight()));
-    }
+	@Override public Dimension getPreferredSize() {
+		if (image == null) {
+			return (new Dimension(0, 0));
+		}
+		return (new Dimension(image.getWidth(), image.getHeight()));
+	}
 
-    @Override public void update(Graphics g) {
-    	paint(g);
-    }
+	@Override public void update(Graphics g) {
+		paint(g);
+	}
 
 	/**
 	 * Get the placeholder.
@@ -163,29 +164,29 @@ public class ImagePanel extends JPanel {
 		StringBuilder line = new StringBuilder();
 		Locale l = Locale.getDefault();
 		BreakIterator boundary = BreakIterator.getWordInstance(l.equals(Locale.JAPAN) || l.equals(Locale.JAPANESE) ? l : Locale.US);
-        boundary.setText(this.getPlaceHolder());
-        int startIndex = boundary.first();
-        for (int endIndex = boundary.next(); endIndex != BreakIterator.DONE; startIndex = endIndex, endIndex = boundary.next()) {
-        	String word = this.getPlaceHolder().substring(startIndex, endIndex);
-        	if (fm.stringWidth(line.toString()) + fm.stringWidth(word) > this.getWidth()) {
-        		// Very easy hyphenation. (just only one character)
-        		if (this.hyphenatorBoL != null && word.length() == 1 && this.hyphenatorBoL.indexOf(word.charAt(0)) >= 0) {
-        			line.append(word);
-        			word = new String();
-        		} else if (this.hyphnatorEoL != null && line.length() > 1 && this.hyphnatorEoL.indexOf(line.charAt(line.length() - 1)) >= 0) {
-        			word = line.substring(line.length() - 1).concat(word);
-        			line.setLength(line.length() - 1);
-        		}
-        		if (line.toString().replace('\u3000', ' ').trim().length() > 0) {
-        			lines.add(line.toString());
-        		}
-        		line.setLength(0);
-        	}
-        	line.append(word);
-        }
-        if (line.toString().replace('\u3000', ' ').trim().length() > 0) {
-        	lines.add(line.toString());
-        }
+		boundary.setText(this.getPlaceHolder());
+		int startIndex = boundary.first();
+		for (int endIndex = boundary.next(); endIndex != BreakIterator.DONE; startIndex = endIndex, endIndex = boundary.next()) {
+			String word = this.getPlaceHolder().substring(startIndex, endIndex);
+			if (fm.stringWidth(line.toString()) + fm.stringWidth(word) > this.getWidth()) {
+				// Very easy hyphenation. (just only one character)
+				if (this.hyphenatorBoL != null && word.length() == 1 && this.hyphenatorBoL.indexOf(word.charAt(0)) >= 0) {
+					line.append(word);
+					word = new String();
+				} else if (this.hyphnatorEoL != null && line.length() > 1 && this.hyphnatorEoL.indexOf(line.charAt(line.length() - 1)) >= 0) {
+					word = line.substring(line.length() - 1).concat(word);
+					line.setLength(line.length() - 1);
+				}
+				if (line.toString().replace('\u3000', ' ').trim().length() > 0) {
+					lines.add(line.toString());
+				}
+				line.setLength(0);
+			}
+			line.append(word);
+		}
+		if (line.toString().replace('\u3000', ' ').trim().length() > 0) {
+			lines.add(line.toString());
+		}
 		return lines;
 	}
 
@@ -225,7 +226,6 @@ public class ImagePanel extends JPanel {
 			this.scaledImage.flush();
 			this.scaledImage = null;
 		}
-		System.gc();
 	}
 
 	/**

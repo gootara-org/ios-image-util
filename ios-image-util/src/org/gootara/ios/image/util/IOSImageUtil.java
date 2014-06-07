@@ -39,6 +39,7 @@ public class IOSImageUtil {
 			long l1 = System.currentTimeMillis();
 			MainFrame mainFrame = new MainFrame();
 			mainFrame.setSize(640, 480);
+			mainFrame.setLocationByPlatform(true);
 
 			if (args.length > 0) {
 				if (!initialize(mainFrame, args)) {
