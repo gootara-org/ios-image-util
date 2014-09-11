@@ -83,9 +83,8 @@ public class IOSImageUtil {
 		String argc = null;
 		boolean noerr = true;
 		try {
-			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-asset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor");
+			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-noasset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor");
 			int i;
-			mainFrame.setGenerateAsAssetCatalogs(false);
 
 			for (i = 0; i < args.length; i++) {
 				argc = args[i];
@@ -94,7 +93,7 @@ public class IOSImageUtil {
 
 				if (arg.equals("-b") || arg.equals("-batch")) { mainFrame.setBatchMode(true); }
 				if (arg.equals("-v") || arg.equals("-verbose")) { mainFrame.setVerboseMode(true); }
-				if (arg.equals("-asset")) { mainFrame.setGenerateAsAssetCatalogs(true); }
+				if (arg.equals("-noasset")) { mainFrame.setGenerateAsAssetCatalogs(false); }
 				if (arg.equals("-h") || arg.equals("-help")) { usage(); return false; }
 			}
 
@@ -169,7 +168,7 @@ public class IOSImageUtil {
 		System.out.println("  -iphoneonly                 output iPhone images only (default all)");
 		System.out.println("  -ipadonly                   output iPad images only (default all)");
 		System.out.println("  -to-status-bar              generate 'to-status-bar' launch images");
-		System.out.println("  -asset                      generate images as asset catalogs");
+		System.out.println("  -noasset                    not generate images as asset catalogs");
 		System.out.println("  -lscale [0-5]               launch image scaling (default: 4)");
 		System.out.println("                                0: no resizing (iPhone only)");
 		System.out.println("                                1: no resizing (iPhone & iPad)");

@@ -95,7 +95,7 @@ COMMAND LINE OPTIONS:
     -iphoneonly                 output iPhone images only (default all)
     -ipadonly                   output iPad images only (default all)
     -to-status-bar              generate 'to-status-bar' launch images
-    -asset                      generate images as asset catalogs
+    -noasset                    not generate images as asset catalogs
     -lscale [0-5]               launch image scaling (default: 4)
                                   0: no resizing (iPhone only)
                                   1: no resizing (iPhone & iPad)
