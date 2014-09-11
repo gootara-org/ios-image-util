@@ -30,11 +30,14 @@ OUTPUT:
 |            |  ~6.x   | Icon@2x.png                    |   114  |    114  |
 |            |  ~7.x~  | Icon-Small.png                 |    29  |     29  |
 |            |  ~7.x~  | Icon-Small@2x.png              |    58  |     58  |
+|            |  ~8.x~  | Icon-Small@3x.png              |    87  |     87  |
 |            |   7.x~  | Icon-Small-40.png              |    40  |     40  |
 |            |   7.x~  | Icon-Small-40@2x.png           |    80  |     80  |
+|            |   8.x~  | Icon-Small-40@3x.png           |   120  |    120  |
 |            |  ~6.x   | Icon-Small-50.png              |    50  |     50  |
 |            |  ~6,x   | Icon-Small-50@2x.png           |   100  |    100  |
 |            |   7.x~  | Icon-60@2x.png                 |   120  |    120  |
+|            |   8.x~  | Icon-60@3x.png                 |   180  |    180  |
 |            |  ~6.x   | Icon-72.png                    |    72  |     72  |
 |            |  ~6.x   | Icon-72@2x.png                 |   144  |    144  |
 |            |   7.x~  | Icon-76.png                    |    76  |     76  |
