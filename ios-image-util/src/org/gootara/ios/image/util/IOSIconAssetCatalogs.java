@@ -31,10 +31,13 @@ package org.gootara.ios.image.util;
 public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	IPHONE_29   (IOSIconInfo.ICON_29   , iPhone , SYSTEM_VERSION_ANY),
 	IPHONE_29x2 (IOSIconInfo.ICON_29x2 , iPhone , SYSTEM_VERSION_7),
+	IPHONE_29x3 (IOSIconInfo.ICON_29x3 , iPhone , SYSTEM_VERSION_8),
 	IPHONE_40x2 (IOSIconInfo.ICON_40x2 , iPhone , SYSTEM_VERSION_7),
+	IPHONE_40x3 (IOSIconInfo.ICON_40x3 , iPhone , SYSTEM_VERSION_8),
 	IPHONE_57   (IOSIconInfo.ICON_57   , iPhone , SYSTEM_VERSION_ANY),
 	IPHONE_57x2 (IOSIconInfo.ICON_57x2 , iPhone , SYSTEM_VERSION_ANY),
 	IPHONE_60x2 (IOSIconInfo.ICON_60x2 , iPhone , SYSTEM_VERSION_7),
+	IPHONE_60x3 (IOSIconInfo.ICON_60x3 , iPhone , SYSTEM_VERSION_8),
 	IPAD_29   (IOSIconInfo.ICON_29   , iPad , SYSTEM_VERSION_7),
 	IPAD_29x2 (IOSIconInfo.ICON_29x2 , iPad , SYSTEM_VERSION_7),
 	IPAD_40   (IOSIconInfo.ICON_40   , iPad , SYSTEM_VERSION_7),
@@ -49,8 +52,8 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 
 	private IOSImageInfo info;
 	private String idiom;
-	private double minimumSystemVersion;
-	private IOSIconAssetCatalogs(IOSImageInfo info, String idiom, double minimumSystemVersion) {
+	private float minimumSystemVersion;
+	private IOSIconAssetCatalogs(IOSImageInfo info, String idiom, float minimumSystemVersion) {
 		this.info = info;
 		this.idiom = idiom;
 		this.minimumSystemVersion = minimumSystemVersion;
@@ -58,14 +61,14 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 
 	@Override public IOSImageInfo getIOSImageInfo() { return this.info; }
 	@Override public String getIdiom() { return this.idiom; }
-	@Override public double getMinimumSystemVersion() { return this.minimumSystemVersion; }
+	@Override public float getMinimumSystemVersion() { return this.minimumSystemVersion; }
 	@Override public String getFilename() { return info.getFilename(); }
-	@Override public String getScale() { return (info.isRetina() ? "2x" : "1x"); }
+	@Override public String getScale() { return (String.format("%dx", info.getScale())); }
 	@Override public boolean isIphone() { return this.getIdiom().equals(iPhone); }
 	@Override public boolean isIpad() { return this.getIdiom().equals(iPad); }
 	@Override public String toJson() {
 		StringBuilder sb = new StringBuilder("    {\n");
-		sb.append(String.format("      \"size\" : \"%dx%d\",\n", info.getSize().width / (info.isRetina() ? 2 : 1), info.getSize().height / (info.isRetina() ? 2 : 1)));
+		sb.append(String.format("      \"size\" : \"%dx%d\",\n", info.getSize().width / info.getScale(), info.getSize().height / info.getScale()));
 		sb.append(String.format("      \"idiom\" : \"%s\",\n", this.getIdiom()));
 		sb.append(String.format("      \"filename\" : \"%s\",\n", info.getFilename()));
 		sb.append(String.format("      \"scale\" : \"%s\"\n", this.getScale()));

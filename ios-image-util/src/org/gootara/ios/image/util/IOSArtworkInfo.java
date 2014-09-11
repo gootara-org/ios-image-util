@@ -31,20 +31,20 @@ import java.awt.Dimension;
  * @see org.gootara.ios.image.util.IOSImageInfo
  */
 public enum IOSArtworkInfo implements IOSImageInfo {
-    //                 filename                width    height  retina      description
-    ITUNES_ARTWORK(   "iTunesArtwork"         , 512   , 512   , false ), // -
-    ITUNES_ARTWORKx2( "iTunesArtwork@2x"      , 1024  , 1024  , true  ), // -
+    //                 filename                width    height  scale      description
+    ITUNES_ARTWORK(   "iTunesArtwork"         , 512   , 512   , 1     ), // -
+    ITUNES_ARTWORKx2( "iTunesArtwork@2x"      , 1024  , 1024  , 2     ), // -
 	;
 
 	private String filename;
 	private Dimension size;
-	private boolean retina;
-	private IOSArtworkInfo(String filename, int width, int height, boolean retina) {
+	private int scale;
+	private IOSArtworkInfo(String filename, int width, int height, int scale) {
 		this.filename = filename;
 		this.size = new Dimension(width, height);
-		this.retina = retina;
+		this.scale = scale;
 	}
 	@Override public String getFilename() { return this.filename; }
 	@Override public Dimension getSize() { return this.size; }
-	@Override public boolean isRetina() { return this.retina; }
+	@Override public int getScale() { return this.scale; }
 }

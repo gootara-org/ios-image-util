@@ -168,7 +168,7 @@ public class MainFrame extends JFrame {
 		ssItems.add(getResource("item.splash.noaspectratio", "Fit to launch image size(no aspect ratio)"));
 		splashScaling = new JComboBox(ssItems);
 		splashScaling.setFont(splashScaling.getFont().deriveFont(Font.PLAIN, 11.0f));
-		splashScaling.setSelectedIndex(2);
+		splashScaling.setSelectedIndex(4);
 		splashScaling.setToolTipText(getResource("tooltip.splash.scaling", "The Non-Retina images will be scaled down in the fixed 50%, even if 'No resizing' is selected."));
 		JLabel ssLabel = new JLabel(getResource("label.splash.image", "Splash:"));
 		JPanel ssPanel = new JPanel();
@@ -278,7 +278,7 @@ public class MainFrame extends JFrame {
 					if (canImport(support)) {
 						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 						if (list instanceof List) {
-							Object file = ((List)list).get(0);
+							Object file = ((List<?>)list).get(0);
 							if (file instanceof File) {
 								setFilePath(icon6Path, (File)file, icon6Image);
 							}
@@ -303,7 +303,7 @@ public class MainFrame extends JFrame {
 					if (canImport(support)) {
 						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 						if (list instanceof List) {
-							Object file = ((List)list).get(0);
+							Object file = ((List<?>)list).get(0);
 							if (file instanceof File) {
 								setFilePath(icon7Path, (File)file, icon7Image);
 							}
@@ -328,7 +328,7 @@ public class MainFrame extends JFrame {
 					if (canImport(support)) {
 						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 						if (list instanceof List) {
-							Object file = ((List)list).get(0);
+							Object file = ((List<?>)list).get(0);
 							if (file instanceof File) {
 								setFilePath(splashPath, (File)file, splashImage);
 							}
@@ -386,7 +386,7 @@ public class MainFrame extends JFrame {
 
 		// Generate Button and Progress Bar.
 
-		this.generateAsAssetCatalogs = new JCheckBox(getResource("label.generate.as.asset.catalogs", "Generate As Asset Catalogs"), false);
+		this.generateAsAssetCatalogs = new JCheckBox(getResource("label.generate.as.asset.catalogs", "Generate As Asset Catalogs"), true);
 		this.generateAsAssetCatalogs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -681,7 +681,7 @@ public class MainFrame extends JFrame {
 	 * @return true - sucess / false - failed
 	 */
 	public boolean generate() {
-		double targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
+		float targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
 
 		try {
 			if (icon6Path.getText().trim().length() <= 0 && icon7Path.getText().trim().length() <= 0 && splashPath.getText().trim().length() <= 0) {
@@ -856,7 +856,7 @@ public class MainFrame extends JFrame {
 					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
 					if (asset.isIpad() && this.iPhoneOnly.isSelected()) continue;
 					if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
-					if (asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !this.generateOldSplashImages.isSelected()) continue;
+					if (asset.getExtent() != null && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !this.generateOldSplashImages.isSelected()) continue;
 
 					if (this.generateAsAssetCatalogs.isSelected()) {
 						if (buffer.length() > 0) buffer.append(",\n");
@@ -940,10 +940,10 @@ public class MainFrame extends JFrame {
 		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
 		if (splashScaling.getSelectedIndex() == 0) {
 			// No resizing(iPhone only)
-			if (asset.isIphone()) p = asset.getIOSImageInfo().isRetina() ? 1.0d : 0.5d;
+			if (asset.isIphone()) p = asset.getIOSImageInfo().getScale() > 1 ? 1.0d : 0.5d;
 		} else if (splashScaling.getSelectedIndex() == 1) {
 			// No resizing(iPhone & iPad)
-			p = asset.getIOSImageInfo().isRetina() ? 1.0d : 0.5d;
+			p = asset.getIOSImageInfo().getScale() > 1 ? 1.0d : 0.5d;
 		} else if (splashScaling.getSelectedIndex() == 2) {
 			// Fit to the screen height(iPhone only)
 			if (asset.isIphone()) p = (double)height / (double)src.getHeight();

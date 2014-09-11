@@ -49,5 +49,12 @@ public interface IOSImageInfo {
 	 *
 	 * @return true - for retina / false - not for retina
 	 */
-	public boolean isRetina();
+//	public boolean isRetina();
+
+	/**
+	 * Get image scale.
+	 *
+	 * @return scale
+	 */
+	public int getScale();
 }

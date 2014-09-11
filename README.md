@@ -97,10 +97,10 @@ COMMAND LINE OPTIONS:
     -ipadonly                   output iPad images only (default all)
     -to-status-bar              generate 'to-status-bar' launch images
     -asset                      generate images as asset catalogs
-    -lscale [0-3]               launch image scaling
+    -lscale [0-5]               launch image scaling (default: 4)
                                   0: no resizing (iPhone only)
                                   1: no resizing (iPhone & iPad)
-                                  2: fit to the screen height (default)
+                                  2: fit to the screen height
                                   3: fit to the screen
                                   4: fill screen (prefer long side)
                                   5: fill screen (no aspect ratio)
@@ -144,6 +144,8 @@ CHANGE LOG:
 - Add output image type option.
 - Update documents.
 
-
+2014/09/11
+- Support iPhone 6 and iPhone 6 Plus.
+- Apple will no longer support Launch Images in the near future, maybe.
 
 

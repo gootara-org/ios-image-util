@@ -32,8 +32,9 @@ public interface IOSAssetCatalogs {
 	public static final String JSON_HEADER = "{\n  \"images\" : [\n";
 	/** Content.json footer */
 	public static final String JSON_FOOTER = "\n  ],\n  \"info\" : {\n    \"version\" : 1,\n    \"author\" : \"xcode\"\n  }\n}";
-	public static final double SYSTEM_VERSION_ANY = 0.0d;
-	public static final double SYSTEM_VERSION_7   = 7.0d;
+	public static final float SYSTEM_VERSION_ANY = 0.0f;
+	public static final float SYSTEM_VERSION_7   = 7.0f;
+	public static final float SYSTEM_VERSION_8   = 8.0f;
 	static final String iPhone = "iphone";
 	static final String iPad = "ipad";
 
@@ -57,7 +58,7 @@ public interface IOSAssetCatalogs {
 	 *
 	 * @return minimum system version
 	 */
-	public double getMinimumSystemVersion();
+	public float getMinimumSystemVersion();
 
 	/**
 	 * Get image filename.
