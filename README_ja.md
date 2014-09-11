@@ -31,7 +31,7 @@ OUTPUT:
 |            |  ~6.x   | Icon@2x.png                    |   114  |    114  |
 |            |  ~7.x~  | Icon-Small.png                 |    29  |     29  |
 |            |  ~7.x~  | Icon-Small@2x.png              |    58  |     58  |
-|            |  ~8.x~  | Icon-Small@3x.png              |    87  |     87  |
+|            |   8.x~  | Icon-Small@3x.png              |    87  |     87  |
 |            |   7.x~  | Icon-Small-40.png              |    40  |     40  |
 |            |   7.x~  | Icon-Small-40@2x.png           |    80  |     80  |
 |            |   8.x~  | Icon-Small-40@3x.png           |   120  |    120  |
