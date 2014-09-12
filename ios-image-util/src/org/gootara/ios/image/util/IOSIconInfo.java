@@ -61,6 +61,5 @@ public enum IOSIconInfo implements IOSImageInfo {
 	}
 	@Override public String getFilename() { return this.filename; }
 	@Override public Dimension getSize() { return this.size; }
-	//@Override public boolean isRetina() { return this.retina; }
 	@Override public int getScale() { return this.scale; }
 }

@@ -3,10 +3,10 @@ ios-image-util
 
 OVERVIEW:
 ---------
-This tiny java application generate all size of icon & launch image png files those are required for iOS7, iOS6 or prior.
+This tiny java application generate all size of icon & launch image png files those are required for various version of iOS.
 
-The icon files will be generated from only two png files(one for iOS7, another for iOS6 or prior),
-or the icon files for all version of iOS can be generated from just one icon file if you do not care the corner of icon which will be slightly shifted.
+The icon files will be generated from only two png files(one for iOS 7 or higher, another for iOS 6 or lower),
+or the icon files for all version of iOS can be generated from just one icon file if you do not care the corner of the icon which will be slightly shifted.
 Maybe only one icon png file will be enough in most cases.
 
 And a square png file(1536 x 1536 pixels) is fine for the launch images.
@@ -17,7 +17,7 @@ Some scaling options are provided for the launch images.
 
 Support output with "Asset Catalogs" format.
 
-Each setting can be specified by using command line options.
+Each settings can be specified by using command line options.
 And generate process can be automated by using command line options with no gui.
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true "GUI")

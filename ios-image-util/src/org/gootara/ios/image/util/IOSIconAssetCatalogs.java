@@ -68,7 +68,7 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	@Override public boolean isIpad() { return this.getIdiom().equals(iPad); }
 	@Override public String toJson() {
 		StringBuilder sb = new StringBuilder("    {\n");
-		sb.append(String.format("      \"size\" : \"%dx%d\",\n", info.getSize().width / info.getScale(), info.getSize().height / info.getScale()));
+		sb.append(String.format("      \"size\" : \"%dx%d\",\n", new Float(info.getSize().width / info.getScale()).intValue(), new Float(info.getSize().height / info.getScale()).intValue()));
 		sb.append(String.format("      \"idiom\" : \"%s\",\n", this.getIdiom()));
 		sb.append(String.format("      \"filename\" : \"%s\",\n", info.getFilename()));
 		sb.append(String.format("      \"scale\" : \"%s\"\n", this.getScale()));

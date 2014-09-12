@@ -81,7 +81,7 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 			sb.append(String.format("      \"extent\" : \"%s\",\n", this.getExtent()));
 		}
 		if (this.minimumSystemVersion > SYSTEM_VERSION_ANY) {
-			sb.append(String.format("      \"minimum-system-version\" : \"%s\",\n", String.format("%.1f", this.getMinimumSystemVersion())));
+			sb.append(String.format("      \"minimum-system-version\" : \"%.1f\",\n", this.getMinimumSystemVersion()));
 		}
 		sb.append(String.format("      \"filename\" : \"%s\",\n", info.getFilename()));
 		if (subtype != null) {
