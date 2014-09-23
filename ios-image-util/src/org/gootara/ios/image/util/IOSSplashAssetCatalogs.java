@@ -29,6 +29,12 @@ package org.gootara.ios.image.util;
  * @see org.gootara.ios.image.util.IOSAssetCatalogs
  */
 public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
+
+    // iOS8 and iPhone 6 upper
+    IPHONE8_736x3           (IOSSplashInfo.SPLASH_736x3           , iPhone, SYSTEM_VERSION_8, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, IOSSplashAssetCatalogs.SUBTYPE_736H),
+    IPHONE8_LANDSCAPE_736x3 (IOSSplashInfo.SPLASH_LANDSCAPE_736x3 , iPhone, SYSTEM_VERSION_8, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, IOSSplashAssetCatalogs.SUBTYPE_736H),
+    IPHONE8_667x2           (IOSSplashInfo.SPLASH_667x2           , iPhone, SYSTEM_VERSION_8, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, IOSSplashAssetCatalogs.SUBTYPE_667H),
+
 	// iOS7 or posterior
 	IPHONE7_480x2 (IOSSplashInfo.SPLASH_480x2 , iPhone , SYSTEM_VERSION_7, null, null),
 	IPHONE7_568x2 (IOSSplashInfo.SPLASH_568x2 , iPhone , SYSTEM_VERSION_7, null, IOSSplashAssetCatalogs.SUBTYPE_RETINA4),
@@ -53,6 +59,8 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 	public final static String EXTENT_FULL_SCREEN   = "full-screen";
 	public final static String EXTENT_TO_STATUS_BAR = "to-status-bar";
 	public final static String SUBTYPE_RETINA4 = "retina4";
+	public final static String SUBTYPE_667H    = "667h";
+	public final static String SUBTYPE_736H    = "736h";
 	private IOSImageInfo info;
 	private String idiom;
 	private String extent;

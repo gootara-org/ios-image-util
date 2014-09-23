@@ -35,6 +35,9 @@ public enum IOSSplashInfo implements IOSImageInfo {
     SPLASH_480             ( "Default.png"                   , 320   , 480   , 1    ), // iPhone 3G / 3GS
     SPLASH_480x2           ( "Default@2x.png"                , 640   , 960   , 2    ), // iPhone4 / 4S
     SPLASH_568x2           ( "Default-568h@2x.png"           , 640   , 1136  , 2    ), // iPhone 5 or later
+    SPLASH_667x2           ( "Default-667h@2x.png"           , 750   , 1334  , 2    ), // iPhone 6 Retina HD 4.7
+    SPLASH_736x3           ( "Default-736h@3x.png"           , 1242  , 2208  , 3    ), // iPhone 6 Plus Retina HD 5.5 Portrait
+    SPLASH_LANDSCAPE_736x3 ( "Default-Landscape-736h@3x.png" , 2208  , 1242  , 3    ), // iPhone 6 Plus Retina HD 5.5 Landscape
     SPLASH_PORTRAIT        ( "Default-Portrait~ipad.png"     , 768   , 1024  , 1    ), // iPad / iPad2 / iPad mini
     SPLASH_PORTRAITx2      ( "Default-Portrait@2x~ipad.png"  , 1536  , 2048  , 2    ), // iPad 3 or later
     SPLASH_LANDSCAPE       ( "Default-Landscape~ipad.png"    , 1024  , 768   , 1    ), // iPad / iPad2 / iPad mini

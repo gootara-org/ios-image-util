@@ -151,4 +151,6 @@ CHANGE LOG:
 - Support iPhone 6 and iPhone 6 Plus.
 - Apple will no longer support Launch Images in the near future, maybe.
 
+2014/09/23
+- Support Launch Image Retina HD 4.7 and Retina HD 5.5 (both portrait and landscape)
 
