@@ -63,7 +63,7 @@ public class ImagePanel extends JPanel {
 		this.scaledImage = null;
 		this.setPlaceHolder(placeHolder);
 		this.setHyphenator("", "");
-		this.setForeground(new Color(128, 128, 128));
+		this.setForeground(new Color(0x8E8E93));
 
 		this.addComponentListener(new ComponentListener() {
 			@Override public void componentResized(ComponentEvent e) { createScaledImage(); repaint(); }
@@ -106,7 +106,7 @@ public class ImagePanel extends JPanel {
 			// Maybe padding, border and text-align will be implemented in some future.(but not need currently)
 			FontMetrics fm = this.getFontMetrics(this.getFont());
 			ArrayList<String> lines = this.getPlaceHolderLines(fm);
-			int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + (fm.getAscent() / 2);
+			int y = (this.getHeight() / 2) - ((fm.getHeight() * lines.size()) / 2) + fm.getAscent();
 			for (String line : lines) {
 				int x = (this.getWidth() - fm.stringWidth(line)) / 2;
 				g.setColor(this.getForeground());
@@ -159,15 +159,36 @@ public class ImagePanel extends JPanel {
 	 * @return the placeholder which is divided by width and words.
 	 */
 	public ArrayList<String> getPlaceHolderLines(FontMetrics fm) {
-		// I tried to write a little seriously.
+		// Separate by line.
+		ArrayList<String> lines = new ArrayList<String>();
+		if (this.getPlaceHolder() == null || this.getPlaceHolder().isEmpty()) return lines;
+		String[] text = this.getPlaceHolder().split("[\r\n]");
+		for (String t : text) {
+			if (t.trim().isEmpty()) {
+				lines.add("");
+			} else {
+				lines.addAll(this.splitText(t, fm));
+			}
+		}
+		return lines;
+	}
+	
+	/**
+	 * Split text into display lines.
+	 * 
+	 * @param text	text for split
+	 * @param fm	FontMetrics
+	 * @return	splitted text into display lines
+	 */
+	private ArrayList<String> splitText(String text, FontMetrics fm) {
 		ArrayList<String> lines = new ArrayList<String>();
 		StringBuilder line = new StringBuilder();
 		Locale l = Locale.getDefault();
 		BreakIterator boundary = BreakIterator.getWordInstance(l.equals(Locale.JAPAN) || l.equals(Locale.JAPANESE) ? l : Locale.US);
-		boundary.setText(this.getPlaceHolder());
+		boundary.setText(text);
 		int startIndex = boundary.first();
 		for (int endIndex = boundary.next(); endIndex != BreakIterator.DONE; startIndex = endIndex, endIndex = boundary.next()) {
-			String word = this.getPlaceHolder().substring(startIndex, endIndex);
+			String word = text.substring(startIndex, endIndex);
 			if (fm.stringWidth(line.toString()) + fm.stringWidth(word) > this.getWidth()) {
 				// Very easy hyphenation. (just only one character)
 				if (this.hyphenatorBoL != null && word.length() == 1 && this.hyphenatorBoL.indexOf(word.charAt(0)) >= 0) {

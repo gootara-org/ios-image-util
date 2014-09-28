@@ -22,6 +22,8 @@ And generate process can be automated by using command line options with no gui.
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true "GUI")
 
+![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/settings.png?raw=true "Settings")
+
 OUTPUT:
 -------
 | Type       | iOS Ver | Filename                       | Width  | Height  |
@@ -153,4 +155,9 @@ CHANGE LOG:
 
 2014/09/23
 - Support Launch Image Retina HD 4.7 and Retina HD 5.5 (both portrait and landscape)
+
+2014/09/28
+- Simplified User Interface. Just add a surface, but it looks little bit modern, isn't it? :p
+- To use SwingWorker thread with generating images.
+
 

@@ -24,18 +24,25 @@ package org.gootara.ios.image.util.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
@@ -50,6 +57,7 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
@@ -57,12 +65,21 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.SpringLayout;
+import javax.swing.SwingConstants;
+import javax.swing.SwingWorker;
+import javax.swing.Timer;
 import javax.swing.TransferHandler;
+import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.gootara.ios.image.util.IOSArtworkInfo;
@@ -85,78 +102,88 @@ public class MainFrame extends JFrame {
 	private JProgressBar progress;
 	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs;
 	private JRadioButton iPhoneOnly, iPadOnly, iBoth;
+	private JButton generateButton, settingsButton, cancelButton;
+	private JLabel outputPathDisplay;
+	private SimpleShutterAnimation animator;
 	private boolean batchMode = false;
 	private boolean silentMode = false;
 	private boolean verboseMode = false;
+	private boolean cancelRequested = false;
 
 	/**
 	 * Constructor.
 	 */
 	public MainFrame() {
 		resource = ResourceBundle.getBundle("application");
-
 		this.setTitle(getResource("window.title", "iOS Image Util"));
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setLayout(new BorderLayout());
+
+		final JLayeredPane layeredPane = new JLayeredPane();
+		layeredPane.setPreferredSize(new Dimension(640, 240));
+		this.add(layeredPane, BorderLayout.NORTH);
+
+		final JPanel settings = new JPanel();
+		settings.setPreferredSize(layeredPane.getPreferredSize());
+		layeredPane.add(settings, JLayeredPane.DEFAULT_LAYER);
 
 		// iOS6 Icon Path.
+		JLabel icon6Label = new JLabel(getResource("label.icon6.path", " iOS6 Icon PNG (1024x1024):"), SwingConstants.RIGHT);
 		icon6Path = new JTextField();
 		JButton refIcon6Path = new JButton("...");
-		JPanel icon6PathPanel = new JPanel();
-		JLabel icon6Label = new JLabel(getResource("label.icon6.path", " iOS6 Icon PNG (1024x1024):"));
-		icon6PathPanel.setLayout(new BorderLayout(2, 2));
-		icon6PathPanel.add(icon6Label, BorderLayout.WEST);
-		icon6PathPanel.add(icon6Path, BorderLayout.CENTER);
-		icon6PathPanel.add(refIcon6Path, BorderLayout.EAST);
 		refIcon6Path.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(icon6Path, icon6Image);
 			}
 		});
+		settings.add(icon6Label);
+		settings.add(icon6Path);
+		settings.add(refIcon6Path);
 
 		// iOS7 Icon Path.
+		JLabel icon7Label = new JLabel(getResource("label.icon7.path", " iOS7 Icon PNG (1024x1024):"), SwingConstants.RIGHT);
 		icon7Path = new JTextField();
 		JButton refIcon7Path = new JButton("...");
-		JPanel icon7PathPanel = new JPanel();
-		JLabel icon7Label = new JLabel(getResource("label.icon7.path", " iOS7 Icon PNG (1024x1024):"));
-		icon7PathPanel.setLayout(new BorderLayout(2, 2));
-		icon7PathPanel.add(icon7Label, BorderLayout.WEST);
-		icon7PathPanel.add(icon7Path, BorderLayout.CENTER);
-		icon7PathPanel.add(refIcon7Path, BorderLayout.EAST);
 		refIcon7Path.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(icon7Path, icon7Image);
 			}
 		});
+		settings.add(icon7Label);
+		settings.add(icon7Path);
+		settings.add(refIcon7Path);
 
 		// Splash Image Path.
+		JLabel splashLabel = new JLabel(getResource("label.splash.path", "      Splash PNG (2048x2048):"), SwingConstants.RIGHT);
 		splashPath = new JTextField();
 		JButton refSplashPath = new JButton("...");
-		JPanel splashPathPanel = new JPanel();
-		JLabel splashLabel = new JLabel(getResource("label.splash.path", "      Splash PNG (2048x2048):"));
-		splashPathPanel.setLayout(new BorderLayout(2, 2));
-		splashPathPanel.add(splashLabel, BorderLayout.WEST);
-		splashPathPanel.add(splashPath, BorderLayout.CENTER);
-		splashPathPanel.add(refSplashPath, BorderLayout.EAST);
 		refSplashPath.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(splashPath, splashImage);
 			}
 		});
+		settings.add(splashLabel);
+		settings.add(splashPath);
+		settings.add(refSplashPath);
+		JSeparator separatorNorth = new JSeparator(JSeparator.HORIZONTAL);
+		settings.add(separatorNorth);
 
 		// Scaling Algorithm.
 		Vector<ComboBoxItem> items = new Vector<ComboBoxItem>();
-		items.add(new ComboBoxItem(Image.SCALE_AREA_AVERAGING, "SCALE_AREA_AVERAGING"));
-		items.add(new ComboBoxItem(Image.SCALE_DEFAULT, "SCALE_DEFAULT"));
-		items.add(new ComboBoxItem(Image.SCALE_FAST, "SCALE_FAST"));
-		items.add(new ComboBoxItem(Image.SCALE_REPLICATE, "SCALE_REPLICATE"));
-		items.add(new ComboBoxItem(Image.SCALE_SMOOTH, "SCALE_SMOOTH"));
+		items.add(new ComboBoxItem(Image.SCALE_AREA_AVERAGING, "AREA_AVERAGING"));
+		items.add(new ComboBoxItem(Image.SCALE_DEFAULT, "DEFAULT"));
+		items.add(new ComboBoxItem(Image.SCALE_FAST, "FAST"));
+		items.add(new ComboBoxItem(Image.SCALE_REPLICATE, "REPLICATE"));
+		items.add(new ComboBoxItem(Image.SCALE_SMOOTH, "SMOOTH"));
 		scaleAlgorithm = new JComboBox(items);
 		scaleAlgorithm.setFont(scaleAlgorithm.getFont().deriveFont(Font.PLAIN, 11.0f));
 		scaleAlgorithm.setSelectedIndex(4);
-		JLabel scaleLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
-		JPanel scalePanel = new JPanel();
-		scalePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		scalePanel.add(scaleLabel);
-		scalePanel.add(scaleAlgorithm);
+		JLabel scaleAlgorithmLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
+		JPanel scaleAlgorithmPanel = new JPanel();
+		scaleAlgorithmPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		scaleAlgorithmPanel.add(scaleAlgorithmLabel);
+		scaleAlgorithmPanel.add(scaleAlgorithm);
+		settings.add(scaleAlgorithmPanel);
 
 		// Slpash Scaling
 		Vector<String> ssItems = new Vector<String>();
@@ -170,35 +197,38 @@ public class MainFrame extends JFrame {
 		splashScaling.setFont(splashScaling.getFont().deriveFont(Font.PLAIN, 11.0f));
 		splashScaling.setSelectedIndex(4);
 		splashScaling.setToolTipText(getResource("tooltip.splash.scaling", "The Non-Retina images will be scaled down in the fixed 50%, even if 'No resizing' is selected."));
-		JLabel ssLabel = new JLabel(getResource("label.splash.image", "Splash:"));
-		JPanel ssPanel = new JPanel();
-		ssPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		ssPanel.add(ssLabel);
-		ssPanel.add(splashScaling);
+		JLabel splashScalingLabel = new JLabel(getResource("label.splash.image", "Splash:"));
+		JPanel splashScalingPanel = new JPanel();
+		splashScalingPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		splashScalingPanel.add(splashScalingLabel);
+		splashScalingPanel.add(splashScaling);
+		settings.add(splashScalingPanel);
 
 		// choose image types
 		Vector<ComboBoxItem> imageTypes = new Vector<ComboBoxItem>();
 		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_CUSTOM         , "(same as source)"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_RGB        , "TYPE_INT_RGB"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_ARGB       , "TYPE_INT_ARGB"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_ARGB_PRE   , "TYPE_INT_ARGB_PRE"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_BGR        , "TYPE_INT_BGR"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_3BYTE_BGR      , "TYPE_3BYTE_BGR"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_4BYTE_ABGR     , "TYPE_4BYTE_ABGR"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_4BYTE_ABGR_PRE , "TYPE_4BYTE_ABGR_PRE"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_565_RGB , "TYPE_USHORT_565_RGB"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_555_RGB , "TYPE_USHORT_555_RGB"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_GRAY      , "TYPE_BYTE_GRAY"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_GRAY    , "TYPE_USHORT_GRAY"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_BINARY    , "TYPE_BYTE_BINARY"));
-		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_INDEXED   , "TYPE_BYTE_INDEXED"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_RGB        , "INT_RGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_ARGB       , "INT_ARGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_ARGB_PRE   , "INT_ARGB_PRE"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_INT_BGR        , "INT_BGR"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_3BYTE_BGR      , "3BYTE_BGR"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_4BYTE_ABGR     , "4BYTE_ABGR"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_4BYTE_ABGR_PRE , "4BYTE_ABGR_PRE"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_565_RGB , "USHORT_565_RGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_555_RGB , "USHORT_555_RGB"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_GRAY      , "BYTE_GRAY"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_USHORT_GRAY    , "USHORT_GRAY"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_BINARY    , "BYTE_BINARY"));
+		imageTypes.add(new ComboBoxItem(BufferedImage.TYPE_BYTE_INDEXED   , "BYTE_INDEXED"));
 		imageType = new JComboBox(imageTypes);
 		imageType.setFont(imageType.getFont().deriveFont(Font.PLAIN, 11.0f));
 		imageType.setSelectedIndex(0);
+		JLabel imageTypeLabel = new JLabel(getResource("label.image.type", "Image Type:"));
 		JPanel imageTypePanel = new JPanel();
 		imageTypePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		imageTypePanel.add(new JLabel(getResource("label.image.type", "Image Type:")));
+		imageTypePanel.add(imageTypeLabel);
 		imageTypePanel.add(imageType);
+		settings.add(imageTypePanel);
 
 		// specify launch image background color
 		splashBackgroundColor = new JTextField(8);
@@ -215,21 +245,28 @@ public class MainFrame extends JFrame {
 				setSplashBackgroundColor(splashBackgroundColor.getText());
 			}
 		});
-		JButton splashBGColorButton = new JButton("...");
-		splashBGColorButton.setFont(splashBGColorButton.getFont().deriveFont(Font.PLAIN, 11.0f));
-		splashBGColorButton.addActionListener(new ActionListener() {
+		JButton refSplashBackgroundColor = new JButton("...");
+		refSplashBackgroundColor.setFont(refSplashBackgroundColor.getFont().deriveFont(Font.PLAIN, 11.0f));
+		refSplashBackgroundColor.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Color col = JColorChooser.showDialog(splashBackgroundColor, "Color Chooser", ImageUtil.stringToColor(splashBackgroundColor.getText()));
-				if (col != null) {
-					setSplashBackgroundColor(ImageUtil.colorToRgbString(col));
+				Color c = null;
+				try {
+					c = JColorChooser.showDialog(splashBackgroundColor, "Color Chooser", splashBackgroundColor.getText().equals(PLACEHOLDER_SPLASH_BGCOL) ? null : new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true));
+				} catch (Exception ex) {
+					handleException(ex);
+				}
+				if (c != null) {
+					setSplashBackgroundColor(String.format("%2h%2h%2h%2h", c.getAlpha(), c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0'));
 				}
 			}
 		});
-		JPanel splashBGColorPanel = new JPanel();
-		splashBGColorPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		splashBGColorPanel.add(new JLabel(getResource("label.splash.bgcolor", "Launch image bgcolor:")));
-		splashBGColorPanel.add(splashBackgroundColor);
-		splashBGColorPanel.add(splashBGColorButton);
+		JLabel splashBackgroundColorLabel = new JLabel(getResource("label.splash.bgcolor", "Launch image bgcolor:"));
+		JPanel splashBackgroundColorPanel = new JPanel();
+		splashBackgroundColorPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		splashBackgroundColorPanel.add(splashBackgroundColorLabel);
+		splashBackgroundColorPanel.add(splashBackgroundColor);
+		splashBackgroundColorPanel.add(refSplashBackgroundColor);
+		settings.add(splashBackgroundColorPanel);
 
 		// Checkboxes and Radio Buttons.
 		JPanel radioPanel = new JPanel();
@@ -238,129 +275,45 @@ public class MainFrame extends JFrame {
 		radioPanel.add(this.iPhoneOnly = new JRadioButton(getResource("label.iphone.only", "iPhone Only")));
 		radioPanel.add(this.iPadOnly = new JRadioButton(getResource("label.ipad.only", "iPad Only")));
 		ButtonGroup group = new ButtonGroup();
-		group.add(iBoth);
-		group.add(iPhoneOnly);
-		group.add(iPadOnly);
+		group.add(this.iBoth);
+		group.add(this.iPhoneOnly);
+		group.add(this.iPadOnly);
+		settings.add(radioPanel);
 
 		this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false);
+		settings.add(this.generateOldSplashImages);
 
-		JPanel settingPanel = new JPanel();
-		settingPanel.setLayout(new GridLayout(3, 2, 2, 2));
-		settingPanel.add(scalePanel);
-		settingPanel.add(ssPanel);
-		settingPanel.add(imageTypePanel);
-		settingPanel.add(splashBGColorPanel);
-		settingPanel.add(radioPanel);
-		settingPanel.add(this.generateOldSplashImages);
+		JSeparator separatorSouth = new JSeparator(JSeparator.HORIZONTAL);
+		settings.add(separatorSouth);
 
-		// Set Components for North Panel.
-		JPanel refPanel = new JPanel();
-		refPanel.setLayout(new GridLayout(3, 1, 2, 0));
-		refPanel.add(icon6PathPanel);
-		refPanel.add(icon7PathPanel);
-		refPanel.add(splashPathPanel);
-		JPanel northPanel = new JPanel();
-		northPanel.setLayout(new BorderLayout(0, 2));
-		northPanel.add(refPanel, BorderLayout.NORTH);
-		northPanel.add(settingPanel, BorderLayout.SOUTH);
-
-		// Image Panels.
-		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new BorderLayout(5, 5));
-		mainPanel.add(northPanel, BorderLayout.NORTH);
-
-
-		icon6Image = new ImagePanel(getResource("label.icon6.drop", "Drop iOS6 Icon PNG Here"));
-		icon6Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
-		icon6Image.setTransferHandler(new TransferHandler() {
-			public boolean importData(TransferSupport support) {
+		this.generateAsAssetCatalogs = new JCheckBox(getResource("label.generate.as.asset.catalogs", "Generate As Asset Catalogs"), true);
+		this.generateAsAssetCatalogs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				try {
-					if (canImport(support)) {
-						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						if (list instanceof List) {
-							Object file = ((List<?>)list).get(0);
-							if (file instanceof File) {
-								setFilePath(icon6Path, (File)file, icon6Image);
-							}
-						}
+					String generated = getResource("string.dir.generate", "generated");
+					String assets = getResource("string.dir.assets", "Images.xcassets");
+					if (generateAsAssetCatalogs.isSelected() && outputPath.getText().endsWith(generated)) {
+						outputPath.setText((new File(new File(outputPath.getText()).getParentFile(), assets)).getCanonicalPath());
 					}
-				} catch (Exception ex) {
-					handleException(ex);
+					if (!generateAsAssetCatalogs.isSelected() && outputPath.getText().endsWith(assets)) {
+						outputPath.setText((new File(new File(outputPath.getText()).getParentFile(), generated)).getCanonicalPath());
+					}
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
 				}
-				return false;
-			}
-			public boolean canImport(TransferSupport support) {
-				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
 			}
 		});
-		icon6Path.setTransferHandler(icon6Image.getTransferHandler());
-
-		icon7Image = new ImagePanel(getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here"));
-		icon7Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
-		icon7Image.setTransferHandler(new TransferHandler() {
-			public boolean importData(TransferSupport support) {
-				try {
-					if (canImport(support)) {
-						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						if (list instanceof List) {
-							Object file = ((List<?>)list).get(0);
-							if (file instanceof File) {
-								setFilePath(icon7Path, (File)file, icon7Image);
-							}
-						}
-					}
-				} catch (Exception ex) {
-					handleException(ex);
-				}
-				return false;
-			}
-			public boolean canImport(TransferSupport support) {
-				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
-			}
-		});
-		icon7Path.setTransferHandler(icon7Image.getTransferHandler());
-
-		splashImage = new ImagePanel(getResource("label.splash.drop", "Drop Splash Image PNG Here"));
-		splashImage.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
-		splashImage.setTransferHandler(new TransferHandler() {
-			public boolean importData(TransferSupport support) {
-				try {
-					if (canImport(support)) {
-						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						if (list instanceof List) {
-							Object file = ((List<?>)list).get(0);
-							if (file instanceof File) {
-								setFilePath(splashPath, (File)file, splashImage);
-							}
-						}
-					}
-				} catch (Exception ex) {
-					handleException(ex);
-				}
-				return false;
-			}
-			public boolean canImport(TransferSupport support) {
-				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
-			}
-		});
-		splashPath.setTransferHandler(splashImage.getTransferHandler());
-
-		JPanel imagesPanel = new JPanel();
-		imagesPanel.setLayout(new GridLayout(1, 3, 2, 2));
-		imagesPanel.add(icon6Image);
-		imagesPanel.add(icon7Image);
-		imagesPanel.add(splashImage);
-		mainPanel.add(imagesPanel, BorderLayout.CENTER);
+		settings.add(this.generateAsAssetCatalogs);
 
 		// Output Path.
 		outputPath = new JTextField();
+		outputPath.getDocument().addDocumentListener(new DocumentListener() {
+			@Override public void changedUpdate(DocumentEvent e) { outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText())); }
+			@Override public void insertUpdate(DocumentEvent e) { outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText())); }
+			@Override public void removeUpdate(DocumentEvent e) { outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText())); }
+		});
 		JButton refOutputPath = new JButton("...");
-		JPanel outputPathPanel = new JPanel();
-		JLabel outputPathLabel = new JLabel(getResource("label.output.path", " Output Dir:"));
-		outputPathPanel.setLayout(new BorderLayout(2, 2));
-		outputPathPanel.add(outputPathLabel, BorderLayout.WEST);
-		outputPathPanel.add(outputPath, BorderLayout.CENTER);
-		outputPathPanel.add(refOutputPath, BorderLayout.EAST);
+		JLabel outputPathLabel = new JLabel(getResource("label.output.path", "Output Dir:"), SwingConstants.RIGHT);
 		refOutputPath.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
@@ -383,67 +336,341 @@ public class MainFrame extends JFrame {
 			    }
 			}
 		});
+		settings.add(outputPathLabel, BorderLayout.WEST);
+		settings.add(outputPath, BorderLayout.CENTER);
+		settings.add(refOutputPath, BorderLayout.EAST);
 
-		// Generate Button and Progress Bar.
+		SpringLayout layout = new SpringLayout();
+		settings.setLayout(layout);
+		// Layout for iOS 6 Path
+		layout.putConstraint(SpringLayout.WEST, icon6Label, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.EAST, icon6Label, 0, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.NORTH, icon6Label, 27, SpringLayout.NORTH, settings);
+		layout.putConstraint(SpringLayout.EAST, refIcon6Path, -5, SpringLayout.EAST, settings);
+		layout.putConstraint(SpringLayout.NORTH, refIcon6Path, 25, SpringLayout.NORTH, settings);
+		layout.putConstraint(SpringLayout.WEST, icon6Path, 5, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.EAST, icon6Path, -5, SpringLayout.WEST, refIcon6Path);
+		layout.putConstraint(SpringLayout.NORTH, icon6Path, 25, SpringLayout.NORTH, settings);
 
-		this.generateAsAssetCatalogs = new JCheckBox(getResource("label.generate.as.asset.catalogs", "Generate As Asset Catalogs"), true);
-		this.generateAsAssetCatalogs.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		// Layout for iOS 7 Path
+		layout.putConstraint(SpringLayout.WEST, icon7Label, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.EAST, icon7Label, 0, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.NORTH, icon7Label, 7, SpringLayout.SOUTH, refIcon6Path);
+		layout.putConstraint(SpringLayout.EAST, refIcon7Path, -5, SpringLayout.EAST, settings);
+		layout.putConstraint(SpringLayout.NORTH, refIcon7Path, 5, SpringLayout.SOUTH, refIcon6Path);
+		layout.putConstraint(SpringLayout.WEST, icon7Path, 5, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.EAST, icon7Path, -5, SpringLayout.WEST, refIcon6Path);
+		layout.putConstraint(SpringLayout.NORTH, icon7Path, 5, SpringLayout.SOUTH, refIcon6Path);
+
+		// Layout for Launch Image Path
+		layout.putConstraint(SpringLayout.WEST, splashLabel, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.NORTH, splashLabel, 7, SpringLayout.SOUTH, refIcon7Path);
+		layout.putConstraint(SpringLayout.EAST, refSplashPath, -5, SpringLayout.EAST, settings);
+		layout.putConstraint(SpringLayout.NORTH, refSplashPath, 5, SpringLayout.SOUTH, refIcon7Path);
+		layout.putConstraint(SpringLayout.WEST, splashPath, 5, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.EAST, splashPath, -5, SpringLayout.WEST, refIcon6Path);
+		layout.putConstraint(SpringLayout.NORTH, splashPath, 5, SpringLayout.SOUTH, refIcon7Path);
+
+		// Layout comboboxes and checkboxes.
+		layout.putConstraint(SpringLayout.WEST, separatorNorth, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.EAST, separatorNorth, -5, SpringLayout.EAST, settings);
+		layout.putConstraint(SpringLayout.NORTH, separatorNorth, 10, SpringLayout.SOUTH, refSplashPath);
+		// 1st row.
+		layout.putConstraint(SpringLayout.EAST, scaleAlgorithmPanel, 0, SpringLayout.EAST, imageTypePanel);
+		layout.putConstraint(SpringLayout.NORTH, scaleAlgorithmPanel, 10, SpringLayout.SOUTH, separatorNorth);
+		layout.putConstraint(SpringLayout.WEST, splashScalingPanel, 25, SpringLayout.EAST, imageTypePanel);
+		layout.putConstraint(SpringLayout.NORTH, splashScalingPanel, 10, SpringLayout.SOUTH, separatorNorth);
+		// 2nd row.
+		layout.putConstraint(SpringLayout.WEST, imageTypePanel, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.NORTH, imageTypePanel, 5, SpringLayout.SOUTH, scaleAlgorithmPanel);
+		layout.putConstraint(SpringLayout.WEST, splashBackgroundColorPanel, 25, SpringLayout.EAST, imageTypePanel);
+		layout.putConstraint(SpringLayout.NORTH, splashBackgroundColorPanel, 5, SpringLayout.SOUTH, scaleAlgorithmPanel);
+		// 3rd row.
+		layout.putConstraint(SpringLayout.WEST, radioPanel, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.NORTH, radioPanel, 5, SpringLayout.SOUTH, imageTypePanel);
+		layout.putConstraint(SpringLayout.WEST, generateOldSplashImages, 10, SpringLayout.EAST, radioPanel);
+		layout.putConstraint(SpringLayout.NORTH, generateOldSplashImages, 5, SpringLayout.SOUTH, imageTypePanel);
+
+		// Layout for Output Image Path
+		layout.putConstraint(SpringLayout.WEST, separatorSouth, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.EAST, separatorSouth, -5, SpringLayout.EAST, settings);
+		layout.putConstraint(SpringLayout.NORTH, separatorSouth, 8, SpringLayout.SOUTH, radioPanel);
+		layout.putConstraint(SpringLayout.WEST, generateAsAssetCatalogs, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.NORTH, generateAsAssetCatalogs, 6, SpringLayout.SOUTH, separatorSouth);
+		layout.putConstraint(SpringLayout.WEST, outputPathLabel, 8, SpringLayout.EAST, generateAsAssetCatalogs);
+		layout.putConstraint(SpringLayout.NORTH, outputPathLabel, 10, SpringLayout.SOUTH, separatorSouth);
+		layout.putConstraint(SpringLayout.EAST, refOutputPath, -5, SpringLayout.EAST, settings);
+		layout.putConstraint(SpringLayout.NORTH, refOutputPath, 8, SpringLayout.SOUTH, separatorSouth);
+		layout.putConstraint(SpringLayout.WEST, outputPath, 5, SpringLayout.EAST, outputPathLabel);
+		layout.putConstraint(SpringLayout.EAST, outputPath, -5, SpringLayout.WEST, refIcon6Path);
+		layout.putConstraint(SpringLayout.NORTH, outputPath, 8, SpringLayout.SOUTH, separatorSouth);
+
+
+
+		// Image Panels.
+		Font imagesFont = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+		Color imagesColor = new Color(0xf7f7f7);
+		icon6Image = new ImagePanel(getResource("label.icon6.drop", "Drop iOS6 Icon PNG Here"));
+		icon6Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
+		icon6Image.setBackground(imagesColor);
+		icon6Image.setFont(imagesFont);
+		icon6Image.setTransferHandler(new TransferHandler() {
+			public boolean importData(TransferSupport support) {
 				try {
-					String generated = getResource("string.dir.generate", "generated");
-					String assets = getResource("string.dir.assets", "Images.xcassets");
-					if (generateAsAssetCatalogs.isSelected() && outputPath.getText().endsWith(generated)) {
-						outputPath.setText((new File(new File(outputPath.getText()).getParentFile(), assets)).getCanonicalPath());
+					if (canImport(support)) {
+						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+						if (list instanceof List) {
+							Object file = ((List<?>)list).get(0);
+							if (file instanceof File) { setFilePath(icon6Path, (File)file, icon6Image); }
+						}
 					}
-					if (!generateAsAssetCatalogs.isSelected() && outputPath.getText().endsWith(assets)) {
-						outputPath.setText((new File(new File(outputPath.getText()).getParentFile(), generated)).getCanonicalPath());
-					}
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
+				} catch (Exception ex) {
+					handleException(ex);
 				}
+				return false;
+			}
+			public boolean canImport(TransferSupport support) {
+				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
 			}
 		});
+		icon6Path.setTransferHandler(icon6Image.getTransferHandler());
 
-		JButton generateButton = new JButton(getResource("button.generate", "Generate"));
+		icon7Image = new ImagePanel(getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here"));
+		icon7Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
+		icon7Image.setBackground(imagesColor);
+//		icon7Image.setForeground(new Color(0x4AA7B4));
+		icon7Image.setForeground(new Color(0x34AADC));//0x007AFF));//0x34AADC));
+		icon7Image.setFont(imagesFont);
+		icon7Image.setTransferHandler(new TransferHandler() {
+			public boolean importData(TransferSupport support) {
+				try {
+					if (canImport(support)) {
+						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+						if (list instanceof List) {
+							Object file = ((List<?>)list).get(0);
+							if (file instanceof File) { setFilePath(icon7Path, (File)file, icon7Image); }
+						}
+					}
+				} catch (Exception ex) {
+					handleException(ex);
+				}
+				return false;
+			}
+			public boolean canImport(TransferSupport support) {
+				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+			}
+		});
+		icon7Path.setTransferHandler(icon7Image.getTransferHandler());
+
+		splashImage = new ImagePanel(getResource("label.splash.drop", "Drop Splash Image PNG Here"));
+		splashImage.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
+		splashImage.setBackground(imagesColor);
+		splashImage.setFont(imagesFont);
+		splashImage.setTransferHandler(new TransferHandler() {
+			public boolean importData(TransferSupport support) {
+				try {
+					if (canImport(support)) {
+						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+						if (list instanceof List) {
+							Object file = ((List<?>)list).get(0);
+							if (file instanceof File) { setFilePath(splashPath, (File)file, splashImage); }
+						}
+					}
+				} catch (Exception ex) {
+					handleException(ex);
+				}
+				return false;
+			}
+			public boolean canImport(TransferSupport support) {
+				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+			}
+		});
+		splashPath.setTransferHandler(splashImage.getTransferHandler());
+
+		JPanel imagesPanel = new JPanel();
+		imagesPanel.setBorder(new LineBorder(imagesColor, 4));
+		imagesPanel.setBackground(imagesColor);
+		imagesPanel.setLayout(new GridLayout(1, 3, 2, 2));
+		imagesPanel.add(icon6Image);
+		imagesPanel.add(icon7Image);
+		imagesPanel.add(splashImage);
+		this.add(imagesPanel, BorderLayout.CENTER);
+
+
+
+		// Surface
+		final JPanel surface = new JPanel();
+		surface.setPreferredSize(new Dimension(layeredPane.getPreferredSize().width, layeredPane.getPreferredSize().height + 16));
+		surface.setBackground(Color.WHITE);
+		layeredPane.add(surface, JLayeredPane.PALETTE_LAYER);
+
+		SpringLayout surfaceLayout = new SpringLayout();
+		surface.setLayout(surfaceLayout);
+		surface.addMouseListener(new MouseListener() {
+			// Consume event.
+			@Override public void mouseClicked(MouseEvent e) {}
+			@Override public void mouseEntered(MouseEvent e) {}
+			@Override public void mouseExited(MouseEvent e) {}
+			@Override public void mousePressed(MouseEvent e) {}
+			@Override public void mouseReleased(MouseEvent e) {}
+		});
+
+		Font buttonFont = new Font(Font.SANS_SERIF, Font.BOLD, 16);
+		generateButton = new JButton(getResource("button.generate", "Generate"), new ImageIcon(this.getClass().getResource("img/generate.png")));
+		generateButton.setBackground(new Color(0xFF4981));
+		generateButton.setForeground(Color.WHITE);
+		generateButton.setBorderPainted(false);
+		generateButton.setFocusPainted(false);
+		generateButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/generate_rollover.png")));
+		generateButton.setHorizontalTextPosition(SwingConstants.CENTER);
+		generateButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		generateButton.setFont(buttonFont);
+		generateButton.setMargin(new Insets(2, 16, 2, 16));
+		generateButton.setOpaque(true);
 		generateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				generate();
 			}
 
 		});
+		surface.add(generateButton);
+
+		cancelButton = new JButton(getResource("button.cancel", "Cancel"), new ImageIcon(this.getClass().getResource("img/generate.gif")));
+		cancelButton.setBackground(new Color(0xf7f7f7));
+		cancelButton.setForeground(new Color(0x8E8E93));
+		cancelButton.setBorderPainted(false);
+		cancelButton.setFocusPainted(false);
+		cancelButton.setHorizontalTextPosition(SwingConstants.CENTER);
+		cancelButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		cancelButton.setFont(buttonFont);
+		cancelButton.setMargin(new Insets(2, 16, 2, 16));
+		cancelButton.setOpaque(true);
+		cancelButton.setDoubleBuffered(true);
+		cancelButton.setRolloverEnabled(false);
+		cancelButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cancelGenerate();
+			}
+
+		});
+		surface.add(cancelButton);
+		cancelButton.setVisible(false);
+
+		settingsButton = new JButton(getResource("button.settings", "Settings"), new ImageIcon(this.getClass().getResource("img/settings.png")));
+		settingsButton.setBackground(new Color(0x4CD964));
+		settingsButton.setForeground(Color.WHITE);
+		settingsButton.setBorderPainted(false);
+		settingsButton.setFocusPainted(false);
+		settingsButton.setRolloverEnabled(true);
+		settingsButton.setDisabledIcon(new ImageIcon(this.getClass().getResource("img/settings_disabled.png")));
+		settingsButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/settings_rollover.png")));
+		settingsButton.setHorizontalTextPosition(SwingConstants.CENTER);
+		settingsButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		settingsButton.setFont(buttonFont);
+		settingsButton.setMargin(new Insets(2, 16, 2, 16));
+		settingsButton.setOpaque(true);
+		surface.add(settingsButton);
+
 		progress = new JProgressBar(0, IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
 		progress.setValue(0);
 		progress.setStringPainted(true);
+		progress.setBorderPainted(false);
+		progress.setBackground(new Color(0xF7F7F7));
+		progress.setForeground(new Color(0x34AADC));
+		progress.setOpaque(true);
+		surface.add(progress);
 
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 2));
-		buttonPanel.add(this.generateAsAssetCatalogs);
-		buttonPanel.add(progress);
-		buttonPanel.add(generateButton);
+		outputPathDisplay = new JLabel("");
+		outputPathDisplay.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+		outputPathDisplay.setForeground(new Color(0x34AADC));//0x007AFF));//0x34AADC));
+		surface.add(outputPathDisplay);
 
-		// Set Components for South Panel.
-		JPanel southPanel = new JPanel();
-		southPanel.setLayout(new GridLayout(2, 1, 2, 2));
-		southPanel.add(outputPathPanel);
-		southPanel.add(buttonPanel);
+		final JButton gripeButton = new JButton(new ImageIcon(this.getClass().getResource("img/gripe.png")));
+		gripeButton.setBackground(Color.WHITE);
+		gripeButton.setBorderPainted(false);
+		gripeButton.setFocusPainted(false);
+		gripeButton.setRolloverEnabled(true);
+		gripeButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/gripe_rollover.png")));
+		gripeButton.setHorizontalTextPosition(SwingConstants.CENTER);
+		gripeButton.setMargin(null);
 
-		mainPanel.add(southPanel, BorderLayout.SOUTH);
-
-		this.setLayout(new BorderLayout());
-		this.add(mainPanel, BorderLayout.CENTER);
-
-		this.addWindowListener(new WindowListener() {
-			@Override public void windowOpened(WindowEvent arg0) {}
-			@Override public void windowActivated(WindowEvent arg0) {}
-			@Override public void windowClosed(WindowEvent arg0) { System.exit(0); }
-			@Override public void windowClosing(WindowEvent arg0) { arg0.getWindow().dispose(); }
-			@Override public void windowDeactivated(WindowEvent arg0) {}
-			@Override public void windowDeiconified(WindowEvent arg0) {}
-			@Override public void windowIconified(WindowEvent arg0) {}
+		settingsButton.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				animator.animate(new ActionListener() {
+					@Override public void actionPerformed(ActionEvent e) {
+						outputPathDisplay.setVisible(false);
+						gripeButton.setVisible(true);
+					}
+				});
+			}
 		});
+		gripeButton.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				gripeButton.setVisible(false);
+				outputPathDisplay.setVisible(true);
+				animator.animate(null);
+			}
+		});
+		surface.add(gripeButton);
+		gripeButton.setVisible(false);
+
+		surfaceLayout.putConstraint(SpringLayout.EAST, generateButton, -16, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.NORTH, generateButton, -96, SpringLayout.VERTICAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.EAST, cancelButton, -16, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.NORTH, cancelButton, -96, SpringLayout.VERTICAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.WEST, settingsButton, 16, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.NORTH, settingsButton, -96, SpringLayout.VERTICAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.WEST, progress, 0, SpringLayout.WEST, generateButton);
+		surfaceLayout.putConstraint(SpringLayout.EAST, progress, 0, SpringLayout.EAST, settingsButton);
+		surfaceLayout.putConstraint(SpringLayout.NORTH, progress, 16, SpringLayout.SOUTH, generateButton);
+		surfaceLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, outputPathDisplay, 0, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.NORTH, outputPathDisplay, 8, SpringLayout.SOUTH, progress);
+		surfaceLayout.putConstraint(SpringLayout.WEST, gripeButton, 0, SpringLayout.WEST, surface);
+		surfaceLayout.putConstraint(SpringLayout.EAST, gripeButton, 0, SpringLayout.EAST, surface);
+		surfaceLayout.putConstraint(SpringLayout.SOUTH, gripeButton, 2, SpringLayout.SOUTH, surface);
+
+		animator = new SimpleShutterAnimation(surface, 16);
+
+
+		this.addComponentListener(new ComponentListener() {
+			@Override public void componentHidden(ComponentEvent e) {}
+			@Override public void componentMoved(ComponentEvent e) {}
+			@Override public void componentShown(ComponentEvent e) {}
+			@Override public void componentResized(ComponentEvent e) {
+				Rectangle rect = e.getComponent().getBounds();
+				Rectangle crect = outputPath.getBounds();
+				int height = crect.y + crect.height + 8;
+				layeredPane.setPreferredSize(new Dimension(rect.width, height));
+			}
+		});
+		layeredPane.addComponentListener(new ComponentListener() {
+			@Override public void componentHidden(ComponentEvent e) {}
+			@Override public void componentMoved(ComponentEvent e) {}
+			@Override public void componentShown(ComponentEvent e) {}
+			@Override public void componentResized(ComponentEvent e) {
+				Rectangle rect = e.getComponent().getBounds();
+				settings.setBounds(0, 0, rect.width, rect.height);
+				surface.setBounds(0, surface.getBounds().y, rect.width, rect.height + 16);
+			}
+		});
+
+
+		/*
+		// for future reference.
+		this.setIconImages(Arrays.asList(
+				Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon96.png"))
+			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon64.png"))
+			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon48.png"))
+			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon32.png"))
+			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon16.png"))
+			)
+		);
+		*/
 
 		// initial initialize
 		this.setSplashBackgroundColor("");
+		surface.setLocation(0, -16);
+		this.pack();
 	}
 
 	/**
@@ -501,8 +728,8 @@ public class MainFrame extends JFrame {
 					outputPath.setText(g.getCanonicalPath());
 				}
 				if (imagePanel == splashImage) {
-					int c = imageFile.getImage().getRGB(0, 0);
-					this.setSplashBackgroundColor(ImageUtil.colorToArgbString(new Color(ImageUtil.r(c), ImageUtil.g(c), ImageUtil.b(c), ImageUtil.a(c))));
+					Color c = new Color(imageFile.getImage().getRGB(0, 0), true);
+					this.setSplashBackgroundColor(String.format("%2h%2h%2h%2h", c.getAlpha(), c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0'));
 				}
 			}
 		} catch (Exception ex) {
@@ -563,24 +790,28 @@ public class MainFrame extends JFrame {
 	 * @param s color string
 	 */
 	public void setSplashBackgroundColor(String s) {
-		splashBackgroundColor.setText(s);
-		Color col = ImageUtil.stringToColor(s);
-		if (col == null) {
-			if (splashBackgroundColor.getText().trim().length() <= 0) {
-				splashBackgroundColor.setText(PLACEHOLDER_SPLASH_BGCOL);
-				splashBackgroundColor.setForeground(Color.LIGHT_GRAY);
-				splashBackgroundColor.setBackground(Color.WHITE);
-				splashImage.setBackground(null);
-			}
-		} else {
+		Color col = null;
+		if (s != null && !s.trim().isEmpty()) {
 			while (s.length() < 6) s = "0".concat(s);
 			if (s.length() > 8) s = s.substring(0, 8);
 			if (s.length() == 7) s = "0".concat(s);
-			col = ImageUtil.stringToColor(s);
-			splashBackgroundColor.setText(s);
-			splashBackgroundColor.setBackground(new Color(col.getRed(), col.getGreen(), col.getBlue()));
-			splashBackgroundColor.setForeground(col.getRed()+col.getGreen()+col.getBlue()>384?Color.BLACK:Color.WHITE);
-			splashImage.setBackground(splashBackgroundColor.getBackground());
+			try {
+				col = new Color(Long.valueOf(s, 16).intValue(), true);
+				splashBackgroundColor.setText(s);
+				splashBackgroundColor.setBackground(new Color(col.getRed(), col.getGreen(), col.getBlue()));
+				splashBackgroundColor.setForeground(col.getRed()+col.getGreen()+col.getBlue()>384?Color.BLACK:Color.WHITE);
+				splashImage.setBackground(splashBackgroundColor.getBackground());
+			} catch (Exception ex) {
+				//
+				ex.printStackTrace();
+			}
+		}
+		if (col == null) {
+			splashBackgroundColor.setText("");
+			splashBackgroundColor.setText(PLACEHOLDER_SPLASH_BGCOL);
+			splashBackgroundColor.setForeground(Color.LIGHT_GRAY);
+			splashBackgroundColor.setBackground(Color.WHITE);
+			splashImage.setBackground(null);
 		}
 	}
 
@@ -682,6 +913,7 @@ public class MainFrame extends JFrame {
 	 */
 	public boolean generate() {
 		float targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
+		boolean result = true;
 
 		try {
 			if (icon6Path.getText().trim().length() <= 0 && icon7Path.getText().trim().length() <= 0 && splashPath.getText().trim().length() <= 0) {
@@ -716,7 +948,9 @@ public class MainFrame extends JFrame {
 				return false;
 			}
 			if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
-				if (ImageUtil.stringToColor(splashBackgroundColor.getText()) == null) {
+				Color col = null;
+				try { col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true); } catch (Exception ex) {}
+				if (col == null) {
 					alert("[" + splashBackgroundColor.getText() + "]" + getResource("error.illegal.bgcolor", "is illegal bgcolor."));
 					return false;
 				}
@@ -748,6 +982,13 @@ public class MainFrame extends JFrame {
 
 			// generate images for iOS6, or not
 			if (icon6File == null && icon7File != null) {
+				// do not create iOS 6 icon by default.
+				this.generateOldSplashImages.setSelected(false);
+				targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_7;
+				if (this.isBatchMode()) {
+					information(getResource("info.ios6.image.not.generate", "The iOS6 image files will not be generated."));
+				}
+				/*
 				if (yesNo(getResource("question.use.icon7.instead", "An iOS6 Icon PNG file is not choosen. Use iOS7 Icon PNG file instead?"))) {
 					icon6File = icon7File;
 				} else {
@@ -756,6 +997,7 @@ public class MainFrame extends JFrame {
 					// images for iOS6 will not be generated.
 					targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_7;
 				}
+				*/
 			}
 
 			// images for iOS7 must be generated.
@@ -770,9 +1012,15 @@ public class MainFrame extends JFrame {
 
 			// generate images for launch, or not
 			if (splashFile == null) {
+				// do not create launch imagesn by default.
+				if (this.isBatchMode()) {
+					information(getResource("confirm.splash.not.generate", "The Splash image will not be generated."));
+				}
+				/*
 				if (!confirm(getResource("confirm.splash.not.generate", "The Splash image will not be generated."))) {
 					return false;
 				}
+				*/
 			}
 
 			File iconOutputDir = outputDir;
@@ -791,6 +1039,55 @@ public class MainFrame extends JFrame {
 				}
 			}
 
+
+			try {
+				int max = 0;
+				HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
+
+				if (icon6File != null || icon7File != null) {
+					// generate icons
+					for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
+						BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (icon6File == null ? icon7File.getImage() : icon6File.getImage()) : icon7File.getImage();
+						if (image == null) continue;
+						if (asset.isIphone() && iPadOnly.isSelected()) continue;
+						if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+						if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
+						if (filesOutput.containsKey(asset.getFilename())) {
+							// upper version is more strong
+							if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+						}
+						max++;
+						filesOutput.put(asset.getFilename(), asset);
+					}
+					filesOutput.clear();
+
+					// generate artwork
+					for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
+						if (artwork != null) { max++; }
+					}
+				}
+
+				if (splashFile != null) {
+					// generate launch images
+					for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
+						if (asset.isIphone() && iPadOnly.isSelected()) continue;
+						if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+						if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
+						if (asset.getExtent() != null && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !generateOldSplashImages.isSelected()) continue;
+						if (filesOutput.containsKey(asset.getFilename())) {
+							// upper version is more strong
+							if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+						}
+						max++;
+						filesOutput.put(asset.getFilename(), asset);
+					}
+					filesOutput.clear();
+				}
+				progress.setMaximum(max);
+			} catch (Exception ex) {
+				progress.setMaximum(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
+			}
+
 			// start generate Images.
 			if (this.isBatchMode()) {
 				if (!this.isSilentMode() && !this.isVerboseMode()) {
@@ -806,90 +1103,143 @@ public class MainFrame extends JFrame {
 			}
 
 			// generate images
-			StringBuilder buffer = new StringBuilder();
-			HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
-
-			if (icon6File == null && icon7File == null) {
-				addProgress(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length);
-			} else {
-				// generate icons
-				for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
-					addProgress(1);
-					BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (icon6File == null ? icon7File.getImage() : icon6File.getImage()) : icon7File.getImage();
-					if (image == null) continue;
-					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
-					if (asset.isIpad() && this.iPhoneOnly.isSelected()) continue;
-					if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
-
-					if (this.generateAsAssetCatalogs.isSelected()) {
-						if (buffer.length() > 0) buffer.append(",\n");
-						buffer.append(asset.toJson());
+			final float finalTargetSystemVersion = targetSystemVersion;
+			final ImageFile finalIcon6File = icon6File;
+			final ImageFile finalIcon7File = icon7File;
+			final File finalIconOutputDir = iconOutputDir;
+			final ImageFile finalSplashFile = splashFile;
+			final File finalSplashOutputDir = splashOutputDir;
+			final File finalOutputDir = outputDir;
+			SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+				@Override protected Boolean doInBackground() throws Exception {
+					// Do not use PropertyChangeListener currently.
+					boolean result = true;
+					Color settingsColor = settingsButton.getBackground();
+					if (!isBatchMode()) {
+						cancelButton.setVisible(true);
+						generateButton.setVisible(false);
+						settingsButton.setBackground(new Color(0xF7F7F7));
+						settingsButton.setEnabled(false);
 					}
+					cancelRequested = false;
+					try {
+						StringBuilder buffer = new StringBuilder();
+						HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
 
-					if (filesOutput.containsKey(asset.getFilename())) {
-						// upper version is more strong
-						if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+						if (finalIcon6File != null || finalIcon7File != null) {
+							// generate icons
+							for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
+								if (cancelRequested) { result = false; break; }
+								BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (finalIcon6File == null ? finalIcon7File.getImage() : finalIcon6File.getImage()) : finalIcon7File.getImage();
+								if (image == null) continue;
+								if (asset.isIphone() && iPadOnly.isSelected()) continue;
+								if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+								if (asset.getMinimumSystemVersion() < finalTargetSystemVersion) continue;
+
+								if (generateAsAssetCatalogs.isSelected()) {
+									if (buffer.length() > 0) buffer.append(",\n");
+									buffer.append(asset.toJson());
+								}
+
+								if (filesOutput.containsKey(asset.getFilename())) {
+									// upper version is more strong
+									if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+								}
+
+								writeIconImage(image, asset.getIOSImageInfo(), finalIconOutputDir);
+								filesOutput.put(asset.getFilename(), asset);
+								addProgress(1);
+							}
+							if (generateAsAssetCatalogs.isSelected()) {
+								writeContentsJson(finalIconOutputDir, buffer);
+							}
+							buffer.setLength(0);
+							filesOutput.clear();
+
+							// generate artwork
+							for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
+								addProgress(1);
+								writeIconImage(finalIcon7File == null ? finalIcon6File.getImage() : finalIcon7File.getImage(), artwork, finalOutputDir);
+							}
+						}
+
+						if (finalSplashFile != null) {
+							// generate launch images
+							for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
+								if (cancelRequested) { result = false; break; }
+								if (asset.isIphone() && iPadOnly.isSelected()) continue;
+								if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+								if (asset.getMinimumSystemVersion() < finalTargetSystemVersion) continue;
+								if (asset.getExtent() != null && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !generateOldSplashImages.isSelected()) continue;
+
+								if (generateAsAssetCatalogs.isSelected()) {
+									if (buffer.length() > 0) buffer.append(",\n");
+									buffer.append(asset.toJson());
+								}
+
+								if (filesOutput.containsKey(asset.getFilename())) {
+									// upper version is more strong
+									if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+								}
+
+								writeSplashImage(finalSplashFile.getImage(), asset, finalSplashOutputDir);
+								filesOutput.put(asset.getFilename(), asset);
+								addProgress(1);
+							}
+							if (generateAsAssetCatalogs.isSelected()) {
+								writeContentsJson(finalSplashOutputDir, buffer);
+							}
+							buffer.setLength(0);
+							filesOutput.clear();
+						}
+
+						if (isBatchMode() && !isSilentMode() && !isVerboseMode()) {
+							System.out.println();
+						}
+						if (!isBatchMode()) {
+							progress.setValue(progress.getMaximum());
+						}
+					} catch (Exception ex) {
+						result = false;
+						handleException(ex);
+					} finally {
+						if (!isBatchMode()) {
+							generateButton.setVisible(true);
+							cancelButton.setVisible(false);
+							settingsButton.setBackground(settingsColor);
+							settingsButton.setEnabled(true);
+							if (result) {
+								information(getResource("label.finish.generate", "The images are generated."));
+							} else if (cancelRequested) {
+								information(getResource("info.generate.canceled", "Generate images are canceled."));
+							}
+							progress.setValue(0);
+							outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText()));
+						}
 					}
+					return result;
+				}
 
-					writeIconImage(image, asset.getIOSImageInfo(), iconOutputDir);
-					filesOutput.put(asset.getFilename(), asset);
+				@Override protected void done() {
+					// for future reference.
 				}
-				if (this.generateAsAssetCatalogs.isSelected()) {
-					this.writeContentsJson(iconOutputDir, buffer);
-				}
-				buffer.setLength(0);
-				filesOutput.clear();
-
-				// generate artwork
-				for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
-					addProgress(1);
-					writeIconImage(icon7File == null ? icon6File.getImage() : icon7File.getImage(), artwork, outputDir);
-				}
+			};
+			worker.execute();
+			if (this.isBatchMode()) {
+				result = worker.get();
 			}
 
-			if (splashFile == null) {
-				addProgress(IOSSplashAssetCatalogs.values().length);
-			} else {
-				// generate launch images
-				for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
-					addProgress(1);
-					if (asset.isIphone() && this.iPadOnly.isSelected()) continue;
-					if (asset.isIpad() && this.iPhoneOnly.isSelected()) continue;
-					if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
-					if (asset.getExtent() != null && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !this.generateOldSplashImages.isSelected()) continue;
 
-					if (this.generateAsAssetCatalogs.isSelected()) {
-						if (buffer.length() > 0) buffer.append(",\n");
-						buffer.append(asset.toJson());
-					}
-
-					if (filesOutput.containsKey(asset.getFilename())) {
-						// upper version is more strong
-						if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
-					}
-
-					writeSplashImage(splashFile.getImage(), asset, splashOutputDir);
-					filesOutput.put(asset.getFilename(), asset);
-				}
-				if (this.generateAsAssetCatalogs.isSelected()) {
-					this.writeContentsJson(splashOutputDir, buffer);
-				}
-				buffer.setLength(0);
-				filesOutput.clear();
-			}
-
-			if (this.isBatchMode() && !this.isSilentMode() && !this.isVerboseMode()) {
-				System.out.println();
-			}
-			information(getResource("label.finish.generate", "The images are generated."));
-			if (!this.isBatchMode()) {
-				progress.setValue(0);
-			}
 		} catch (Exception ex) {
 			handleException(ex);
 			return false;
 		}
-		return true;
+		return result;
+	}
+
+	private void cancelGenerate() {
+		this.cancelRequested = true;
+		outputPathDisplay.setText(getResource("label.cancel.generate", "Cancel generate..."));
 	}
 
 	/**
@@ -911,7 +1261,6 @@ public class MainFrame extends JFrame {
 		ImageIO.write(fixImageColor(buf, src), "png", f);
 		buf.flush();
 		buf = null;
-		if (this.isVisible() && !this.isBatchMode()) progress.paint(progress.getGraphics());
 		verbose(f);
 	}
 
@@ -928,11 +1277,10 @@ public class MainFrame extends JFrame {
 		int width = (int)asset.getIOSImageInfo().getSize().getWidth();
 		int height = (int)asset.getIOSImageInfo().getSize().getHeight();
 		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		int c = src.getRGB(0, 0);
 		Graphics g = buf.getGraphics();
-		g.setColor(new Color(ImageUtil.r(c), ImageUtil.g(c), ImageUtil.b(c), ImageUtil.a(c)));
+		g.setColor(new Color(src.getRGB(0, 0)));
 		if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
-			Color col = ImageUtil.stringToColor(splashBackgroundColor.getText());
+			Color col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true);
 			if (col != null) g.setColor(col);
 		}
 		g.fillRect(0, 0, width, height);
@@ -964,7 +1312,6 @@ public class MainFrame extends JFrame {
 		ImageIO.write(fixImageColor(buf, src), "png", f);
 		buf.flush();
 		buf = null;
-		if (this.isVisible() && !this.isBatchMode()) progress.paint(progress.getGraphics());
 		verbose(f);
 	}
 
@@ -1238,151 +1585,52 @@ class ComboBoxItem {
 
 }
 
-/**
- * The utility class for images.
- *
- * @author gootara.org
- */
-class ImageUtil {
-	/**
-	 * Get alpha.
-	 *
-	 * @param c	rgb color
-	 * @return	alpha
-	 */
-	public static int a(int c) {
-		return c >>> 24;
+class SimpleShutterAnimation
+{
+static final int DIRECTION_UP = 0;
+static final int DIRECTION_DOWN = 1;
+private Component target;
+private Timer timer;
+private ActionListener callbackListener;
+private double base;
+private int step;
+private int direction;
+
+	public SimpleShutterAnimation(Component target) {
+		this(target, 0d);
 	}
 
-	/**
-	 * Get red.
-	 *
-	 * @param c	rgb color
-	 * @return	red
-	 */
-	public static int r(int c) {
-		return c >> 16 & 0xff;
+	public SimpleShutterAnimation(Component target, double base) {
+		this.target = target;
+		this.base = base;
 	}
 
-	/**
-	 * Get green.
-	 *
-	 * @param c	rgb color
-	 * @return	green
-	 */
-	public static int g(int c) {
-		return c >> 8 & 0xff;
-	}
-
-	/**
-	 * Get blue.
-	 *
-	 * @param c	rgb color
-	 * @return	blue
-	 */
-	public static int b(int c) {
-		return c & 0xff;
-	}
-
-	/**
-	 * Get rgb color.
-	 *
-	 * @param r	red
-	 * @param g	green
-	 * @param b	blue
-	 * @return	rgb color
-	 */
-	public static int rgb(int r, int g, int b) {
-		return 0xff000000 | r << 16 | g << 8 | b;
-	}
-
-	/**
-	 * Get argb color.
-	 *
-	 * @param a	alpha
-	 * @param r	red
-	 * @param g	green
-	 * @param b	blue
-	 * @return	argb color
-	 */
-	public static int argb(int a, int r, int g, int b) {
-		return a << 24 | r << 16 | g << 8 | b;
-	}
-
-	/**
-	 * String to Color.
-	 * The color specified in ARGB or RGB(hexadecimal). 'FFFFFF' white, '000000' black, '00FFFFFF' white 100% transparent.
-	 *
-	 * @param s	color string
-	 * @return color
-	 */
-	public static Color stringToColor(String s) {
-		if (s == null || s.trim().length() <= 0) {
-			return null;
+	public boolean animate(ActionListener callback) {
+		if (timer != null && timer.isRunning()) {
+			return false;
 		}
-		if (s.toLowerCase().trim().equals(MainFrame.PLACEHOLDER_SPLASH_BGCOL)) {
-			return null;
-		}
-		if (s.toLowerCase().startsWith("0x")) {
-			s = s.substring(2);
-		}
-		try {
-			if (s.length() <= 6) {
-				return rgbStringToColor(s);
-			} else if (s.length() <= 8) {
-				return argbStringToColor(s);
+
+		this.callbackListener = callback;
+		this.direction = target.getY() == 0 - this.base ? SimpleShutterAnimation.DIRECTION_UP : SimpleShutterAnimation.DIRECTION_DOWN;
+		step = 0;
+		timer = new Timer(10, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (step < 100) {
+					double h = target.getHeight() - base;
+					target.setLocation(new Point(target.getX(), new Double(h * Math.pow(2.98, -0.054 * step) * Math.cos(0.086 * step) - (direction == DIRECTION_UP ? h : 0 - base)).intValue() * (direction == DIRECTION_UP ? 1 : -1)));
+					step++;
+				} else {
+					target.setLocation(new Point(target.getX(), direction == DIRECTION_UP ? target.getBounds().y : new Double(0 - base).intValue()));
+					timer.stop();
+					if (callbackListener != null) {
+						callbackListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "finish"));
+					}
+				}
 			}
-		} catch (Exception ex) {
-			// Illegal color. ignore.
-		}
-		return null;
+		});
+		timer.start();
+		return true;
 	}
-
-	/**
-	 * RGB string to Color.
-	 * 'FFFFFF' white, '000000' black.
-	 *
-	 * @param rgb RGB color string
-	 * @return color
-	 */
-	public static Color rgbStringToColor(String rgb) {
-		int c = Integer.parseInt(rgb, 16);
-		return new Color(r(c), g(c), b(c));
-	}
-
-	/**
-	 * ARGB string to Color.
-	 * '00FFFFFF' white 100% transparent.
-	 *
-	 * @param argb ARGB color string
-	 * @return color
-	 */
-	public static Color argbStringToColor(String argb) {
-		int c = (int)Long.parseLong(argb, 16);
-		return new Color(r(c), g(c), b(c), a(c));
-	}
-
-	/**
-	 * Color to RGB string.
-	 *
-	 * @param c color
-	 * @return RGB string
-	 */
-	public static String colorToRgbString(Color c) {
-		if (c == null) return "";
-		// not work. return String.format("%02h%02h%02h", c.getRed(), c.getGreen(), c.getBlue());
-		return String.format("%2h%2h%2h", c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0');
-	}
-
-	/**
-	 * Color to ARGB string.
-	 *
-	 * @param c color
-	 * @return ARGB string
-	 */
-	public static String colorToArgbString(Color c) {
-		if (c == null) return "";
-		return String.format("%2h%2h%2h%2h", c.getAlpha(), c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0');
-	}
-
 }
+
+
