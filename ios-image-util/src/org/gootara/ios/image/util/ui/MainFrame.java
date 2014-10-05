@@ -43,6 +43,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
@@ -102,9 +104,11 @@ public class MainFrame extends JFrame {
 	private JProgressBar progress;
 	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs;
 	private JRadioButton iPhoneOnly, iPadOnly, iBoth;
-	private JButton generateButton, settingsButton, cancelButton;
+	private JButton generateButton, settingsButton, cancelButton, splitButton;
 	private JLabel outputPathDisplay;
 	private SimpleShutterAnimation animator;
+	private SplitterFrame splitter;
+	private File splitTarget = null;
 	private boolean batchMode = false;
 	private boolean silentMode = false;
 	private boolean verboseMode = false;
@@ -113,7 +117,8 @@ public class MainFrame extends JFrame {
 	/**
 	 * Constructor.
 	 */
-	public MainFrame() {
+	protected void frameInit() {
+		super.frameInit();
 		resource = ResourceBundle.getBundle("application");
 		this.setTitle(getResource("window.title", "iOS Image Util"));
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -252,8 +257,8 @@ public class MainFrame extends JFrame {
 				Color c = null;
 				try {
 					c = JColorChooser.showDialog(splashBackgroundColor, "Color Chooser", splashBackgroundColor.getText().equals(PLACEHOLDER_SPLASH_BGCOL) ? null : new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true));
-				} catch (Exception ex) {
-					handleException(ex);
+				} catch (Throwable t) {
+					handleThrowable(t);
 				}
 				if (c != null) {
 					setSplashBackgroundColor(String.format("%2h%2h%2h%2h", c.getAlpha(), c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0'));
@@ -376,19 +381,19 @@ public class MainFrame extends JFrame {
 		layout.putConstraint(SpringLayout.EAST, separatorNorth, -5, SpringLayout.EAST, settings);
 		layout.putConstraint(SpringLayout.NORTH, separatorNorth, 10, SpringLayout.SOUTH, refSplashPath);
 		// 1st row.
-		layout.putConstraint(SpringLayout.EAST, scaleAlgorithmPanel, 0, SpringLayout.EAST, imageTypePanel);
+		layout.putConstraint(SpringLayout.EAST, scaleAlgorithmPanel, -48, SpringLayout.HORIZONTAL_CENTER, settings);
 		layout.putConstraint(SpringLayout.NORTH, scaleAlgorithmPanel, 10, SpringLayout.SOUTH, separatorNorth);
-		layout.putConstraint(SpringLayout.WEST, splashScalingPanel, 25, SpringLayout.EAST, imageTypePanel);
+		layout.putConstraint(SpringLayout.WEST, splashScalingPanel, -24, SpringLayout.HORIZONTAL_CENTER, settings);
 		layout.putConstraint(SpringLayout.NORTH, splashScalingPanel, 10, SpringLayout.SOUTH, separatorNorth);
 		// 2nd row.
-		layout.putConstraint(SpringLayout.WEST, imageTypePanel, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.EAST, imageTypePanel, -48, SpringLayout.HORIZONTAL_CENTER, settings);
 		layout.putConstraint(SpringLayout.NORTH, imageTypePanel, 5, SpringLayout.SOUTH, scaleAlgorithmPanel);
-		layout.putConstraint(SpringLayout.WEST, splashBackgroundColorPanel, 25, SpringLayout.EAST, imageTypePanel);
+		layout.putConstraint(SpringLayout.WEST, splashBackgroundColorPanel, -24, SpringLayout.HORIZONTAL_CENTER, settings);
 		layout.putConstraint(SpringLayout.NORTH, splashBackgroundColorPanel, 5, SpringLayout.SOUTH, scaleAlgorithmPanel);
 		// 3rd row.
-		layout.putConstraint(SpringLayout.WEST, radioPanel, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.EAST, radioPanel, 0, SpringLayout.HORIZONTAL_CENTER, settings);
 		layout.putConstraint(SpringLayout.NORTH, radioPanel, 5, SpringLayout.SOUTH, imageTypePanel);
-		layout.putConstraint(SpringLayout.WEST, generateOldSplashImages, 10, SpringLayout.EAST, radioPanel);
+		layout.putConstraint(SpringLayout.WEST, generateOldSplashImages, 16, SpringLayout.HORIZONTAL_CENTER, settings);
 		layout.putConstraint(SpringLayout.NORTH, generateOldSplashImages, 5, SpringLayout.SOUTH, imageTypePanel);
 
 		// Layout for Output Image Path
@@ -424,8 +429,8 @@ public class MainFrame extends JFrame {
 							if (file instanceof File) { setFilePath(icon6Path, (File)file, icon6Image); }
 						}
 					}
-				} catch (Exception ex) {
-					handleException(ex);
+				} catch (Throwable t) {
+					handleThrowable(t);
 				}
 				return false;
 			}
@@ -451,8 +456,8 @@ public class MainFrame extends JFrame {
 							if (file instanceof File) { setFilePath(icon7Path, (File)file, icon7Image); }
 						}
 					}
-				} catch (Exception ex) {
-					handleException(ex);
+				} catch (Throwable t) {
+					handleThrowable(t);
 				}
 				return false;
 			}
@@ -476,8 +481,8 @@ public class MainFrame extends JFrame {
 							if (file instanceof File) { setFilePath(splashPath, (File)file, splashImage); }
 						}
 					}
-				} catch (Exception ex) {
-					handleException(ex);
+				} catch (Throwable t) {
+					handleThrowable(t);
 				}
 				return false;
 			}
@@ -531,7 +536,6 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				generate();
 			}
-
 		});
 		surface.add(generateButton);
 
@@ -570,6 +574,26 @@ public class MainFrame extends JFrame {
 		settingsButton.setMargin(new Insets(2, 16, 2, 16));
 		settingsButton.setOpaque(true);
 		surface.add(settingsButton);
+
+
+		splitButton = new JButton(getResource("button.split", "Split"), new ImageIcon(this.getClass().getResource("img/splitter.png")));
+		splitButton.setBackground(new Color(0x007AFF));
+		splitButton.setForeground(Color.WHITE);
+		splitButton.setBorderPainted(false);
+		splitButton.setFocusPainted(false);
+		splitButton.setDisabledIcon(new ImageIcon(this.getClass().getResource("img/splitter_disabled.png")));
+		splitButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/splitter_rollover.png")));
+		splitButton.setHorizontalTextPosition(SwingConstants.CENTER);
+		splitButton.setVerticalTextPosition(SwingConstants.BOTTOM);
+		splitButton.setFont(buttonFont);
+		splitButton.setMargin(new Insets(2, 16, 2, 16));
+		splitButton.setOpaque(true);
+		splitButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				splitter.setVisible(!splitter.isVisible());
+			}
+		});
+		surface.add(splitButton);
 
 		progress = new JProgressBar(0, IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
 		progress.setValue(0);
@@ -614,14 +638,16 @@ public class MainFrame extends JFrame {
 		surface.add(gripeButton);
 		gripeButton.setVisible(false);
 
-		surfaceLayout.putConstraint(SpringLayout.EAST, generateButton, -16, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, generateButton, 0, SpringLayout.HORIZONTAL_CENTER, surface);
 		surfaceLayout.putConstraint(SpringLayout.NORTH, generateButton, -96, SpringLayout.VERTICAL_CENTER, surface);
-		surfaceLayout.putConstraint(SpringLayout.EAST, cancelButton, -16, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, cancelButton, 0, SpringLayout.HORIZONTAL_CENTER, surface);
 		surfaceLayout.putConstraint(SpringLayout.NORTH, cancelButton, -96, SpringLayout.VERTICAL_CENTER, surface);
-		surfaceLayout.putConstraint(SpringLayout.WEST, settingsButton, 16, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.EAST, settingsButton, -112, SpringLayout.HORIZONTAL_CENTER, surface);
 		surfaceLayout.putConstraint(SpringLayout.NORTH, settingsButton, -96, SpringLayout.VERTICAL_CENTER, surface);
-		surfaceLayout.putConstraint(SpringLayout.WEST, progress, 0, SpringLayout.WEST, generateButton);
-		surfaceLayout.putConstraint(SpringLayout.EAST, progress, 0, SpringLayout.EAST, settingsButton);
+		surfaceLayout.putConstraint(SpringLayout.WEST, splitButton, 128, SpringLayout.HORIZONTAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.NORTH, splitButton, -96, SpringLayout.VERTICAL_CENTER, surface);
+		surfaceLayout.putConstraint(SpringLayout.WEST, progress, 0, SpringLayout.WEST, settingsButton);
+		surfaceLayout.putConstraint(SpringLayout.EAST, progress, 0, SpringLayout.EAST, generateButton);
 		surfaceLayout.putConstraint(SpringLayout.NORTH, progress, 16, SpringLayout.SOUTH, generateButton);
 		surfaceLayout.putConstraint(SpringLayout.HORIZONTAL_CENTER, outputPathDisplay, 0, SpringLayout.HORIZONTAL_CENTER, surface);
 		surfaceLayout.putConstraint(SpringLayout.NORTH, outputPathDisplay, 8, SpringLayout.SOUTH, progress);
@@ -641,6 +667,7 @@ public class MainFrame extends JFrame {
 				Rectangle crect = outputPath.getBounds();
 				int height = crect.y + crect.height + 8;
 				layeredPane.setPreferredSize(new Dimension(rect.width, height));
+				layeredPane.doLayout();
 			}
 		});
 		layeredPane.addComponentListener(new ComponentListener() {
@@ -651,26 +678,35 @@ public class MainFrame extends JFrame {
 				Rectangle rect = e.getComponent().getBounds();
 				settings.setBounds(0, 0, rect.width, rect.height);
 				surface.setBounds(0, surface.getBounds().y, rect.width, rect.height + 16);
+				settings.doLayout();
+				surface.doLayout();
 			}
 		});
 
-
-		/*
-		// for future reference.
-		this.setIconImages(Arrays.asList(
-				Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon96.png"))
-			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon64.png"))
-			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon48.png"))
-			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon32.png"))
-			,	Toolkit.getDefaultToolkit().createImage(this.getClass().getResource("img/icon16.png"))
-			)
-		);
-		*/
 
 		// initial initialize
 		this.setSplashBackgroundColor("");
 		surface.setLocation(0, -16);
 		this.pack();
+
+		splitter = new SplitterFrame(this, getResource("splitter.title", "Splitter"));
+		final JFrame dialogOwner = this;
+		this.addWindowListener(new WindowListener() {
+			@Override public void windowOpened(WindowEvent e) {
+				Point p = new Point(dialogOwner.getX() + dialogOwner.getWidth(), dialogOwner.getY());
+				if (java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width < p.x + splitter.getWidth()) {
+					splitter.setLocationRelativeTo(dialogOwner);
+				} else {
+					splitter.setLocation(p);
+				}
+			}
+			@Override public void windowClosing(WindowEvent e) {}
+			@Override public void windowClosed(WindowEvent e) {}
+			@Override public void windowIconified(WindowEvent e) {}
+			@Override public void windowDeiconified(WindowEvent e) {}
+			@Override public void windowActivated(WindowEvent e) {}
+			@Override public void windowDeactivated(WindowEvent e) {}
+		});
 	}
 
 	/**
@@ -732,8 +768,8 @@ public class MainFrame extends JFrame {
 					this.setSplashBackgroundColor(String.format("%2h%2h%2h%2h", c.getAlpha(), c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0'));
 				}
 			}
-		} catch (Exception ex) {
-			handleException(ex);
+		} catch (Throwable t) {
+			handleThrowable(t);
 			textField.setText("");
 			if (imagePanel != null) imagePanel.clear();
 			return false;
@@ -780,9 +816,32 @@ public class MainFrame extends JFrame {
 	public boolean isBatchMode() { return this.batchMode; }
 	public boolean isSilentMode() { return this.silentMode; }
 	public boolean isVerboseMode() { return this.verboseMode; }
+	public void setImageType(int idx) { imageType.setSelectedIndex(idx); }
+	public boolean isGenerateImagesReqested() { return !icon6Path.getText().trim().isEmpty() && !icon7Path.getText().trim().isEmpty() && !splashPath.getText().trim().isEmpty();  }
 	// hidden option.
 	public void setScalingAlgorithm(int idx) { scaleAlgorithm.setSelectedIndex(idx); }
-	public void setImageType(int idx) { imageType.setSelectedIndex(idx); }
+	protected int getScalingAlgorithm() { return ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue(); }
+
+	// Splitter
+	public void setAs3x(boolean b) { splitter.setAs3x(b); splitter.setSized(!b); }
+	public void setSized(boolean b) { splitter.setSized(b); splitter.setAs3x(!b); }
+	public void setWidth1x(int width) { splitter.setWidth1x(width); }
+	public void setHeight1x(int height) { splitter.setHeight1x(height); }
+	public void setOverwriteAlways(boolean b) { splitter.setOverwriteAlways(b); }
+	public void setSplitTarget(String path) { splitTarget = new File(path); }
+	public boolean isSplitImageRequested() { return splitTarget != null; }
+	public boolean split() {
+		if (!this.isBatchMode()) return false;
+		if (splitTarget == null) { System.out.println("No image file specified."); return false; }
+		if (!splitTarget.exists()) { System.out.println(String.format("[%s] is not exists.", splitTarget.getAbsolutePath())); return false; }
+		try {
+			splitter.split(splitTarget);
+		} catch (Throwable t) {
+			handleThrowable(t);
+			return false;
+		}
+		return true;
+	}
 
 	/**
 	 * Set launch image background color.
@@ -834,7 +893,7 @@ public class MainFrame extends JFrame {
 	 * @param f	File to output
 	 * @throws IOException
 	 */
-	private void verbose(File f) throws IOException {
+	protected void verbose(File f) throws IOException {
 		if (!this.isBatchMode() || !this.isVerboseMode() || this.isSilentMode()) {
 			return;
 		}
@@ -846,9 +905,9 @@ public class MainFrame extends JFrame {
 	 *
 	 * @param ex	exception
 	 */
-	private void handleException(Exception ex) {
-		ex.printStackTrace(System.err);
-		alert(ex.toString() + " (" + ex.getMessage() + ")");
+	private void handleThrowable(Throwable t) {
+		t.printStackTrace(System.err);
+		alert(t.toString() + " (" + t.getMessage() + ")");
 	}
 
 	/**
@@ -1115,6 +1174,7 @@ public class MainFrame extends JFrame {
 					// Do not use PropertyChangeListener currently.
 					boolean result = true;
 					Color settingsColor = settingsButton.getBackground();
+					Color splitColor = splitButton.getBackground();
 					if (!isBatchMode()) {
 						cancelButton.setVisible(true);
 						generateButton.setVisible(false);
@@ -1199,10 +1259,11 @@ public class MainFrame extends JFrame {
 						if (!isBatchMode()) {
 							progress.setValue(progress.getMaximum());
 						}
-					} catch (Exception ex) {
+					} catch (Throwable ex) {
 						result = false;
-						handleException(ex);
+						handleThrowable(ex);
 					} finally {
+						System.gc();
 						if (!isBatchMode()) {
 							generateButton.setVisible(true);
 							cancelButton.setVisible(false);
@@ -1230,8 +1291,8 @@ public class MainFrame extends JFrame {
 			}
 
 
-		} catch (Exception ex) {
-			handleException(ex);
+		} catch (Throwable t) {
+			handleThrowable(t);
 			return false;
 		}
 		return result;
@@ -1255,7 +1316,7 @@ public class MainFrame extends JFrame {
 		int width = (int)info.getSize().getWidth();
 		int height = (int)info.getSize().getHeight();
 		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();
+		int hints = this.getScalingAlgorithm();
 		buf.getGraphics().drawImage(src.getScaledInstance(width, height, hints), 0, 0, this);
 
 		ImageIO.write(fixImageColor(buf, src), "png", f);
@@ -1306,7 +1367,7 @@ public class MainFrame extends JFrame {
 		}
    		int x = (int) ((width - w) / 2);
    		int y = (int) ((height - h) / 2);
-		int hints = ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue();
+		int hints = this.getScalingAlgorithm();
 		buf.getGraphics().drawImage(src.getScaledInstance(w, h, hints), x, y, this);
 
 		ImageIO.write(fixImageColor(buf, src), "png", f);
@@ -1322,7 +1383,7 @@ public class MainFrame extends JFrame {
 	 * @param src source image
 	 * @return fixed image
 	 */
-	private BufferedImage fixImageColor(BufferedImage buf, BufferedImage src) {
+	protected BufferedImage fixImageColor(BufferedImage buf, BufferedImage src) {
 		try {
 			int srcColorType = src.getType();
 			int dstColorType = ((ComboBoxItem)imageType.getSelectedItem()).getItemValue();
@@ -1443,8 +1504,8 @@ public class MainFrame extends JFrame {
 			}
 
 			return new ImageFile(image, f);
-		} catch (Exception ex) {
-			handleException(ex);
+		} catch (Throwable t) {
+			handleThrowable(t);
 		}
 		return null;
 	}
@@ -1456,7 +1517,7 @@ public class MainFrame extends JFrame {
 	 * @param def	default string
 	 * @return	resource string
 	 */
-	private String getResource(String key, String def) {
+	protected String getResource(String key, String def) {
 		if (resource.containsKey(key)) {
 			return resource.getString(key);
 		}

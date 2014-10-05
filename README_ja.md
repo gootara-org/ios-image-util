@@ -26,6 +26,13 @@ GUI を表示せずにバッチ実行するようにオプションで指定す�
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/settings_ja.png?raw=true "Settings")
 
+それから、１つの PNG 画像から @1x、@2x、@3x のイメージを切り分ける機能をおまけで追加しました。
+ドロップしたファイルを @3x として切り分けたり、@1x のサイズを指定しての切り分けが可能です。
+
+![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter_ja.png?raw=true "Splitter")
+
+
+
 OUTPUT:
 -------
 | Type       | iOS Ver | Filename                       | Width  | Height  |
@@ -66,6 +73,8 @@ PREREQUISITES:
 --------------
 - JDK 1.6 以上
 
+
+
 RECOMMENDED:
 ------------
 - いかなる外部ライブラリも利用していませんので、コンパイルは JDK のみで行えます。お好みで Eclipse、Ant、Maven 等も利用できます。
@@ -77,6 +86,7 @@ RECOMMENDED:
 - Maven (バージョンはなんでも構いません。3.1.1で動作確認しました。コンソール上で pom.xml と同じディレクトリに移動して、単に「mvn clean compile jar:jar」を実行してください)
 
 
+
 COMMAND LINE:
 -------------
 - java -jar ios-image-util.jar
@@ -84,6 +94,8 @@ COMMAND LINE:
   または、以下のようにメインクラスを指定して実行してください。
 
 - java -classpath ios-image-util.jar org.gootara.ios.image.util.IOSImageUtil
+
+
 
 COMMAND LINE OPTIONS:
 ---------------------
@@ -108,6 +120,14 @@ COMMAND LINE OPTIONS:
                                   5: fill screen (no aspect ratio)
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
+
+  For Image Set:
+    -sp3x                       Generate @3x, @2x, @1x images from @3x
+    -spSize width:height        Generate @3x, @2x, @1x with @1x size specific.
+    -spNoReplace                Not overwrite if file already exists.
+    -spFile "png path"          Image set png file location (full path)
+
+
 
 CHANGE LOG:
 -----------
@@ -154,4 +174,9 @@ CHANGE LOG:
 2014/09/28
 - Simplified User Interface. Just add a surface, but it looks little bit modern, isn't it? :p
 - To use SwingWorker thread with generating images.
+
+2014/10/05
+- Fix problem when maximized.
+- Fix build.xml for ant.
+- Add image splitter. Generate @3x, @2x, @1x images from one png file.
 

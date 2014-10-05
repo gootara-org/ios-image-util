@@ -24,6 +24,12 @@ And generate process can be automated by using command line options with no gui.
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/settings.png?raw=true "Settings")
 
+Then, add extra feature to generate @3x, @2x, @1x images from one png file.
+Generate images from dropped file as @3x or to specify @1x size.
+
+![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter_ja.png?raw=true "Splitter")
+
+
 OUTPUT:
 -------
 | Type       | iOS Ver | Filename                       | Width  | Height  |
@@ -112,6 +118,12 @@ COMMAND LINE OPTIONS:
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
 
+  For Image Set:
+    -sp3x                       Generate @3x, @2x, @1x images from @3x
+    -spSize width:height        Generate @3x, @2x, @1x with @1x size specific.
+    -spNoReplace                Not overwrite if file already exists.
+    -spFile "png path"          Image set png file location (full path)
+
 
 
 CHANGE LOG:
@@ -159,5 +171,10 @@ CHANGE LOG:
 2014/09/28
 - Simplified User Interface. Just add a surface, but it looks little bit modern, isn't it? :p
 - To use SwingWorker thread with generating images.
+
+2014/10/05
+- Fix problem when maximized.
+- Fix build.xml for ant.
+- Add image splitter. Generate @3x, @2x, @1x images from one png file.
 
 

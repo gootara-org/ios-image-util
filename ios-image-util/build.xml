@@ -8,6 +8,10 @@
         <javac encoding="UTF-8" srcdir="src" destdir="bin" includeantruntime="false" includes="**/*.java" />
         <copy file="src/application.properties" todir="bin" />
         <copy file="src/application_ja.properties" todir="bin" />
+        <mkdir dir="bin/org/gootara/ios/image/util/ui/img" />
+        <copy todir="bin/org/gootara/ios/image/util/ui/img" >
+            <fileset dir="src/org/gootara/ios/image/util/ui/img" />
+        </copy>
     </target>
     <target name="create_run_jar" depends="compile">
         <mkdir dir="jar" />

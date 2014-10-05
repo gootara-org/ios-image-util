@@ -53,7 +53,11 @@ public class IOSImageUtil {
 					System.out.println(String.format("START: %s", (new java.util.Date(l1)).toString()));
 					System.out.println(String.format("  Initializing takes %.2f secs.", ((double)(System.currentTimeMillis() - l1) / 1000d)));
 				}
-				if (!mainFrame.generate()) {
+				if (mainFrame.isGenerateImagesReqested() && !mainFrame.generate()) {
+					exitCode = 1;
+					usage();
+				}
+				if (mainFrame.isSplitImageRequested() && !mainFrame.split()) {
 					exitCode = 1;
 					usage();
 				}
@@ -83,7 +87,8 @@ public class IOSImageUtil {
 		String argc = null;
 		boolean noerr = true;
 		try {
-			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-noasset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor");
+
+			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-noasset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor", "-sp3x", "-spsize", "-spnoreplace", "-spfile");
 			int i;
 
 			for (i = 0; i < args.length; i++) {
@@ -91,7 +96,7 @@ public class IOSImageUtil {
 				String arg = args[i].toLowerCase();
 				if (arg.startsWith("/")) arg = "-".concat(arg.substring(1));
 
-				if (arg.equals("-b") || arg.equals("-batch")) { mainFrame.setBatchMode(true); }
+				if (arg.equals("-b") || arg.equals("-batch")) { mainFrame.setBatchMode(true); mainFrame.setOverwriteAlways(true); }
 				if (arg.equals("-v") || arg.equals("-verbose")) { mainFrame.setVerboseMode(true); }
 				if (arg.equals("-noasset")) { mainFrame.setGenerateAsAssetCatalogs(false); }
 				if (arg.equals("-h") || arg.equals("-help")) { usage(); return false; }
@@ -116,6 +121,12 @@ public class IOSImageUtil {
 				if (arg.equals("-algorithm")) { i++; mainFrame.setScalingAlgorithm(Integer.parseInt(args[i])); }
 				if (arg.equals("-imagetype")) { i++; mainFrame.setImageType(Integer.parseInt(args[i])); }
 				if (arg.equals("-lbgcolor")) { i++; }
+
+				// Splitter
+				if (arg.equals("-sp3x")) { mainFrame.setAs3x(true); }
+				if (arg.equals("-spsize")) { i++; mainFrame.setSized(true); String[] size = args[i].split(":"); mainFrame.setWidth1x(Integer.parseInt(size[0])); mainFrame.setHeight1x(Integer.parseInt(size[1])); }
+				if (arg.equals("-spnoreplace")) { mainFrame.setOverwriteAlways(false); }
+				if (arg.equals("-spfile")) { i++; mainFrame.setSplitTarget(args[i]); }
 			}
 
 			for (i = 0; i < args.length; i++) {
@@ -178,6 +189,13 @@ public class IOSImageUtil {
 		System.out.println("                                5: fill screen (no aspect ratio)");
 		System.out.println("  -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent");
 		System.out.println("  -imagetype [0-13]           choose image type (@see BufferedImage)");
+		System.out.println("");
+		System.out.println("For Image Set:");
+		System.out.println("  -sp3x                       Generate @3x, @2x, @1x images from @3x");
+		System.out.println("  -spSize width:height        Generate @3x, @2x, @1x with @1x size specific.");
+		System.out.println("  -spNoReplace                Not overwrite if file already exists.");
+		System.out.println("  -spFile \"png path\"        Image set png file location (full path)");
+
 	}
 
 }
