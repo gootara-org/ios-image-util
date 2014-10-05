@@ -105,6 +105,10 @@ public class SplitterFrame extends JDialog {
 		sizePanel.add(this.width1x = new JTextField("44", 4));
 		sizePanel.add(new JLabel(owner.getResource("splitter.label.x", "x")));
 		sizePanel.add(this.height1x = new JTextField("44", 4));
+		JLabel both = new JLabel(owner.getResource("splitter.label.both", "(Accept empty either)"));
+		both.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+		both.setForeground(new Color(0x4E4E53));
+		sizePanel.add(both);
 		this.width1x.setHorizontalAlignment(JTextField.RIGHT);
 		this.height1x.setHorizontalAlignment(JTextField.RIGHT);
 		settings.add(sizePanel);
@@ -230,9 +234,19 @@ public class SplitterFrame extends JDialog {
 		}
 		parent.verbose(f);
 
-		Dimension size = new Dimension(Integer.parseInt(this.width1x.getText()) * scale, Integer.parseInt(this.height1x.getText()) * scale);
+		Dimension size = null;
 		if (this.as3x.isSelected()) {
 			size = new Dimension(src.getWidth() / 3 * scale, src.getHeight() / 3 * scale);
+		} else {
+			if (this.width1x.getText().trim().isEmpty() && this.height1x.getText().trim().isEmpty()) {
+				throw new Exception(parent.getResource("splitter.error.empty.both", "Either the width or height is required."));
+			}
+			float width = this.width1x.getText().trim().isEmpty() ? 0 : Float.parseFloat(this.width1x.getText());
+			float height = this.height1x.getText().trim().isEmpty() ? 0 : Float.parseFloat(this.height1x.getText());
+			float p = width == 0 ? height / ((float)src.getHeight() / 3.0f) : width / ((float)src.getWidth() / 3.0f);
+			width = width == 0 ? ((float)src.getWidth() / 3.0f) * p : width;
+			height = height == 0 ? ((float)src.getHeight() / 3.0f) * p : height;
+			size = new Dimension(Math.round(width) * scale, Math.round(height) * scale);
 		}
 
 		BufferedImage buf = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
