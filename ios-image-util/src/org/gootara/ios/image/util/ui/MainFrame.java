@@ -43,8 +43,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
@@ -137,7 +135,7 @@ public class MainFrame extends JFrame {
 		icon6Path = new JTextField();
 		JButton refIcon6Path = new JButton("...");
 		refIcon6Path.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(icon6Path, icon6Image);
 			}
 		});
@@ -150,7 +148,7 @@ public class MainFrame extends JFrame {
 		icon7Path = new JTextField();
 		JButton refIcon7Path = new JButton("...");
 		refIcon7Path.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(icon7Path, icon7Image);
 			}
 		});
@@ -163,7 +161,7 @@ public class MainFrame extends JFrame {
 		splashPath = new JTextField();
 		JButton refSplashPath = new JButton("...");
 		refSplashPath.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(splashPath, splashImage);
 			}
 		});
@@ -240,20 +238,20 @@ public class MainFrame extends JFrame {
 		splashBackgroundColor.setFont(splashBackgroundColor.getFont().deriveFont(Font.PLAIN, 11.0f));
 		splashBackgroundColor.setToolTipText(getResource("tooltip.splash.bgcolor", "tooltip.splash.bgcolor"));
 		splashBackgroundColor.addFocusListener(new FocusListener() {
-			public void focusGained(FocusEvent e) {
+			@Override public void focusGained(FocusEvent e) {
 				if (splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
 					splashBackgroundColor.setText("");
 					splashBackgroundColor.setForeground(Color.BLACK);
 				}
 			}
-			public void focusLost(FocusEvent e) {
+			@Override public void focusLost(FocusEvent e) {
 				setSplashBackgroundColor(splashBackgroundColor.getText());
 			}
 		});
 		JButton refSplashBackgroundColor = new JButton("...");
 		refSplashBackgroundColor.setFont(refSplashBackgroundColor.getFont().deriveFont(Font.PLAIN, 11.0f));
 		refSplashBackgroundColor.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				Color c = null;
 				try {
 					c = JColorChooser.showDialog(splashBackgroundColor, "Color Chooser", splashBackgroundColor.getText().equals(PLACEHOLDER_SPLASH_BGCOL) ? null : new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true));
@@ -293,7 +291,7 @@ public class MainFrame extends JFrame {
 
 		this.generateAsAssetCatalogs = new JCheckBox(getResource("label.generate.as.asset.catalogs", "Generate As Asset Catalogs"), true);
 		this.generateAsAssetCatalogs.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				try {
 					String generated = getResource("string.dir.generate", "generated");
 					String assets = getResource("string.dir.assets", "Images.xcassets");
@@ -320,7 +318,7 @@ public class MainFrame extends JFrame {
 		JButton refOutputPath = new JButton("...");
 		JLabel outputPathLabel = new JLabel(getResource("label.output.path", "Output Dir:"), SwingConstants.RIGHT);
 		refOutputPath.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();
 				if (outputPath.getText().trim().length() > 0) {
 					File dir = new File(outputPath.getText());
@@ -420,7 +418,7 @@ public class MainFrame extends JFrame {
 		icon6Image.setBackground(imagesColor);
 		icon6Image.setFont(imagesFont);
 		icon6Image.setTransferHandler(new TransferHandler() {
-			public boolean importData(TransferSupport support) {
+			@Override public boolean importData(TransferSupport support) {
 				try {
 					if (canImport(support)) {
 						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
@@ -434,7 +432,7 @@ public class MainFrame extends JFrame {
 				}
 				return false;
 			}
-			public boolean canImport(TransferSupport support) {
+			@Override public boolean canImport(TransferSupport support) {
 				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
 			}
 		});
@@ -447,7 +445,7 @@ public class MainFrame extends JFrame {
 		icon7Image.setForeground(new Color(0x34AADC));//0x007AFF));//0x34AADC));
 		icon7Image.setFont(imagesFont);
 		icon7Image.setTransferHandler(new TransferHandler() {
-			public boolean importData(TransferSupport support) {
+			@Override public boolean importData(TransferSupport support) {
 				try {
 					if (canImport(support)) {
 						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
@@ -461,7 +459,7 @@ public class MainFrame extends JFrame {
 				}
 				return false;
 			}
-			public boolean canImport(TransferSupport support) {
+			@Override public boolean canImport(TransferSupport support) {
 				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
 			}
 		});
@@ -472,7 +470,7 @@ public class MainFrame extends JFrame {
 		splashImage.setBackground(imagesColor);
 		splashImage.setFont(imagesFont);
 		splashImage.setTransferHandler(new TransferHandler() {
-			public boolean importData(TransferSupport support) {
+			@Override public boolean importData(TransferSupport support) {
 				try {
 					if (canImport(support)) {
 						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
@@ -486,7 +484,7 @@ public class MainFrame extends JFrame {
 				}
 				return false;
 			}
-			public boolean canImport(TransferSupport support) {
+			@Override public boolean canImport(TransferSupport support) {
 				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
 			}
 		});
@@ -533,7 +531,7 @@ public class MainFrame extends JFrame {
 		generateButton.setMargin(new Insets(2, 16, 2, 16));
 		generateButton.setOpaque(true);
 		generateButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				generate();
 			}
 		});
@@ -552,7 +550,7 @@ public class MainFrame extends JFrame {
 		cancelButton.setDoubleBuffered(true);
 		cancelButton.setRolloverEnabled(false);
 		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
 				cancelGenerate();
 			}
 
@@ -588,8 +586,17 @@ public class MainFrame extends JFrame {
 		splitButton.setFont(buttonFont);
 		splitButton.setMargin(new Insets(2, 16, 2, 16));
 		splitButton.setOpaque(true);
+		final JFrame dialogOwner = this;
 		splitButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override public void actionPerformed(ActionEvent e) {
+				if (!splitter.isVisible()) {
+					Point p = new Point(dialogOwner.getX() + dialogOwner.getWidth() + 4, dialogOwner.getY());
+					if (java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width < p.x + splitter.getWidth()) {
+						splitter.setLocationRelativeTo(dialogOwner);
+					} else {
+						splitter.setLocation(p);
+					}
+				}
 				splitter.setVisible(!splitter.isVisible());
 			}
 		});
@@ -683,30 +690,12 @@ public class MainFrame extends JFrame {
 			}
 		});
 
-
 		// initial initialize
 		this.setSplashBackgroundColor("");
 		surface.setLocation(0, -16);
 		this.pack();
 
 		splitter = new SplitterFrame(this, getResource("splitter.title", "Splitter"));
-		final JFrame dialogOwner = this;
-		this.addWindowListener(new WindowListener() {
-			@Override public void windowOpened(WindowEvent e) {
-				Point p = new Point(dialogOwner.getX() + dialogOwner.getWidth(), dialogOwner.getY());
-				if (java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width < p.x + splitter.getWidth()) {
-					splitter.setLocationRelativeTo(dialogOwner);
-				} else {
-					splitter.setLocation(p);
-				}
-			}
-			@Override public void windowClosing(WindowEvent e) {}
-			@Override public void windowClosed(WindowEvent e) {}
-			@Override public void windowIconified(WindowEvent e) {}
-			@Override public void windowDeiconified(WindowEvent e) {}
-			@Override public void windowActivated(WindowEvent e) {}
-			@Override public void windowDeactivated(WindowEvent e) {}
-		});
 	}
 
 	/**
@@ -825,8 +814,8 @@ public class MainFrame extends JFrame {
 	// Splitter
 	public void setAs3x(boolean b) { splitter.setAs3x(b); splitter.setSized(!b); }
 	public void setSized(boolean b) { splitter.setSized(b); splitter.setAs3x(!b); }
-	public void setWidth1x(int width) { splitter.setWidth1x(width); }
-	public void setHeight1x(int height) { splitter.setHeight1x(height); }
+	public void setWidth1x(String width) { splitter.setWidth1x(width); }
+	public void setHeight1x(String height) { splitter.setHeight1x(height); }
 	public void setOverwriteAlways(boolean b) { splitter.setOverwriteAlways(b); }
 	public void setSplitTarget(String path) { splitTarget = new File(path); }
 	public boolean isSplitImageRequested() { return splitTarget != null; }
@@ -1317,7 +1306,10 @@ public class MainFrame extends JFrame {
 		int height = (int)info.getSize().getHeight();
 		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		int hints = this.getScalingAlgorithm();
-		buf.getGraphics().drawImage(src.getScaledInstance(width, height, hints), 0, 0, this);
+		Image img = src.getScaledInstance(width, height, hints);
+		buf.getGraphics().drawImage(img, 0, 0, this);
+		img.flush();
+		img = null;
 
 		ImageIO.write(fixImageColor(buf, src), "png", f);
 		buf.flush();
@@ -1368,7 +1360,10 @@ public class MainFrame extends JFrame {
    		int x = (int) ((width - w) / 2);
    		int y = (int) ((height - h) / 2);
 		int hints = this.getScalingAlgorithm();
-		buf.getGraphics().drawImage(src.getScaledInstance(w, h, hints), x, y, this);
+		Image img = src.getScaledInstance(w, h, hints);
+		buf.getGraphics().drawImage(img, x, y, this);
+		img.flush();
+		img = null;
 
 		ImageIO.write(fixImageColor(buf, src), "png", f);
 		buf.flush();

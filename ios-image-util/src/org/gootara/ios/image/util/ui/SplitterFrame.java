@@ -29,9 +29,12 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
@@ -51,6 +54,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.TransferHandler;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * The main window frame of IOSImageUtil.
@@ -100,18 +105,58 @@ public class SplitterFrame extends JDialog {
 
 		JPanel sizePanel = new JPanel();
 		sizePanel.setBackground(Color.WHITE);
-		sizePanel.setLayout(new FlowLayout());
+		sizePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 2, 4));
 		sizePanel.add(new JLabel(owner.getResource("splitter.label.size", "size:")));
-		sizePanel.add(this.width1x = new JTextField("44", 4));
+		sizePanel.add(this.width1x = new JTextField("44 px", 5));
 		sizePanel.add(new JLabel(owner.getResource("splitter.label.x", "x")));
-		sizePanel.add(this.height1x = new JTextField("44", 4));
-		JLabel both = new JLabel(owner.getResource("splitter.label.both", "(Accept empty either)"));
-		both.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-		both.setForeground(new Color(0x4E4E53));
-		sizePanel.add(both);
+		sizePanel.add(this.height1x = new JTextField("44 px", 5));
 		this.width1x.setHorizontalAlignment(JTextField.RIGHT);
 		this.height1x.setHorizontalAlignment(JTextField.RIGHT);
+		Insets insets = this.width1x.getInsets();
+		insets.left = 2; insets.right = 2;
+		this.width1x.setMargin(insets);
+		insets = this.height1x.getInsets();
+		insets.left = 2; insets.right = 2;
+		this.height1x.setMargin(insets);
+		this.width1x.addFocusListener(new FocusListener() {
+			@Override public void focusGained(FocusEvent e) { width1x.select(0, width1x.getText().indexOf(" ") < 0 ? width1x.getText().length() : width1x.getText().indexOf(" ")); }
+			@Override public void focusLost(FocusEvent e) {
+				try {
+					setWidth1x(width1x.getText());
+				} catch (Throwable t) {
+					t.printStackTrace();
+					width1x.requestFocus();
+				}
+			}
+		});
+		this.height1x.addFocusListener(new FocusListener() {
+			@Override public void focusGained(FocusEvent e) { height1x.select(0, height1x.getText().indexOf(" ") < 0 ? height1x.getText().length() : height1x.getText().indexOf(" ")); }
+			@Override public void focusLost(FocusEvent e) {
+				try {
+					setHeight1x(height1x.getText());
+				} catch (Throwable t) {
+					t.printStackTrace();
+					height1x.requestFocus();
+				}
+			}
+		});
+		this.width1x.getDocument().addDocumentListener(new DocumentListener() {
+			@Override public void changedUpdate(DocumentEvent e) { setSized(true); }
+			@Override public void insertUpdate(DocumentEvent e) { setSized(true); }
+			@Override public void removeUpdate(DocumentEvent e) { setSized(true); }
+		});
+		this.height1x.getDocument().addDocumentListener(new DocumentListener() {
+			@Override public void changedUpdate(DocumentEvent e) { setSized(true); }
+			@Override public void insertUpdate(DocumentEvent e) { setSized(true); }
+			@Override public void removeUpdate(DocumentEvent e) { setSized(true); }
+		});
+		JLabel both = new JLabel(owner.getResource("splitter.label.both", "(Accept empty either)"));
+		both.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+		both.setForeground(new Color(0x8E8E93));
+		sizePanel.add(both);
+
 		settings.add(sizePanel);
+
 
 		settings.add(this.overwriteAlways = new JCheckBox(owner.getResource("splitter.overwrite.always", "Overwrite always"), false));
 		this.overwriteAlways.setBackground(Color.WHITE);
@@ -183,9 +228,31 @@ public class SplitterFrame extends JDialog {
 	// for command line option switches.
 	protected void setAs3x(boolean b) { this.as3x.setSelected(b); }
 	protected void setSized(boolean b) { this.sized.setSelected(b); }
-	protected void setWidth1x(int width) { this.width1x.setText(Integer.valueOf(width).toString()); }
-	protected void setHeight1x(int height) { this.height1x.setText(Integer.valueOf(height).toString()); }
+	protected void setWidth1x(String width) { this.setImageSize(this.width1x, width); }
+	protected void setHeight1x(String height) { this.setImageSize(this.height1x, height); }
 	protected void setOverwriteAlways(boolean b) { this.overwriteAlways.setSelected(b); }
+	private void setImageSize(JTextField text, String size) {
+		size = size.toLowerCase().trim();
+		if (size.isEmpty() || size.equals("px") || size.equals("%")) {
+			text.setText("");
+			return;
+		}
+		if (size.endsWith("px")) { size = size.replaceAll("px", "").trim(); }
+		boolean per = size.endsWith("%");
+		if (per) { size = size.replaceAll("%", "").trim(); }
+		text.setText(new Integer(Integer.parseInt(size)).toString().concat(" ").concat(per ? "%" : "px"));
+	}
+	private float getImageSize(String size, float imageSize) {
+		size = size.toLowerCase().trim();
+		if (size.isEmpty() || size.equals("px") || size.equals("%")) {
+			return 0;
+		}
+
+		if (size.endsWith("px")) { size = size.replaceAll("px", "").trim(); }
+		boolean per = size.endsWith("%");
+		if (per) { size = size.replaceAll("%", "").trim(); }
+		return per ? imageSize * (Float.parseFloat(size) / 100.0f) : Float.parseFloat(size);
+	}
 
 	/**
 	 * Do split images.
@@ -241,16 +308,19 @@ public class SplitterFrame extends JDialog {
 			if (this.width1x.getText().trim().isEmpty() && this.height1x.getText().trim().isEmpty()) {
 				throw new Exception(parent.getResource("splitter.error.empty.both", "Either the width or height is required."));
 			}
-			float width = this.width1x.getText().trim().isEmpty() ? 0 : Float.parseFloat(this.width1x.getText());
-			float height = this.height1x.getText().trim().isEmpty() ? 0 : Float.parseFloat(this.height1x.getText());
+			float width = this.getImageSize(this.width1x.getText(), (float)src.getWidth() / 3.0f);
+			float height = this.getImageSize(this.height1x.getText(), (float)src.getHeight() / 3.0f);
 			float p = width == 0 ? height / ((float)src.getHeight() / 3.0f) : width / ((float)src.getWidth() / 3.0f);
 			width = width == 0 ? ((float)src.getWidth() / 3.0f) * p : width;
 			height = height == 0 ? ((float)src.getHeight() / 3.0f) * p : height;
 			size = new Dimension(Math.round(width) * scale, Math.round(height) * scale);
 		}
 
+		Image img = src.getScaledInstance(size.width, size.height, parent.getScalingAlgorithm());
 		BufferedImage buf = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
-		buf.getGraphics().drawImage(src.getScaledInstance(size.width, size.height, parent.getScalingAlgorithm()), 0, 0, this);
+		buf.getGraphics().drawImage(img, 0, 0, this);
+		img.flush();
+		img = null;
 
 		ImageIO.write(parent.fixImageColor(buf, src), "png", f);
 		buf.flush();

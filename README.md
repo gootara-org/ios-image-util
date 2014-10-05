@@ -120,7 +120,7 @@ COMMAND LINE OPTIONS:
 
   For Image Set:
     -sp3x                       Generate @3x, @2x, @1x images from @3x
-    -spSize width:height        Generate @3x, @2x, @1x with @1x size specific.
+    -spSize width:height        Generate @3x, @2x, @1x with @1x size (px|%)
     -spNoReplace                Not overwrite if file already exists.
     -spFile "png path"          Image set png file location (full path)
 
