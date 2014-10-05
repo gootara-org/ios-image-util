@@ -27,7 +27,7 @@ And generate process can be automated by using command line options with no gui.
 Then, add extra feature to generate @3x, @2x, @1x images from one png file.
 Generate images from dropped file as @3x or to specify @1x size.
 
-![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter_ja.png?raw=true "Splitter")
+![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter.png?raw=true "Splitter")
 
 
 OUTPUT:
