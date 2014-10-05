@@ -607,7 +607,7 @@ public class MainFrame extends JFrame {
 		progress.setStringPainted(true);
 		progress.setBorderPainted(false);
 		progress.setBackground(new Color(0xF7F7F7));
-		progress.setForeground(new Color(0x34AADC));
+		progress.setForeground(new Color(0x007AFF));
 		progress.setOpaque(true);
 		surface.add(progress);
 
