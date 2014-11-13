@@ -118,7 +118,7 @@ COMMAND LINE OPTIONS:
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
 
-  For Image Set:
+    For Image Set:
     -sp3x                       Generate @3x, @2x, @1x images from @3x
     -spSize width:height        Generate @3x, @2x, @1x with @1x size (px|%)
     -spNoReplace                Not overwrite if file already exists.
@@ -176,5 +176,9 @@ CHANGE LOG:
 - Fix problem when maximized.
 - Fix build.xml for ant.
 - Add image splitter. Generate @3x, @2x, @1x images from one png file.
+
+2014/11/13
+- Fix readme.
+- Set thumbnail maximum size.
 
 

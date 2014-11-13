@@ -896,7 +896,11 @@ public class MainFrame extends JFrame {
 	 */
 	private void handleThrowable(Throwable t) {
 		t.printStackTrace(System.err);
-		alert(t.toString() + " (" + t.getMessage() + ")");
+		if (t instanceof OutOfMemoryError) {
+			alert(this.getResource("error.out.of.memory", "Out of Memory Error. Increase heap size with -Xmx java option."));
+		} else {
+			alert(t.toString() + " (" + t.getMessage() + ")");
+		}
 	}
 
 	/**
