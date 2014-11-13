@@ -56,6 +56,9 @@ OUTPUT:
 | Launch     |  ~6.x   | Default.png                    |   320  |    480  |
 |            |  ~7.x~  | Default@2x.png                 |   640  |    960  |
 |            |  ~7.x~  | Default-568h@2x.png            |   640  |   1136  |
+|            |  ~8.x~  | Default-667h@2x.png            |   750  |   1334  |
+|            |  ~8.x~  | Default-736h@3x.png            |  1242  |   2208  |
+|            |  ~8.x~  | Default-Laundscape-736h@3x.png |  2208  |   1242  |
 |            |  ~7.x~  | Default-Portrait~ipad.png      |   768  |   1024  |
 |            |  ~7.x~  | Default-Portrait@2x~ipad.png   |  1536  |   2048  |
 |            |  ~7.x~  | Default-Landscape~ipad.png     |  1024  |    768  |
