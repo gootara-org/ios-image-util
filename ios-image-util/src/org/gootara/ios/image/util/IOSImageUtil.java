@@ -192,7 +192,7 @@ public class IOSImageUtil {
 		System.out.println("");
 		System.out.println("For Image Set:");
 		System.out.println("  -sp3x                       Generate @3x, @2x, @1x images from @3x");
-		System.out.println("  -spSize width:height        Generate @3x, @2x, @1x with @1x size (px|%)");
+		System.out.println("  -spSize width:height        Generate @3x, @2x, @1x with @1x(px)|@3x(%) size");
 		System.out.println("  -spNoReplace                Not overwrite if file already exists.");
 		System.out.println("  -spFile \"png path\"        Image set png file location (full path)");
 
