@@ -179,6 +179,6 @@ CHANGE LOG:
 
 2014/11/13
 - Fix readme.
-- Set thumbnail maximum size.
+- Add out of memory error message.
 
 

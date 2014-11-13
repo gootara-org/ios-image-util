@@ -42,7 +42,8 @@ import javax.swing.JPanel;
  */
 public class ImagePanel extends JPanel {
 
-	private Image image, scaledImage;
+	private BufferedImage image;
+	private Image scaledImage;
 	private String placeHolder, hyphenatorBoL, hyphnatorEoL;
 
 	/**
@@ -82,12 +83,7 @@ public class ImagePanel extends JPanel {
 			this.image.flush();
 			this.image = null;
 		}
-
-		Dimension size = new Dimension(image.getWidth(), image.getHeight());
-		if (size.getWidth() > 1024d || size.getHeight() > 1024d) {
-			size = new Dimension(1024, 1024);
-		}
-		this.image = this.createScaledImage(image, new Dimension(image.getWidth(), image.getHeight()), size);
+		this.image = image;
 		createScaledImage();
 		this.repaint();
 	}
@@ -97,7 +93,7 @@ public class ImagePanel extends JPanel {
 	 *
 	 * @return image
 	 */
-	public Image getImage(){
+	public BufferedImage getImage(){
 		return this.image;
 	}
 
@@ -131,7 +127,7 @@ public class ImagePanel extends JPanel {
 		if (image == null) {
 			return (new Dimension(0, 0));
 		}
-		return (new Dimension(image.getWidth(this), image.getHeight(this)));
+		return (new Dimension(image.getWidth(), image.getHeight()));
 	}
 
 	@Override public void update(Graphics g) {
@@ -226,19 +222,17 @@ public class ImagePanel extends JPanel {
 		if (image == null) {
 			return;
 		}
-		this.scaledImage = this.createScaledImage(this.image, this.getPreferredSize(), new Dimension(this.getWidth(), this.getHeight()));
-	}
-	private Image createScaledImage(Image src, Dimension preferredSize, Dimension maximumSize) {
-		if (preferredSize.width <= 0 || preferredSize.height <= 0) return null;
-		double p = (maximumSize.getWidth() > maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
-		if (preferredSize.width != preferredSize.height) {
-			double p2 = (preferredSize.width < preferredSize.height) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
+		Dimension size = this.getPreferredSize();
+		if (size.width <= 0 || size.height <= 0) return;
+		double p = (this.getWidth() > this.getHeight()) ? (double)this.getHeight() / size.getHeight() : (double)this.getWidth() / size.getWidth();
+		if (size.width != size.height) {
+			double p2 = (size.width < size.height) ? (double)this.getHeight() / size.getHeight() : (double)this.getWidth() / size.getWidth();
 			if (p2 < p) { p = p2; }
 		}
-		int w = (int) (preferredSize.getWidth() * p);
-		int h = (int) (preferredSize.getHeight() * p);
-		if (w <= 0 || h <= 0) return null;
-		return src.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+		int w = (int) (size.getWidth() * p);
+		int h = (int) (size.getHeight() * p);
+		if (w <= 0 || h <= 0) return;
+		this.scaledImage = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
 	}
 
 	/**

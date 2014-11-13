@@ -120,7 +120,7 @@ COMMAND LINE OPTIONS:
                                   5: fill screen (no aspect ratio)
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
-    
+
     For Image Set:
     -sp3x                       Generate @3x, @2x, @1x images from @3x
     -spSize width:height        Generate @3x, @2x, @1x with @1x size (px|%)
@@ -182,5 +182,5 @@ CHANGE LOG:
 
 2014/11/13
 - Fix readme.
-- Set thumbnail maximum size.
+- Add out of memory error message.
 
