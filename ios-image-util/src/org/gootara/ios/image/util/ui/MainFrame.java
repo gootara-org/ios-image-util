@@ -25,6 +25,7 @@ package org.gootara.ios.image.util.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -736,7 +737,10 @@ public class MainFrame extends JFrame {
 	 * @return	true - no problem / false - error occured
 	 */
 	private boolean setFilePath(JTextField textField, File f, ImagePanel imagePanel) {
+		final Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+		final Cursor waitCursor = new Cursor(Cursor.WAIT_CURSOR);
 		try {
+			this.setCursor(waitCursor);
 			textField.setText(f.getCanonicalPath());
 			if (imagePanel != null) {
 				ImageFile imageFile = checkFile(textField);
@@ -762,6 +766,8 @@ public class MainFrame extends JFrame {
 			textField.setText("");
 			if (imagePanel != null) imagePanel.clear();
 			return false;
+		} finally {
+			this.setCursor(defaultCursor);
 		}
 		return true;
 	}
