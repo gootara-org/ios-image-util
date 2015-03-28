@@ -825,7 +825,7 @@ public class MainFrame extends JFrame {
 		final Cursor waitCursor = new Cursor(Cursor.WAIT_CURSOR);
 		try {
 			if (textField == null || f == null) {
-				textField.setText("");
+				if (textField != null) textField.setText("");
 				if (imagePanel != null) imagePanel.clear();
 				return false;
 			}
@@ -1248,7 +1248,7 @@ public class MainFrame extends JFrame {
 			if (this.generateAsAssetCatalogs.isSelected()) {
 				// Asset Catalogs
 				ifs.setIconOutputDirectory(new File(ifs.getOutputDirectory(), getResource("string.dir.appicon", "AppIcon.appiconset")));
-				if (!ifs.getIconOutputDirectory().exists() && !ifs.getIconOutputDirectory().mkdirs()) {
+				if ((ifs.getIcon6File() != null || ifs.getIcon7File() != null) && !ifs.getIconOutputDirectory().exists() && !ifs.getIconOutputDirectory().mkdirs()) {
 					alert("[" + ifs.getIconOutputDirectory().getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
 					return null;
 				}
