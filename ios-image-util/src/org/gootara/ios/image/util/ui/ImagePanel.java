@@ -42,6 +42,7 @@ import javax.swing.JPanel;
  */
 public class ImagePanel extends JPanel {
 
+	private java.io.File imageFile;
 	private Image image, scaledImage;
 	private String placeHolder, hyphenatorBoL, hyphnatorEoL;
 
@@ -253,6 +254,8 @@ public class ImagePanel extends JPanel {
 			this.scaledImage.flush();
 			this.scaledImage = null;
 		}
+		this.imageFile = null;
+		this.repaint();
 	}
 
 	/**
@@ -264,6 +267,20 @@ public class ImagePanel extends JPanel {
 	public void setHyphenator(String beginingOfLine, String endOfLine) {
 		this.hyphenatorBoL = beginingOfLine;
 		this.hyphnatorEoL = endOfLine;
+	}
+
+	/**
+	 * @return imageFile
+	 */
+	public java.io.File getImageFile() {
+		return imageFile;
+	}
+
+	/**
+	 * @param imageFile set imageFile
+	 */
+	public void setImageFile(java.io.File imageFile) {
+		this.imageFile = imageFile;
 	}
 }
 

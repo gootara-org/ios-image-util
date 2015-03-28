@@ -188,3 +188,6 @@ CHANGE LOG:
 - Set maximum thumbnail size.
 - Add out of memory error message.
 
+2015/03/28
+- Clear images by click.
+- Refresh images when edit path text directly.

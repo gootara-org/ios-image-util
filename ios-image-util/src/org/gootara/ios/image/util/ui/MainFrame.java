@@ -140,6 +140,20 @@ public class MainFrame extends JFrame {
 				setFilePathActionPerformed(icon6Path, icon6Image);
 			}
 		});
+		icon6Path.addFocusListener(new FocusListener() {
+			@Override public void focusGained(FocusEvent e) { }
+			@Override public void focusLost(FocusEvent e) {
+				try {
+					String currentPath = (icon6Image.getImageFile() == null) ? "" : icon6Image.getImageFile().getCanonicalPath();
+					if (!currentPath.equals(icon6Path.getText())) {
+						setFilePath(icon6Path, icon6Path.getText().trim().length() <= 0 ? null : new File(icon6Path.getText()), icon6Image);
+					}
+				} catch (Throwable t) {
+					handleThrowable(t);
+				}
+			}
+
+		});
 		settings.add(icon6Label);
 		settings.add(icon6Path);
 		settings.add(refIcon6Path);
@@ -153,6 +167,20 @@ public class MainFrame extends JFrame {
 				setFilePathActionPerformed(icon7Path, icon7Image);
 			}
 		});
+		icon7Path.addFocusListener(new FocusListener() {
+			@Override public void focusGained(FocusEvent e) { }
+			@Override public void focusLost(FocusEvent e) {
+				try {
+					String currentPath = (icon7Image.getImageFile() == null) ? "" : icon7Image.getImageFile().getCanonicalPath();
+					if (!currentPath.equals(icon7Path.getText())) {
+						setFilePath(icon7Path, icon7Path.getText().trim().length() <= 0 ? null : new File(icon7Path.getText()), icon7Image);
+					}
+				} catch (Throwable t) {
+					handleThrowable(t);
+				}
+			}
+
+		});
 		settings.add(icon7Label);
 		settings.add(icon7Path);
 		settings.add(refIcon7Path);
@@ -165,6 +193,20 @@ public class MainFrame extends JFrame {
 			@Override public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(splashPath, splashImage);
 			}
+		});
+		splashPath.addFocusListener(new FocusListener() {
+			@Override public void focusGained(FocusEvent e) { }
+			@Override public void focusLost(FocusEvent e) {
+				try {
+					String currentPath = (splashImage.getImageFile() == null) ? "" : splashImage.getImageFile().getCanonicalPath();
+					if (!currentPath.equals(splashPath.getText())) {
+						setFilePath(splashPath, splashPath.getText().trim().length() <= 0 ? null : new File(splashPath.getText()), splashImage);
+					}
+				} catch (Throwable t) {
+					handleThrowable(t);
+				}
+			}
+
 		});
 		settings.add(splashLabel);
 		settings.add(splashPath);
@@ -438,6 +480,20 @@ public class MainFrame extends JFrame {
 			}
 		});
 		icon6Path.setTransferHandler(icon6Image.getTransferHandler());
+		icon6Image.addMouseListener(new MouseListener() {
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseReleased(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) {
+				if (icon6Image.getImage() != null && icon6Image.getImageFile() != null) {
+					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
+						icon6Path.setText("");
+						icon6Image.clear();
+					}
+				}
+			}
+		});
 
 		icon7Image = new ImagePanel(getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here"));
 		icon7Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
@@ -465,6 +521,20 @@ public class MainFrame extends JFrame {
 			}
 		});
 		icon7Path.setTransferHandler(icon7Image.getTransferHandler());
+		icon7Image.addMouseListener(new MouseListener() {
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseReleased(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) {
+				if (icon7Image.getImage() != null && icon7Image.getImageFile() != null) {
+					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
+						icon7Path.setText("");
+						icon7Image.clear();
+					}
+				}
+			}
+		});
 
 		splashImage = new ImagePanel(getResource("label.splash.drop", "Drop Splash Image PNG Here"));
 		splashImage.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
@@ -490,6 +560,20 @@ public class MainFrame extends JFrame {
 			}
 		});
 		splashPath.setTransferHandler(splashImage.getTransferHandler());
+		splashImage.addMouseListener(new MouseListener() {
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseReleased(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) {
+				if (splashImage.getImage() != null && splashImage.getImageFile() != null) {
+					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
+						splashPath.setText("");
+						splashImage.clear();
+					}
+				}
+			}
+		});
 
 		JPanel imagesPanel = new JPanel();
 		imagesPanel.setBorder(new LineBorder(imagesColor, 4));
@@ -740,6 +824,11 @@ public class MainFrame extends JFrame {
 		final Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
 		final Cursor waitCursor = new Cursor(Cursor.WAIT_CURSOR);
 		try {
+			if (textField == null || f == null) {
+				textField.setText("");
+				if (imagePanel != null) imagePanel.clear();
+				return false;
+			}
 			this.setCursor(waitCursor);
 			textField.setText(f.getCanonicalPath());
 			if (imagePanel != null) {
@@ -751,6 +840,7 @@ public class MainFrame extends JFrame {
 				}
 				if (!this.isBatchMode()) {
 					imagePanel.setImage(imageFile.getImage());
+					imagePanel.setImageFile(imageFile.getFile());
 				}
 				if (outputPath.getText().trim().length() <= 0) {
 					File g = new File(f.getParentFile(), this.generateAsAssetCatalogs.isSelected() ? this.getResource("string.dir.assets", "Images.xcassets") : this.getResource("string.dir.generate", "generated"));
@@ -970,333 +1060,305 @@ public class MainFrame extends JFrame {
 	 * @return true - sucess / false - failed
 	 */
 	public boolean generate() {
-		float targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
 		boolean result = true;
+		final ImageFileSet ifs = this.createValidImageFileSet();
+		if (ifs == null) {
+			return false;
+		}
 
+		SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+			@Override protected Boolean doInBackground() throws Exception {
+				// Do not use PropertyChangeListener currently.
+				boolean result = true;
+				Color settingsColor = settingsButton.getBackground();
+				if (!isBatchMode()) {
+					cancelButton.setVisible(true);
+					generateButton.setVisible(false);
+					settingsButton.setBackground(new Color(0xF7F7F7));
+					settingsButton.setEnabled(false);
+				}
+				cancelRequested = false;
+				try {
+					progress.setMaximum(generateImages(ifs, false));
+				} catch (Exception ex) {
+					progress.setMaximum(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
+				}
+				try {
+					// start generate Images.
+					if (isBatchMode()) {
+						if (!isSilentMode() && !isVerboseMode()) {
+							System.out.print("0%");
+							for (int i = 2; i < progress.getMaximum() - 2; i++) { System.out.print(" "); }
+							System.out.println("100%");
+							System.out.print("+");
+							for (int i = 1; i < progress.getMaximum() - 1; i++) { System.out.print("-"); }
+							System.out.println("+");
+						}
+					} else {
+						progress.setValue(0);
+					}
+
+					if (generateImages(ifs, true) < 0) {
+						result = false;
+					}
+
+					if (isBatchMode() && !isSilentMode() && !isVerboseMode()) {
+						System.out.println();
+					}
+					if (!isBatchMode()) {
+						progress.setValue(progress.getMaximum());
+					}
+
+				} catch (Throwable ex) {
+					result = false;
+					handleThrowable(ex);
+				} finally {
+					System.gc();
+					if (!isBatchMode()) {
+						generateButton.setVisible(true);
+						cancelButton.setVisible(false);
+						settingsButton.setBackground(settingsColor);
+						settingsButton.setEnabled(true);
+						if (result) {
+							information(getResource("label.finish.generate", "The images are generated."));
+						} else if (cancelRequested) {
+							information(getResource("info.generate.canceled", "Generate images are canceled."));
+						}
+						progress.setValue(0);
+						outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText()));
+					}
+				}
+				return result;
+			}
+
+			@Override protected void done() {
+				// for future reference.
+			}
+		};
+
+		try {
+			worker.execute();
+			if (this.isBatchMode()) {
+				result = worker.get();
+			}
+		} catch (Throwable t) {
+			result = false;
+			handleThrowable(t);
+		}
+		return result;
+	}
+
+	/**
+	 * Create valid image file set.
+	 *
+	 * @return ImageFileSet. Return null when failed to validate.
+	 */
+	private ImageFileSet createValidImageFileSet() {
 		try {
 			if (icon6Path.getText().trim().length() <= 0 && icon7Path.getText().trim().length() <= 0 && splashPath.getText().trim().length() <= 0) {
 				alert(getResource("error.not.choosen", "Choose at least one Icon or Splash PNG file."));
-				return false;
+				return null;
 			}
 
+			ImageFileSet ifs = new ImageFileSet();
+			ifs.setTargetSystemVersion(IOSAssetCatalogs.SYSTEM_VERSION_ANY);
 			// Path Check.
-			ImageFile icon6File, icon7File, splashFile;
-			icon6File = icon7File = splashFile = null;
 			if (icon6Path.getText().trim().length() > 0) {
-				icon6File = checkFile(icon6Path);
-				if (icon6File == null) return false;
-				if (!this.isBatchMode()) icon6Image.setImage(icon6File.getImage());
+				ifs.setIcon6File(checkFile(icon6Path));
+				if (ifs.getIcon6File() == null) return null;
 			}
 			if (icon7Path.getText().trim().length() > 0) {
-				icon7File = checkFile(icon7Path);
-				if (icon7File == null) return false;
-				if (!this.isBatchMode()) icon7Image.setImage(icon7File.getImage());
+				ifs.setIcon7File(checkFile(icon7Path));
+				if (ifs.getIcon7File() == null) return null;
 			}
 			if (splashPath.getText().trim().length() > 0) {
-				splashFile = checkFile(splashPath);
-				if (splashFile == null) return false;
-				if (!this.isBatchMode()) splashImage.setImage(splashFile.getImage());
+				ifs.setSplashFile(checkFile(splashPath));
+				if (ifs.getSplashFile() == null) return null;
 			}
 
 			// Error Check.
-			File outputDir = null;
 			if (outputPath.getText().trim().length() <= 0) {
 				outputPath.requestFocusInWindow();
 				alert(getResource("error.not.choosen.output.path", "Choose output dir."));
-				return false;
+				return null;
 			}
 			if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
 				Color col = null;
 				try { col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true); } catch (Exception ex) {}
 				if (col == null) {
 					alert("[" + splashBackgroundColor.getText() + "]" + getResource("error.illegal.bgcolor", "is illegal bgcolor."));
-					return false;
+					return null;
 				}
 			}
 
 			// Make sure output directory is exists.
-			outputDir = new File(outputPath.getText());
-			if (!outputPath.getText().equals(outputDir.getCanonicalPath())) {
-				outputPath.setText(outputDir.getCanonicalPath());
-				outputDir = new File(outputPath.getText());
+			ifs.setOutputDirectory(new File(outputPath.getText()));
+			if (!outputPath.getText().equals(ifs.getOutputDirectory().getCanonicalPath())) {
+				outputPath.setText(ifs.getOutputDirectory().getCanonicalPath());
+				ifs.setOutputDirectory(new File(outputPath.getText()));
 			}
-			if (!outputDir.exists()) {
+			if (!ifs.getOutputDirectory().exists()) {
 				if (!confirm("[" + outputPath.getText() + "] " + getResource("confirm.output.path.create", "is not exists. Create it?"))) {
-					return false;
+					return null;
 				}
-				if (!outputDir.mkdirs()) {
+				if (!ifs.getOutputDirectory().mkdirs()) {
 					outputPath.requestFocusInWindow();
 					outputPath.selectAll();
-					alert("[" + outputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
-					return false;
+					alert("[" + ifs.getOutputDirectory().getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
+					return null;
 				}
 			}
-			if (!outputDir.isDirectory()) {
+			if (!ifs.getOutputDirectory().isDirectory()) {
 				outputPath.requestFocusInWindow();
 				outputPath.selectAll();
-				alert("[" + outputDir.getCanonicalPath() + "] " + getResource("error.not.directory", "is not directory. Choose directory."));
-				return false;
+				alert("[" + ifs.getOutputDirectory().getCanonicalPath() + "] " + getResource("error.not.directory", "is not directory. Choose directory."));
+				return null;
 			}
 
 			// generate images for iOS6, or not
-			if (icon6File == null && icon7File != null) {
+			if (ifs.getIcon6File() == null && ifs.getIcon7File() != null) {
 				// do not create iOS 6 icon by default.
 				this.generateOldSplashImages.setSelected(false);
-				targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_7;
+				ifs.setTargetSystemVersion(IOSAssetCatalogs.SYSTEM_VERSION_7);
 				if (this.isBatchMode()) {
 					information(getResource("info.ios6.image.not.generate", "The iOS6 image files will not be generated."));
 				}
-				/*
-				if (yesNo(getResource("question.use.icon7.instead", "An iOS6 Icon PNG file is not choosen. Use iOS7 Icon PNG file instead?"))) {
-					icon6File = icon7File;
-				} else {
-					this.generateOldSplashImages.setSelected(false);
-					information(getResource("info.ios6.image.not.generate", "The iOS6 image files will not be generated."));
-					// images for iOS6 will not be generated.
-					targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_7;
-				}
-				*/
 			}
 
 			// images for iOS7 must be generated.
-			if (icon6File != null && icon7File == null) {
-				if (confirm(getResource("question.use.icon6.instead", "An iOS7 Icon PNG file is not choosen. Use iOS6 Icon PNG file instead?"))) {
-					icon7File = icon6File;
+			if (ifs.getIcon6File() != null && ifs.getIcon7File() == null) {
+				if (yesNo(getResource("question.use.icon6.instead", "An iOS7 Icon PNG file is not choosen. Use iOS6 Icon PNG file instead?"))) {
+					ifs.setIcon7File(ifs.getIcon6File());
 				} else {
 					icon7Path.requestFocusInWindow();
-					return false;
+					return null;
 				}
 			}
 
 			// generate images for launch, or not
-			if (splashFile == null) {
+			if (ifs.getSplashFile() == null) {
 				// do not create launch imagesn by default.
 				if (this.isBatchMode()) {
 					information(getResource("confirm.splash.not.generate", "The Splash image will not be generated."));
 				}
-				/*
-				if (!confirm(getResource("confirm.splash.not.generate", "The Splash image will not be generated."))) {
-					return false;
-				}
-				*/
 			}
 
-			File iconOutputDir = outputDir;
-			File splashOutputDir = outputDir;
+			ifs.setIconOutputDirectory(ifs.getOutputDirectory());
+			ifs.setSplashOutputDirectory(ifs.getOutputDirectory());
 			if (this.generateAsAssetCatalogs.isSelected()) {
 				// Asset Catalogs
-				iconOutputDir = new File(outputDir, getResource("string.dir.appicon", "AppIcon.appiconset"));
-				if (!iconOutputDir.exists() && !iconOutputDir.mkdirs()) {
-					alert("[" + iconOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
-					return false;
+				ifs.setIconOutputDirectory(new File(ifs.getOutputDirectory(), getResource("string.dir.appicon", "AppIcon.appiconset")));
+				if (!ifs.getIconOutputDirectory().exists() && !ifs.getIconOutputDirectory().mkdirs()) {
+					alert("[" + ifs.getIconOutputDirectory().getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
+					return null;
 				}
-				splashOutputDir = new File(outputDir, getResource("string.dir.launchimage", "LaunchImage.launchimage"));
-				if (!splashOutputDir.exists() && !splashOutputDir.mkdirs()) {
-					alert("[" + splashOutputDir.getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
-					return false;
+				ifs.setSplashOutputDirectory(new File(ifs.getOutputDirectory(), getResource("string.dir.launchimage", "LaunchImage.launchimage")));
+				if (ifs.getSplashFile() != null && !ifs.getSplashOutputDirectory().exists() && !ifs.getSplashOutputDirectory().mkdirs()) {
+					alert("[" + ifs.getSplashOutputDirectory().getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
+					return null;
 				}
 			}
-
-
-			try {
-				int max = 0;
-				HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
-
-				if (icon6File != null || icon7File != null) {
-					// generate icons
-					for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
-						BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (icon6File == null ? icon7File.getImage() : icon6File.getImage()) : icon7File.getImage();
-						if (image == null) continue;
-						if (asset.isIphone() && iPadOnly.isSelected()) continue;
-						if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
-						if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
-						if (filesOutput.containsKey(asset.getFilename())) {
-							// upper version is more strong
-							if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
-						}
-						max++;
-						filesOutput.put(asset.getFilename(), asset);
-					}
-					filesOutput.clear();
-
-					// generate artwork
-					for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
-						if (artwork != null) { max++; }
-					}
-				}
-
-				if (splashFile != null) {
-					// generate launch images
-					for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
-						if (asset.isIphone() && iPadOnly.isSelected()) continue;
-						if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
-						if (asset.getMinimumSystemVersion() < targetSystemVersion) continue;
-						if (asset.getExtent() != null && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !generateOldSplashImages.isSelected()) continue;
-						if (filesOutput.containsKey(asset.getFilename())) {
-							// upper version is more strong
-							if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
-						}
-						max++;
-						filesOutput.put(asset.getFilename(), asset);
-					}
-					filesOutput.clear();
-				}
-				progress.setMaximum(max);
-			} catch (Exception ex) {
-				progress.setMaximum(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
-			}
-
-			// start generate Images.
-			if (this.isBatchMode()) {
-				if (!this.isSilentMode() && !this.isVerboseMode()) {
-					System.out.print("0%");
-					for (int i = 2; i < progress.getMaximum() - 2; i++) { System.out.print(" "); }
-					System.out.println("100%");
-					System.out.print("+");
-					for (int i = 1; i < progress.getMaximum() - 1; i++) { System.out.print("-"); }
-					System.out.println("+");
-				}
-			} else {
-				progress.setValue(0);
-			}
-
-			// generate images
-			final float finalTargetSystemVersion = targetSystemVersion;
-			final ImageFile finalIcon6File = icon6File;
-			final ImageFile finalIcon7File = icon7File;
-			final File finalIconOutputDir = iconOutputDir;
-			final ImageFile finalSplashFile = splashFile;
-			final File finalSplashOutputDir = splashOutputDir;
-			final File finalOutputDir = outputDir;
-			SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
-				@Override protected Boolean doInBackground() throws Exception {
-					// Do not use PropertyChangeListener currently.
-					boolean result = true;
-					Color settingsColor = settingsButton.getBackground();
-					Color splitColor = splitButton.getBackground();
-					if (!isBatchMode()) {
-						cancelButton.setVisible(true);
-						generateButton.setVisible(false);
-						settingsButton.setBackground(new Color(0xF7F7F7));
-						settingsButton.setEnabled(false);
-					}
-					cancelRequested = false;
-					try {
-						StringBuilder buffer = new StringBuilder();
-						HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
-
-						if (finalIcon6File != null || finalIcon7File != null) {
-							// generate icons
-							for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
-								if (cancelRequested) { result = false; break; }
-								BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (finalIcon6File == null ? finalIcon7File.getImage() : finalIcon6File.getImage()) : finalIcon7File.getImage();
-								if (image == null) continue;
-								if (asset.isIphone() && iPadOnly.isSelected()) continue;
-								if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
-								if (asset.getMinimumSystemVersion() < finalTargetSystemVersion) continue;
-
-								if (generateAsAssetCatalogs.isSelected()) {
-									if (buffer.length() > 0) buffer.append(",\n");
-									buffer.append(asset.toJson());
-								}
-
-								if (filesOutput.containsKey(asset.getFilename())) {
-									// upper version is more strong
-									if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
-								}
-
-								writeIconImage(image, asset.getIOSImageInfo(), finalIconOutputDir);
-								filesOutput.put(asset.getFilename(), asset);
-								addProgress(1);
-							}
-							if (generateAsAssetCatalogs.isSelected()) {
-								writeContentsJson(finalIconOutputDir, buffer);
-							}
-							buffer.setLength(0);
-							filesOutput.clear();
-
-							// generate artwork
-							for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
-								addProgress(1);
-								writeIconImage(finalIcon7File == null ? finalIcon6File.getImage() : finalIcon7File.getImage(), artwork, finalOutputDir);
-							}
-						}
-
-						if (finalSplashFile != null) {
-							// generate launch images
-							for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
-								if (cancelRequested) { result = false; break; }
-								if (asset.isIphone() && iPadOnly.isSelected()) continue;
-								if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
-								if (asset.getMinimumSystemVersion() < finalTargetSystemVersion) continue;
-								if (asset.getExtent() != null && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !generateOldSplashImages.isSelected()) continue;
-
-								if (generateAsAssetCatalogs.isSelected()) {
-									if (buffer.length() > 0) buffer.append(",\n");
-									buffer.append(asset.toJson());
-								}
-
-								if (filesOutput.containsKey(asset.getFilename())) {
-									// upper version is more strong
-									if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
-								}
-
-								writeSplashImage(finalSplashFile.getImage(), asset, finalSplashOutputDir);
-								filesOutput.put(asset.getFilename(), asset);
-								addProgress(1);
-							}
-							if (generateAsAssetCatalogs.isSelected()) {
-								writeContentsJson(finalSplashOutputDir, buffer);
-							}
-							buffer.setLength(0);
-							filesOutput.clear();
-						}
-
-						if (isBatchMode() && !isSilentMode() && !isVerboseMode()) {
-							System.out.println();
-						}
-						if (!isBatchMode()) {
-							progress.setValue(progress.getMaximum());
-						}
-					} catch (Throwable ex) {
-						result = false;
-						handleThrowable(ex);
-					} finally {
-						System.gc();
-						if (!isBatchMode()) {
-							generateButton.setVisible(true);
-							cancelButton.setVisible(false);
-							settingsButton.setBackground(settingsColor);
-							settingsButton.setEnabled(true);
-							if (result) {
-								information(getResource("label.finish.generate", "The images are generated."));
-							} else if (cancelRequested) {
-								information(getResource("info.generate.canceled", "Generate images are canceled."));
-							}
-							progress.setValue(0);
-							outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText()));
-						}
-					}
-					return result;
-				}
-
-				@Override protected void done() {
-					// for future reference.
-				}
-			};
-			worker.execute();
-			if (this.isBatchMode()) {
-				result = worker.get();
-			}
-
+			return ifs;
 
 		} catch (Throwable t) {
 			handleThrowable(t);
-			return false;
+			return null;
 		}
-		return result;
 	}
 
+	/**
+	 * Generate image files.
+	 *
+	 * @param ifs		ImageFileSet
+	 * @param generate	true - generate images / false - count only
+	 * @return output file count
+	 */
+	private int generateImages(ImageFileSet ifs, boolean generate) throws Exception {
+		int count = 0;
+		StringBuilder buffer = new StringBuilder();
+		HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
+
+		if (ifs.getIcon6File() != null || ifs.getIcon7File() != null) {
+			// generate icons
+			for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
+				if (cancelRequested) { count = -1; break; }
+				BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (ifs.getIcon6File() == null ? ifs.getIcon7File().getImage() : ifs.getIcon6File().getImage()) : ifs.getIcon7File().getImage();
+				if (image == null) continue;
+				if (asset.isIphone() && iPadOnly.isSelected()) continue;
+				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+				if (asset.getMinimumSystemVersion() < ifs.getTargetSystemVersion()) continue;
+
+				if (generateAsAssetCatalogs.isSelected()) {
+					if (buffer.length() > 0) buffer.append(",\n");
+					buffer.append(asset.toJson());
+				}
+
+				if (filesOutput.containsKey(asset.getFilename())) {
+					// upper version is more strong
+					if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+				}
+
+				filesOutput.put(asset.getFilename(), asset);
+				count++;
+				if (!generate) continue;
+
+				writeIconImage(image, asset.getIOSImageInfo(), ifs.getIconOutputDirectory());
+				addProgress(1);
+			}
+			if (generate && generateAsAssetCatalogs.isSelected()) {
+				writeContentsJson(ifs.getIconOutputDirectory(), buffer);
+			}
+			buffer.setLength(0);
+			filesOutput.clear();
+
+			// generate artwork
+			for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
+				count++;
+				if (!generate) continue;
+				addProgress(1);
+				writeIconImage(ifs.getIcon7File() == null ? ifs.getIcon6File().getImage() : ifs.getIcon7File().getImage(), artwork, ifs.getOutputDirectory());
+			}
+		}
+
+		if (ifs.getSplashFile() != null) {
+			// generate launch images
+			for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
+				if (cancelRequested) { count = -1; break; }
+				if (asset.isIphone() && iPadOnly.isSelected()) continue;
+				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+				if (asset.getMinimumSystemVersion() < ifs.getTargetSystemVersion()) continue;
+				if (asset.getExtent() != null && asset.getExtent().equals(IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR) && !generateOldSplashImages.isSelected()) continue;
+
+				if (generateAsAssetCatalogs.isSelected()) {
+					if (buffer.length() > 0) buffer.append(",\n");
+					buffer.append(asset.toJson());
+				}
+
+				if (filesOutput.containsKey(asset.getFilename())) {
+					// upper version is more strong
+					if (filesOutput.get(asset.getFilename()).getMinimumSystemVersion() >= asset.getMinimumSystemVersion()) continue;
+				}
+
+				filesOutput.put(asset.getFilename(), asset);
+				count++;
+				if (!generate) continue;
+
+				writeSplashImage(ifs.getSplashFile().getImage(), asset, ifs.getSplashOutputDirectory());
+				addProgress(1);
+			}
+			if (generate && generateAsAssetCatalogs.isSelected()) {
+				writeContentsJson(ifs.getSplashOutputDirectory(), buffer);
+			}
+			buffer.setLength(0);
+			filesOutput.clear();
+		}
+
+		return count;
+	}
+
+	/**
+	 * Cancel to generate.
+	 */
 	private void cancelGenerate() {
 		this.cancelRequested = true;
 		outputPathDisplay.setText(getResource("label.cancel.generate", "Cancel generate..."));
@@ -1490,14 +1552,14 @@ public class MainFrame extends JFrame {
 				f = new File(path.getText());
 			}
 			if (!f.exists()) {
-				path.requestFocusInWindow();
-				path.selectAll();
+				//path.requestFocusInWindow();
+				//path.selectAll();
 				alert("[" + f.getCanonicalPath() + "] " + getResource("error.not.exists", "is not exists."));
 				return null;
 			}
 			if (f.isDirectory()) {
-				path.requestFocusInWindow();
-				path.selectAll();
+				//path.requestFocusInWindow();
+				//path.selectAll();
 				alert("[" + f.getCanonicalPath() + "] " + getResource("error.not.file", "is directory. Choose file."));
 				return null;
 			}
@@ -1586,6 +1648,101 @@ class ImageFile
 		if (image != null) image.flush();
 		image = null;
 		file = null;
+	}
+}
+
+class ImageFileSet
+{
+	private float targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
+	private ImageFile icon6File;
+	private ImageFile icon7File;
+	private File iconOutputDirectory;
+	private ImageFile splashFile;
+	private File splashOutputDirectory;
+	private File outputDirectory;
+	/**
+	 * @return targetSystemVersion
+	 */
+	public float getTargetSystemVersion() {
+		return targetSystemVersion;
+	}
+	/**
+	 * @param targetSystemVersion set targetSystemVersion
+	 */
+	public void setTargetSystemVersion(float targetSystemVersion) {
+		this.targetSystemVersion = targetSystemVersion;
+	}
+	/**
+	 * @return icon6File
+	 */
+	public ImageFile getIcon6File() {
+		return icon6File;
+	}
+	/**
+	 * @param icon6File set icon6File
+	 */
+	public void setIcon6File(ImageFile icon6File) {
+		this.icon6File = icon6File;
+	}
+	/**
+	 * @return icon7File
+	 */
+	public ImageFile getIcon7File() {
+		return icon7File;
+	}
+	/**
+	 * @param icon7File set icon7File
+	 */
+	public void setIcon7File(ImageFile icon7File) {
+		this.icon7File = icon7File;
+	}
+	/**
+	 * @return iconOutputDirectory
+	 */
+	public File getIconOutputDirectory() {
+		return iconOutputDirectory;
+	}
+	/**
+	 * @param iconOutputDirectory set iconOutputDirectory
+	 */
+	public void setIconOutputDirectory(File iconOutputDirectory) {
+		this.iconOutputDirectory = iconOutputDirectory;
+	}
+	/**
+	 * @return splashFile
+	 */
+	public ImageFile getSplashFile() {
+		return splashFile;
+	}
+	/**
+	 * @param splashFile set splashFile
+	 */
+	public void setSplashFile(ImageFile splashFile) {
+		this.splashFile = splashFile;
+	}
+	/**
+	 * @return splashOutputDirectory
+	 */
+	public File getSplashOutputDirectory() {
+		return splashOutputDirectory;
+	}
+	/**
+	 * @param splashOutputDirectory set splashOutputDirectory
+	 */
+	public void setSplashOutputDirectory(File splashOutputDirectory) {
+		this.splashOutputDirectory = splashOutputDirectory;
+	}
+	/**
+	 * @return outputDirectory
+	 */
+	public File getOutputDirectory() {
+		return outputDirectory;
+	}
+	/**
+	 * @param outputDirectory set outputDirectory
+	 */
+	public void setOutputDirectory(File outputDirectory) {
+		this.outputDirectory = outputDirectory;
 	}
 }
 
