@@ -33,6 +33,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
@@ -45,6 +47,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -54,8 +57,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.TransferHandler;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * The main window frame of IOSImageUtil.
@@ -67,6 +72,7 @@ public class SplitterFrame extends JDialog {
 	private JCheckBox overwriteAlways;
 	private JTextField width1x, height1x;
 	private JButton splitButton;
+	private File targetFile;
 
 	/**
 	 * Constructor
@@ -89,6 +95,8 @@ public class SplitterFrame extends JDialog {
 		this.setSize(320, 512);
 		this.setResizable(false);
 		this.setBackground(Color.WHITE);
+		Font fontSmall = new Font(owner.getResource("font.default.name", Font.SANS_SERIF), Font.PLAIN, 11);
+		Font fontLarge = new Font(owner.getResource("font.default.name", Font.SANS_SERIF), Font.PLAIN, 14);
 
 		final JPanel settings = new JPanel();
 		settings.setLayout(new GridLayout(5, 1));
@@ -99,6 +107,9 @@ public class SplitterFrame extends JDialog {
 		settings.add(this.sized = new JRadioButton(owner.getResource("splitter.sized", "sized"), false));
 		this.as3x.setBackground(Color.WHITE);
 		this.sized.setBackground(Color.WHITE);
+		this.as3x.setBorder(new EmptyBorder(0, 10, 0, 10));
+		this.sized.setBorder(new EmptyBorder(0, 10, 0, 10));
+
 		ButtonGroup group = new ButtonGroup();
 		group.add(this.as3x);
 		group.add(this.sized);
@@ -151,8 +162,8 @@ public class SplitterFrame extends JDialog {
 			@Override public void removeUpdate(DocumentEvent e) { setSized(true); }
 		});
 		JLabel both = new JLabel(owner.getResource("splitter.label.both", "(Accept empty either)"));
-		both.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-		both.setForeground(new Color(0x8E8E93));
+		both.setFont(fontSmall);
+		both.setForeground(MainFrame.COLOR_DARK_GRAY);// Color(0x8E8E93));
 		sizePanel.add(both);
 
 		settings.add(sizePanel);
@@ -163,8 +174,8 @@ public class SplitterFrame extends JDialog {
 		this.overwriteAlways.setHorizontalAlignment(SwingConstants.CENTER);
 
 		final JLabel label = new JLabel(owner.getResource("splitter.label", "Output images to directory same as origin."), SwingConstants.CENTER);
-		label.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-		label.setForeground(new Color(0x34AADC));
+		label.setFont(fontSmall);
+		label.setForeground(MainFrame.COLOR_CYAN);// Color(0x34AADC));
 		settings.add(label);
 
 		this.add(settings, BorderLayout.NORTH);
@@ -178,7 +189,7 @@ public class SplitterFrame extends JDialog {
 		splitButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/splitter_rollover.png")));
 		splitButton.setHorizontalTextPosition(SwingConstants.CENTER);
 		splitButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-		splitButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+		splitButton.setFont(fontLarge);
 		splitButton.setMargin(new Insets(64, 64, 64, 64));
 		splitButton.setOpaque(true);
 		splitButton.setTransferHandler(new TransferHandler() {
@@ -187,27 +198,9 @@ public class SplitterFrame extends JDialog {
 					if (canImport(support)) {
 						final Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 						if (list instanceof List) {
-							splitButton.setEnabled(false);
-							splitButton.setBackground(new Color(0xF7F7F7));
-							splitButton.setText(owner.getResource("splitter.executing", "Split images..."));
-
-							SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
-								@Override protected Boolean doInBackground() throws Exception {
-									try {
-										split((File)((List<?>)list).get(0));
-										return true;
-									} catch (Throwable t) {
-										t.printStackTrace();
-										JOptionPane.showMessageDialog(splitButton.getParent(), t.toString() + " (" + t.getMessage() + ")", owner.getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
-										return false;
-									} finally {
-										splitButton.setText(owner.getResource("splitter.button", "Split"));
-										splitButton.setBackground(new Color(0x007AFF));
-										splitButton.setEnabled(true);
-									}
-								}
-							};
-							worker.execute();
+							if (dropFile((File)((List<?>)list).get(0))) {
+								return true;
+							}
 						}
 					}
 				} catch (Throwable t) {
@@ -220,9 +213,73 @@ public class SplitterFrame extends JDialog {
 				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
 			}
 		});
+		splitButton.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
+				if (targetFile == null) {
+					targetFile = owner.getChosenDirectory();
+				}
+				if (targetFile != null) {
+					if (targetFile.isFile()) {
+						chooser.setCurrentDirectory(targetFile.getParentFile());
+					}
+					if (targetFile.exists()) {
+						chooser.setSelectedFile(targetFile);
+					}
+				} else {
+					chooser.setCurrentDirectory(targetFile);
+				}
+				chooser.setApproveButtonText(owner.getResource("button.approve", "Choose"));
+				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				int returnVal = chooser.showOpenDialog(null);
+				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					try {
+						dropFile(chooser.getSelectedFile());
+					} catch (Throwable t) {
+						t.printStackTrace();
+						JOptionPane.showMessageDialog(splitButton.getParent(), t.toString() + " (" + t.getMessage() + ")", owner.getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+					}
+			    }
+
+			}
+		});
 		this.add(splitButton, BorderLayout.CENTER);
 
 		this.pack();
+	}
+
+	private boolean dropFile(File f) {
+		final MainFrame owner = (MainFrame)this.getParent();
+		try {
+			splitButton.setEnabled(false);
+			splitButton.setBackground(new Color(0xF7F7F7));
+			splitButton.setText(owner.getResource("splitter.executing", "Split images..."));
+			final File target = f;
+
+			SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+				@Override protected Boolean doInBackground() throws Exception {
+					try {
+						split(target);
+						return true;
+					} catch (Throwable t) {
+						t.printStackTrace();
+						JOptionPane.showMessageDialog(splitButton.getParent(), t.toString() + " (" + t.getMessage() + ")", owner.getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+						return false;
+					} finally {
+						splitButton.setText(owner.getResource("splitter.button", "Split"));
+						splitButton.setBackground(new Color(0x007AFF));
+						splitButton.setEnabled(true);
+					}
+				}
+			};
+			worker.execute();
+		} catch (Throwable t) {
+			t.printStackTrace();
+			JOptionPane.showMessageDialog(splitButton.getParent(), t.toString() + " (" + t.getMessage() + ")", owner.getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return true;
 	}
 
 	// for command line option switches.
@@ -261,6 +318,7 @@ public class SplitterFrame extends JDialog {
 	 * @throws Exception
 	 */
 	protected void split(File f) throws Exception {
+		targetFile = f;
 		BufferedImage image = ImageIO.read(f);
 		split(f, image, 1);
 		split(f, image, 2);

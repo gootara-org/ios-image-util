@@ -22,8 +22,14 @@
  */
 package org.gootara.ios.image.util;
 
+import java.awt.Font;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.ResourceBundle;
+
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 
 import org.gootara.ios.image.util.ui.MainFrame;
 
@@ -36,9 +42,23 @@ public class IOSImageUtil {
 
 	public static void main(String[] args) {
 		try {
+			// Use anti-aliasing font on Windows platform in Japanese by default.
+			System.setProperty("awt.useSystemAAFontSettings", "lcd"); // Maybe not effective. Don't care.
+			ResourceBundle resource = ResourceBundle.getBundle("application");
+			if (resource.containsKey("font.default.name")) {
+				UIDefaults uiDefaults = UIManager.getLookAndFeelDefaults();
+				for (Enumeration<Object> enu = uiDefaults.keys(); enu.hasMoreElements();) {
+					String key = enu.nextElement().toString();
+					Font font;
+					if (key.toLowerCase().endsWith("font") && (font = uiDefaults.getFont(key)) != null) {
+						uiDefaults.put(key, new Font(resource.getString("font.default.name"), font.getStyle(), font.getSize()));
+					}
+				}
+			}
+
 			long l1 = System.currentTimeMillis();
 			MainFrame mainFrame = new MainFrame();
-			mainFrame.setSize(640, 520);
+			mainFrame.setSize(640, 544);
 			mainFrame.setLocationByPlatform(true);
 
 			if (args.length > 0) {
@@ -88,7 +108,7 @@ public class IOSImageUtil {
 		boolean noerr = true;
 		try {
 
-			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-noasset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor", "-sp3x", "-spsize", "-spnoreplace", "-spfile");
+			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-noasset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor", "-sp3x", "-spsize", "-spnoreplace", "-spfile", "-noartwork", "-watch", "-carplay");
 			int i;
 
 			for (i = 0; i < args.length; i++) {
@@ -110,6 +130,8 @@ public class IOSImageUtil {
 
 				if (arg.equals("-silent")) { mainFrame.setSilentMode(true); }
 				if (arg.equals("-icon6")) { i++; if (!mainFrame.setIcon6Path(args[i])) { noerr = false; break; } }
+				if (arg.equals("-watch")) { i++; if (!mainFrame.setWatchPath(args[i])) { noerr = false; break; } }
+				if (arg.equals("-carplay")) { i++; if (!mainFrame.setCarplayPath(args[i])) { noerr = false; break; } }
 				if (arg.equals("-icon7")) { i++; if (!mainFrame.setIcon7Path(args[i])) { noerr = false; break; } }
 				if (arg.equals("-launch")) { i++; if (!mainFrame.setSplashPath(args[i])) { noerr = false; break; } }
 				if (arg.equals("-output")) { i++; mainFrame.setOutputPath(args[i]); }
@@ -117,6 +139,7 @@ public class IOSImageUtil {
 				if (arg.equals("-ipadonly")) { mainFrame.selectIpadOnly(); }
 				if (arg.equals("-to-status-bar")) { mainFrame.setGenerateOldSplashImages(true); }
 				if (arg.equals("-lscale")) { i++; mainFrame.setSplashScaling(Integer.parseInt(args[i])); }
+				if (arg.equals("-noartwork")) { mainFrame.setGenerateArtwork(false); }
 				// hidden option.
 				if (arg.equals("-algorithm")) { i++; mainFrame.setScalingAlgorithm(Integer.parseInt(args[i])); }
 				if (arg.equals("-imagetype")) { i++; mainFrame.setImageType(Integer.parseInt(args[i])); }
@@ -173,6 +196,8 @@ public class IOSImageUtil {
 		System.out.println("  -v, -verbose                verbose mode (available with batch mode only)");
 		System.out.println("  -silent                     no log (available with batch mode only)");
 		System.out.println("  -icon6 \"icon png path\"      iOS 6 icon png file location (full path)");
+		System.out.println("  -watch \"icon png path\"      Apple Watch icon png file location (full path)");
+		System.out.println("  -carplay \"icon png path\"    CarPlay icon png file location (full path)");
 		System.out.println("  -icon7 \"icon png path\"      iOS 7 icon png file loaction (full path)");
 		System.out.println("  -launch \"launch image path\" launch image png file location (full path)");
 		System.out.println("  -output \"output directory\"  output directory location (full path)");
@@ -180,7 +205,8 @@ public class IOSImageUtil {
 		System.out.println("  -ipadonly                   output iPad images only (default all)");
 		System.out.println("  -to-status-bar              generate 'to-status-bar' launch images");
 		System.out.println("  -noasset                    not generate images as asset catalogs");
-		System.out.println("  -lscale [0-5]               launch image scaling (default: 4)");
+	    System.out.println("  -noartwork                  not generate ArtWork images for Store");
+	    System.out.println("  -lscale [0-5]               launch image scaling (default: 4)");
 		System.out.println("                                0: no resizing (iPhone only)");
 		System.out.println("                                1: no resizing (iPhone & iPad)");
 		System.out.println("                                2: fit to the screen height");

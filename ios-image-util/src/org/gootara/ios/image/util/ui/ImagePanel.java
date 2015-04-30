@@ -22,11 +22,14 @@
  */
 package org.gootara.ios.image.util.ui;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
@@ -35,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 /**
  * @author gootara.org
@@ -63,10 +67,21 @@ public class ImagePanel extends JPanel {
 		this.scaledImage = null;
 		this.setPlaceHolder(placeHolder);
 		this.setHyphenator("", "");
-		this.setForeground(new Color(0x8E8E93));
-
+		final Timer timer = new Timer(500, new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				createScaledImage();
+				repaint();
+				System.out.println("repaint!");
+			}
+		});
+		timer.setRepeats(false);
 		this.addComponentListener(new ComponentListener() {
-			@Override public void componentResized(ComponentEvent e) { createScaledImage(); repaint(); }
+			@Override public void componentResized(ComponentEvent e) {
+				if (timer.isRunning()) {
+					timer.stop();
+				}
+				timer.start();
+			}
 			@Override public void componentMoved(ComponentEvent e) {}
 			@Override public void componentShown(ComponentEvent e) {}
 			@Override public void componentHidden(ComponentEvent e) {}
@@ -91,6 +106,7 @@ public class ImagePanel extends JPanel {
 		this.image = this.createScaledImage(image, new Dimension(image.getWidth(), image.getHeight()), size);
 		createScaledImage();
 		this.repaint();
+		this.modifyTooktip();
 	}
 
 	/**
@@ -107,6 +123,8 @@ public class ImagePanel extends JPanel {
 		if(!isShowing()){
 			return;
 		}
+		Graphics2D g2 = (Graphics2D)g;
+		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		if (image == null || scaledImage == null) {
 			// Maybe padding, border and text-align will be implemented in some future.(but not need currently)
 			FontMetrics fm = this.getFontMetrics(this.getFont());
@@ -256,6 +274,7 @@ public class ImagePanel extends JPanel {
 		}
 		this.imageFile = null;
 		this.repaint();
+		this.modifyTooktip();
 	}
 
 	/**
@@ -282,6 +301,15 @@ public class ImagePanel extends JPanel {
 	public void setImageFile(java.io.File imageFile) {
 		this.imageFile = imageFile;
 	}
+
+	private void modifyTooktip() {
+		if (placeHolder == null || placeHolder.trim().length() <= 0) {
+			this.setToolTipText(null);
+			return;
+		}
+		this.setToolTipText(image == null || scaledImage == null ? null : placeHolder);
+	}
+
 }
 
 

@@ -35,8 +35,23 @@ public interface IOSAssetCatalogs {
 	public static final float SYSTEM_VERSION_ANY = 0.0f;
 	public static final float SYSTEM_VERSION_7   = 7.0f;
 	public static final float SYSTEM_VERSION_8   = 8.0f;
-	static final String iPhone = "iphone";
-	static final String iPad = "ipad";
+
+	static final String IDIOM_IPHONE = "iphone";
+	static final String IDIOM_IPAD = "ipad";
+	static final String IDIOM_CARPLAY = "car";
+	static final String IDIOM_APPLEWATCH = "watch";
+
+	public final static String SUBTYPE_RETINA4 = "retina4";
+	public final static String SUBTYPE_667H    = "667h";
+	public final static String SUBTYPE_736H    = "736h";
+	public final static String SUBTYPE_38MM    = "38mm";
+	public final static String SUBTYPE_42MM    = "42mm";
+
+	public final static String ROLE_NOTIFICATION_CENTER = "notificationCenter";
+	public final static String ROLE_COMPANION_SETTINGS  = "companionSettings";
+	public final static String ROLE_APP_LAUNCHER        = "appLauncher";
+	public final static String ROLE_LONG_LOOK           = "longLook";
+	public final static String ROLE_QUICK_LOOK          = "quickLook";
 
 	/**
 	 * Get IOSImageInfo.
@@ -87,6 +102,34 @@ public interface IOSAssetCatalogs {
 	 * @return true - for iPad / false - not for iPad
 	 */
 	public boolean isIpad();
+
+	/**
+	 * Is image for the CarPlay or not.
+	 *
+	 * @return true - for CarPlay / false - not for CarPlay
+	 */
+	public boolean isCarPlay();
+
+	/**
+	 * Is image for the Apple Watch or not.
+	 *
+	 * @return true - for Apple Watch / false - not for Apple Watch
+	 */
+	public boolean isAppleWatch();
+
+	/**
+	 * Get subtype.
+	 *
+	 * @return subtype
+	 */
+	public String getSubType();
+
+	/**
+	 * Get role.
+	 *
+	 * @return subtype
+	 */
+	public String getRole();
 
 	/**
 	 * Get JSON string.

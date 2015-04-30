@@ -42,6 +42,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -57,6 +59,8 @@ import java.util.ResourceBundle;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -97,11 +101,11 @@ import org.gootara.ios.image.util.IOSSplashAssetCatalogs;
 public class MainFrame extends JFrame {
 	public static final String PLACEHOLDER_SPLASH_BGCOL = "(e.g. ffffff)";
 	private ResourceBundle resource;
-	private JTextField icon6Path, icon7Path, splashPath, outputPath, splashBackgroundColor;
-	private JComboBox scaleAlgorithm, splashScaling, imageType;
-	private ImagePanel icon6Image, icon7Image, splashImage;
+	private JTextField icon6Path, icon7Path, splashPath, outputPath, splashBackgroundColor, carplayPath, watchPath;
+	private JComboBox scaleAlgorithm, splashScaling, imageType, optionalIcons;
+	private ImagePanel icon6Image, icon7Image, splashImage, carplayImage, watchImage;
 	private JProgressBar progress;
-	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs;
+	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs, generateArtwork;
 	private JRadioButton iPhoneOnly, iPadOnly, iBoth;
 	private JButton generateButton, settingsButton, cancelButton, splitButton;
 	private JLabel outputPathDisplay;
@@ -113,6 +117,11 @@ public class MainFrame extends JFrame {
 	private boolean verboseMode = false;
 	private boolean cancelRequested = false;
 
+	public static final Color COLOR_DARK_GRAY = new Color(0x727284);
+	public static final Color COLOR_CYAN = new Color(0x2399CD);
+	public static final Color BGCOLOR_LIGHT_GRAY = new Color(0xf7f7f7);
+	// Anti-ailiasing for microsoft windows.
+
 	/**
 	 * Constructor.
 	 */
@@ -122,9 +131,11 @@ public class MainFrame extends JFrame {
 		this.setTitle(getResource("window.title", "iOS Image Util"));
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLayout(new BorderLayout());
+		Font fontNormal = new Font(getResource("font.default.name", Font.SANS_SERIF), Font.PLAIN, 12);
+		Font fontExtraLarge = new Font(getResource("font.default.name", Font.SANS_SERIF), Font.BOLD, 16);
 
 		final JLayeredPane layeredPane = new JLayeredPane();
-		layeredPane.setPreferredSize(new Dimension(640, 240));
+		layeredPane.setPreferredSize(new Dimension(620, 280));
 		this.add(layeredPane, BorderLayout.NORTH);
 
 		final JPanel settings = new JPanel();
@@ -132,31 +143,43 @@ public class MainFrame extends JFrame {
 		layeredPane.add(settings, JLayeredPane.DEFAULT_LAYER);
 
 		// iOS6 Icon Path.
-		JLabel icon6Label = new JLabel(getResource("label.icon6.path", " iOS6 Icon PNG (1024x1024):"), SwingConstants.RIGHT);
-		icon6Path = new JTextField();
+		// -> Optional Icons
+		Vector<String> oiItems = new Vector<String>();
+		oiItems.add(getResource("item.icon6.path", "Icon for iOS6"));
+		oiItems.add(getResource("item.applewatch.path", "Icon for Apple Watch"));
+		oiItems.add(getResource("item.carplay.path", "Icon for CarPlay"));
+		optionalIcons = new JComboBox(oiItems);
+		optionalIcons.setFont(optionalIcons.getFont().deriveFont(Font.PLAIN, 11.0f));
+		optionalIcons.setToolTipText(getResource("tooltip.optional.icons", "Paths for optional icon. ( if necessary, not required )"));
+		optionalIcons.addItemListener(new ItemListener() {
+			@Override public void itemStateChanged(ItemEvent e) {
+				icon6Path.setVisible(optionalIcons.getSelectedIndex() == 0);
+				watchPath.setVisible(optionalIcons.getSelectedIndex() == 1);
+				carplayPath.setVisible(optionalIcons.getSelectedIndex() == 2);
+			}
+		});
+
 		JButton refIcon6Path = new JButton("...");
 		refIcon6Path.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(icon6Path, icon6Image);
 			}
 		});
-		icon6Path.addFocusListener(new FocusListener() {
-			@Override public void focusGained(FocusEvent e) { }
-			@Override public void focusLost(FocusEvent e) {
-				try {
-					String currentPath = (icon6Image.getImageFile() == null) ? "" : icon6Image.getImageFile().getCanonicalPath();
-					if (!currentPath.equals(icon6Path.getText())) {
-						setFilePath(icon6Path, icon6Path.getText().trim().length() <= 0 ? null : new File(icon6Path.getText()), icon6Image);
-					}
-				} catch (Throwable t) {
-					handleThrowable(t);
-				}
-			}
 
-		});
-		settings.add(icon6Label);
-		settings.add(icon6Path);
+		JPanel optionalIconBase = new JPanel();
+		optionalIconBase.setLayout(new GridLayout(1, 2, 5, 0));
+		optionalIconBase.add(new JLabel(getResource("label.optional.icons", "Optional Icons:"), SwingConstants.RIGHT));
+		optionalIconBase.add(optionalIcons);
+
+		settings.add(optionalIconBase);
+		settings.add(icon6Path = new JTextField());
 		settings.add(refIcon6Path);
+		settings.add(carplayPath = new JTextField());
+		settings.add(watchPath = new JTextField());
+		icon6Path.setVisible(false);
+		watchPath.setVisible(true);
+		carplayPath.setVisible(false);
+		optionalIcons.setSelectedIndex(1);
 
 		// iOS7 Icon Path.
 		JLabel icon7Label = new JLabel(getResource("label.icon7.path", " iOS7 Icon PNG (1024x1024):"), SwingConstants.RIGHT);
@@ -166,20 +189,6 @@ public class MainFrame extends JFrame {
 			@Override public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(icon7Path, icon7Image);
 			}
-		});
-		icon7Path.addFocusListener(new FocusListener() {
-			@Override public void focusGained(FocusEvent e) { }
-			@Override public void focusLost(FocusEvent e) {
-				try {
-					String currentPath = (icon7Image.getImageFile() == null) ? "" : icon7Image.getImageFile().getCanonicalPath();
-					if (!currentPath.equals(icon7Path.getText())) {
-						setFilePath(icon7Path, icon7Path.getText().trim().length() <= 0 ? null : new File(icon7Path.getText()), icon7Image);
-					}
-				} catch (Throwable t) {
-					handleThrowable(t);
-				}
-			}
-
 		});
 		settings.add(icon7Label);
 		settings.add(icon7Path);
@@ -193,20 +202,6 @@ public class MainFrame extends JFrame {
 			@Override public void actionPerformed(ActionEvent e) {
 				setFilePathActionPerformed(splashPath, splashImage);
 			}
-		});
-		splashPath.addFocusListener(new FocusListener() {
-			@Override public void focusGained(FocusEvent e) { }
-			@Override public void focusLost(FocusEvent e) {
-				try {
-					String currentPath = (splashImage.getImageFile() == null) ? "" : splashImage.getImageFile().getCanonicalPath();
-					if (!currentPath.equals(splashPath.getText())) {
-						setFilePath(splashPath, splashPath.getText().trim().length() <= 0 ? null : new File(splashPath.getText()), splashImage);
-					}
-				} catch (Throwable t) {
-					handleThrowable(t);
-				}
-			}
-
 		});
 		settings.add(splashLabel);
 		settings.add(splashPath);
@@ -315,19 +310,25 @@ public class MainFrame extends JFrame {
 		settings.add(splashBackgroundColorPanel);
 
 		// Checkboxes and Radio Buttons.
-		JPanel radioPanel = new JPanel();
-		radioPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		radioPanel.add(this.iBoth = new JRadioButton(getResource("label.output.both", "Output Both"), true));
-		radioPanel.add(this.iPhoneOnly = new JRadioButton(getResource("label.iphone.only", "iPhone Only")));
-		radioPanel.add(this.iPadOnly = new JRadioButton(getResource("label.ipad.only", "iPad Only")));
+		JPanel generateOptions = new JPanel();
+		//generateOptions.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		generateOptions.setLayout(new BoxLayout(generateOptions, BoxLayout.LINE_AXIS));
+		generateOptions.add(new JLabel(getResource("label.generate.options", "Options:")));
+		generateOptions.add(this.iBoth = new JRadioButton(getResource("label.output.both", "Output Both"), true));
+		generateOptions.add(this.iPhoneOnly = new JRadioButton(getResource("label.iphone.only", "iPhone Only")));
+		generateOptions.add(this.iPadOnly = new JRadioButton(getResource("label.ipad.only", "iPad Only")));
+		generateOptions.add(Box.createHorizontalStrut(5));
+		generateOptions.add(new JSeparator(SwingConstants.VERTICAL));
+		generateOptions.add(Box.createHorizontalStrut(5));
+		generateOptions.add(this.generateArtwork = new JCheckBox(getResource("label.generate.artwork", "Artwork"), true));
+		generateOptions.add(this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false));
+		generateArtwork.setToolTipText(getResource("tooltip.generate.artwork", "Generate iTunes Store Artwork images."));
+		generateOldSplashImages.setToolTipText(getResource("tooltip.generate.old.splash", "Generate \"to-status-bar\" launch images specified for iOS 6 iPad."));
 		ButtonGroup group = new ButtonGroup();
 		group.add(this.iBoth);
 		group.add(this.iPhoneOnly);
 		group.add(this.iPadOnly);
-		settings.add(radioPanel);
-
-		this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false);
-		settings.add(this.generateOldSplashImages);
+		settings.add(generateOptions);
 
 		JSeparator separatorSouth = new JSeparator(JSeparator.HORIZONTAL);
 		settings.add(separatorSouth);
@@ -389,18 +390,24 @@ public class MainFrame extends JFrame {
 		SpringLayout layout = new SpringLayout();
 		settings.setLayout(layout);
 		// Layout for iOS 6 Path
-		layout.putConstraint(SpringLayout.WEST, icon6Label, 5, SpringLayout.WEST, settings);
-		layout.putConstraint(SpringLayout.EAST, icon6Label, 0, SpringLayout.EAST, splashLabel);
-		layout.putConstraint(SpringLayout.NORTH, icon6Label, 27, SpringLayout.NORTH, settings);
+		layout.putConstraint(SpringLayout.WEST, optionalIconBase, 5, SpringLayout.WEST, settings);
+//		layout.putConstraint(SpringLayout.EAST, optionalIconBase, 0, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.NORTH, optionalIconBase, 25, SpringLayout.NORTH, settings);
 		layout.putConstraint(SpringLayout.EAST, refIcon6Path, -5, SpringLayout.EAST, settings);
 		layout.putConstraint(SpringLayout.NORTH, refIcon6Path, 25, SpringLayout.NORTH, settings);
 		layout.putConstraint(SpringLayout.WEST, icon6Path, 5, SpringLayout.EAST, splashLabel);
 		layout.putConstraint(SpringLayout.EAST, icon6Path, -5, SpringLayout.WEST, refIcon6Path);
 		layout.putConstraint(SpringLayout.NORTH, icon6Path, 25, SpringLayout.NORTH, settings);
+		layout.putConstraint(SpringLayout.WEST, watchPath, 5, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.EAST, watchPath, -5, SpringLayout.WEST, refIcon6Path);
+		layout.putConstraint(SpringLayout.NORTH, watchPath, 25, SpringLayout.NORTH, settings);
+		layout.putConstraint(SpringLayout.WEST, carplayPath, 5, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.EAST, carplayPath, -5, SpringLayout.WEST, refIcon6Path);
+		layout.putConstraint(SpringLayout.NORTH, carplayPath, 25, SpringLayout.NORTH, settings);
 
 		// Layout for iOS 7 Path
 		layout.putConstraint(SpringLayout.WEST, icon7Label, 5, SpringLayout.WEST, settings);
-		layout.putConstraint(SpringLayout.EAST, icon7Label, 0, SpringLayout.EAST, splashLabel);
+		layout.putConstraint(SpringLayout.EAST, icon7Label, 0, SpringLayout.EAST, optionalIconBase);
 		layout.putConstraint(SpringLayout.NORTH, icon7Label, 7, SpringLayout.SOUTH, refIcon6Path);
 		layout.putConstraint(SpringLayout.EAST, refIcon7Path, -5, SpringLayout.EAST, settings);
 		layout.putConstraint(SpringLayout.NORTH, refIcon7Path, 5, SpringLayout.SOUTH, refIcon6Path);
@@ -410,6 +417,7 @@ public class MainFrame extends JFrame {
 
 		// Layout for Launch Image Path
 		layout.putConstraint(SpringLayout.WEST, splashLabel, 5, SpringLayout.WEST, settings);
+		layout.putConstraint(SpringLayout.EAST, splashLabel, 0, SpringLayout.EAST, optionalIconBase);
 		layout.putConstraint(SpringLayout.NORTH, splashLabel, 7, SpringLayout.SOUTH, refIcon7Path);
 		layout.putConstraint(SpringLayout.EAST, refSplashPath, -5, SpringLayout.EAST, settings);
 		layout.putConstraint(SpringLayout.NORTH, refSplashPath, 5, SpringLayout.SOUTH, refIcon7Path);
@@ -432,15 +440,13 @@ public class MainFrame extends JFrame {
 		layout.putConstraint(SpringLayout.WEST, splashBackgroundColorPanel, -24, SpringLayout.HORIZONTAL_CENTER, settings);
 		layout.putConstraint(SpringLayout.NORTH, splashBackgroundColorPanel, 5, SpringLayout.SOUTH, scaleAlgorithmPanel);
 		// 3rd row.
-		layout.putConstraint(SpringLayout.EAST, radioPanel, 0, SpringLayout.HORIZONTAL_CENTER, settings);
-		layout.putConstraint(SpringLayout.NORTH, radioPanel, 5, SpringLayout.SOUTH, imageTypePanel);
-		layout.putConstraint(SpringLayout.WEST, generateOldSplashImages, 16, SpringLayout.HORIZONTAL_CENTER, settings);
-		layout.putConstraint(SpringLayout.NORTH, generateOldSplashImages, 5, SpringLayout.SOUTH, imageTypePanel);
+		layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, generateOptions, 0, SpringLayout.HORIZONTAL_CENTER, settings);
+		layout.putConstraint(SpringLayout.NORTH, generateOptions, 5, SpringLayout.SOUTH, imageTypePanel);
 
 		// Layout for Output Image Path
 		layout.putConstraint(SpringLayout.WEST, separatorSouth, 5, SpringLayout.WEST, settings);
 		layout.putConstraint(SpringLayout.EAST, separatorSouth, -5, SpringLayout.EAST, settings);
-		layout.putConstraint(SpringLayout.NORTH, separatorSouth, 8, SpringLayout.SOUTH, radioPanel);
+		layout.putConstraint(SpringLayout.NORTH, separatorSouth, 8, SpringLayout.SOUTH, generateOptions);
 		layout.putConstraint(SpringLayout.WEST, generateAsAssetCatalogs, 5, SpringLayout.WEST, settings);
 		layout.putConstraint(SpringLayout.NORTH, generateAsAssetCatalogs, 6, SpringLayout.SOUTH, separatorSouth);
 		layout.putConstraint(SpringLayout.WEST, outputPathLabel, 8, SpringLayout.EAST, generateAsAssetCatalogs);
@@ -454,132 +460,30 @@ public class MainFrame extends JFrame {
 
 
 		// Image Panels.
-		Font imagesFont = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
-		Color imagesColor = new Color(0xf7f7f7);
-		icon6Image = new ImagePanel(getResource("label.icon6.drop", "Drop iOS6 Icon PNG Here"));
-		icon6Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
-		icon6Image.setBackground(imagesColor);
-		icon6Image.setFont(imagesFont);
-		icon6Image.setTransferHandler(new TransferHandler() {
-			@Override public boolean importData(TransferSupport support) {
-				try {
-					if (canImport(support)) {
-						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						if (list instanceof List) {
-							Object file = ((List<?>)list).get(0);
-							if (file instanceof File) { setFilePath(icon6Path, (File)file, icon6Image); }
-						}
-					}
-				} catch (Throwable t) {
-					handleThrowable(t);
-				}
-				return false;
-			}
-			@Override public boolean canImport(TransferSupport support) {
-				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
-			}
-		});
-		icon6Path.setTransferHandler(icon6Image.getTransferHandler());
-		icon6Image.addMouseListener(new MouseListener() {
-			@Override public void mousePressed(MouseEvent e) { }
-			@Override public void mouseReleased(MouseEvent e) { }
-			@Override public void mouseEntered(MouseEvent e) { }
-			@Override public void mouseExited(MouseEvent e) { }
-			@Override public void mouseClicked(MouseEvent e) {
-				if (icon6Image.getImage() != null && icon6Image.getImageFile() != null) {
-					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
-						icon6Path.setText("");
-						icon6Image.clear();
-					}
-				}
-			}
-		});
+		icon7Image = initImagePanel(new ImagePanel(getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here")), icon7Path);
+		icon7Image.setForeground(COLOR_CYAN);//0x34AADC));//0x007AFF));//0x34AADC));
+		splashImage = initImagePanel(new ImagePanel(getResource("label.splash.drop", "Drop Splash Image PNG Here")), splashPath);
 
-		icon7Image = new ImagePanel(getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here"));
-		icon7Image.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
-		icon7Image.setBackground(imagesColor);
-//		icon7Image.setForeground(new Color(0x4AA7B4));
-		icon7Image.setForeground(new Color(0x34AADC));//0x007AFF));//0x34AADC));
-		icon7Image.setFont(imagesFont);
-		icon7Image.setTransferHandler(new TransferHandler() {
-			@Override public boolean importData(TransferSupport support) {
-				try {
-					if (canImport(support)) {
-						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						if (list instanceof List) {
-							Object file = ((List<?>)list).get(0);
-							if (file instanceof File) { setFilePath(icon7Path, (File)file, icon7Image); }
-						}
-					}
-				} catch (Throwable t) {
-					handleThrowable(t);
-				}
-				return false;
-			}
-			@Override public boolean canImport(TransferSupport support) {
-				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
-			}
-		});
-		icon7Path.setTransferHandler(icon7Image.getTransferHandler());
-		icon7Image.addMouseListener(new MouseListener() {
-			@Override public void mousePressed(MouseEvent e) { }
-			@Override public void mouseReleased(MouseEvent e) { }
-			@Override public void mouseEntered(MouseEvent e) { }
-			@Override public void mouseExited(MouseEvent e) { }
-			@Override public void mouseClicked(MouseEvent e) {
-				if (icon7Image.getImage() != null && icon7Image.getImageFile() != null) {
-					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
-						icon7Path.setText("");
-						icon7Image.clear();
-					}
-				}
-			}
-		});
+		icon6Image = initImagePanel(new ImagePanel(getResource("label.icon6.drop", "Drop iOS6 Icon PNG Here")), icon6Path);
+		carplayImage = initImagePanel(new ImagePanel(getResource("label.carplay.drop", "Icon for CarPlay\n( Optional )")), carplayPath);
+		watchImage = initImagePanel(new ImagePanel(getResource("label.watch.drop", "Drop Apple Watch Icon PNG Here\n( if necessary, not required )")), watchPath);
 
-		splashImage = new ImagePanel(getResource("label.splash.drop", "Drop Splash Image PNG Here"));
-		splashImage.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
-		splashImage.setBackground(imagesColor);
-		splashImage.setFont(imagesFont);
-		splashImage.setTransferHandler(new TransferHandler() {
-			@Override public boolean importData(TransferSupport support) {
-				try {
-					if (canImport(support)) {
-						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						if (list instanceof List) {
-							Object file = ((List<?>)list).get(0);
-							if (file instanceof File) { setFilePath(splashPath, (File)file, splashImage); }
-						}
-					}
-				} catch (Throwable t) {
-					handleThrowable(t);
-				}
-				return false;
-			}
-			@Override public boolean canImport(TransferSupport support) {
-				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
-			}
-		});
-		splashPath.setTransferHandler(splashImage.getTransferHandler());
-		splashImage.addMouseListener(new MouseListener() {
-			@Override public void mousePressed(MouseEvent e) { }
-			@Override public void mouseReleased(MouseEvent e) { }
-			@Override public void mouseEntered(MouseEvent e) { }
-			@Override public void mouseExited(MouseEvent e) { }
-			@Override public void mouseClicked(MouseEvent e) {
-				if (splashImage.getImage() != null && splashImage.getImageFile() != null) {
-					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
-						splashPath.setText("");
-						splashImage.clear();
-					}
-				}
-			}
-		});
+		JPanel optionalIconImages = new JPanel();
+		optionalIconImages.setBackground(BGCOLOR_LIGHT_GRAY);
+		optionalIconImages.setLayout(new GridLayout(2, 1, 0, 2));
+		JPanel optionalIconImagesSub = new JPanel();
+		optionalIconImagesSub.setBackground(BGCOLOR_LIGHT_GRAY);
+		optionalIconImagesSub.setLayout(new GridLayout(1, 2, 2, 0));
+		optionalIconImagesSub.add(carplayImage);
+		optionalIconImagesSub.add(icon6Image);
+		optionalIconImages.add(watchImage);
+		optionalIconImages.add(optionalIconImagesSub);
 
 		JPanel imagesPanel = new JPanel();
-		imagesPanel.setBorder(new LineBorder(imagesColor, 4));
-		imagesPanel.setBackground(imagesColor);
+		imagesPanel.setBorder(new LineBorder(BGCOLOR_LIGHT_GRAY, 4));
+		imagesPanel.setBackground(BGCOLOR_LIGHT_GRAY);
 		imagesPanel.setLayout(new GridLayout(1, 3, 2, 2));
-		imagesPanel.add(icon6Image);
+		imagesPanel.add(optionalIconImages);
 		imagesPanel.add(icon7Image);
 		imagesPanel.add(splashImage);
 		this.add(imagesPanel, BorderLayout.CENTER);
@@ -603,18 +507,8 @@ public class MainFrame extends JFrame {
 			@Override public void mouseReleased(MouseEvent e) {}
 		});
 
-		Font buttonFont = new Font(Font.SANS_SERIF, Font.BOLD, 16);
-		generateButton = new JButton(getResource("button.generate", "Generate"), new ImageIcon(this.getClass().getResource("img/generate.png")));
-		generateButton.setBackground(new Color(0xFF4981));
-		generateButton.setForeground(Color.WHITE);
-		generateButton.setBorderPainted(false);
-		generateButton.setFocusPainted(false);
+		generateButton = initMenuButton(new JButton(getResource("button.generate", "Generate"), new ImageIcon(this.getClass().getResource("img/generate.png"))), Color.WHITE, new Color(0xFF4981), fontExtraLarge);
 		generateButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/generate_rollover.png")));
-		generateButton.setHorizontalTextPosition(SwingConstants.CENTER);
-		generateButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-		generateButton.setFont(buttonFont);
-		generateButton.setMargin(new Insets(2, 16, 2, 16));
-		generateButton.setOpaque(true);
 		generateButton.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
 				generate();
@@ -622,17 +516,7 @@ public class MainFrame extends JFrame {
 		});
 		surface.add(generateButton);
 
-		cancelButton = new JButton(getResource("button.cancel", "Cancel"), new ImageIcon(this.getClass().getResource("img/generate.gif")));
-		cancelButton.setBackground(new Color(0xf7f7f7));
-		cancelButton.setForeground(new Color(0x8E8E93));
-		cancelButton.setBorderPainted(false);
-		cancelButton.setFocusPainted(false);
-		cancelButton.setHorizontalTextPosition(SwingConstants.CENTER);
-		cancelButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-		cancelButton.setFont(buttonFont);
-		cancelButton.setMargin(new Insets(2, 16, 2, 16));
-		cancelButton.setOpaque(true);
-		cancelButton.setDoubleBuffered(true);
+		cancelButton = initMenuButton(new JButton(getResource("button.cancel", "Cancel"), new ImageIcon(this.getClass().getResource("img/generate.gif"))), new Color(0x8E8E93), new Color(0xf7f7f7), fontExtraLarge);
 		cancelButton.setRolloverEnabled(false);
 		cancelButton.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
@@ -643,34 +527,14 @@ public class MainFrame extends JFrame {
 		surface.add(cancelButton);
 		cancelButton.setVisible(false);
 
-		settingsButton = new JButton(getResource("button.settings", "Settings"), new ImageIcon(this.getClass().getResource("img/settings.png")));
-		settingsButton.setBackground(new Color(0x4CD964));
-		settingsButton.setForeground(Color.WHITE);
-		settingsButton.setBorderPainted(false);
-		settingsButton.setFocusPainted(false);
-		settingsButton.setRolloverEnabled(true);
+		settingsButton = initMenuButton(new JButton(getResource("button.settings", "Settings"), new ImageIcon(this.getClass().getResource("img/settings.png"))), Color.WHITE, new Color(0x4CD964), fontExtraLarge);
 		settingsButton.setDisabledIcon(new ImageIcon(this.getClass().getResource("img/settings_disabled.png")));
 		settingsButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/settings_rollover.png")));
-		settingsButton.setHorizontalTextPosition(SwingConstants.CENTER);
-		settingsButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-		settingsButton.setFont(buttonFont);
-		settingsButton.setMargin(new Insets(2, 16, 2, 16));
-		settingsButton.setOpaque(true);
 		surface.add(settingsButton);
 
-
-		splitButton = new JButton(getResource("button.split", "Split"), new ImageIcon(this.getClass().getResource("img/splitter.png")));
-		splitButton.setBackground(new Color(0x007AFF));
-		splitButton.setForeground(Color.WHITE);
-		splitButton.setBorderPainted(false);
-		splitButton.setFocusPainted(false);
+		splitButton = initMenuButton(new JButton(getResource("button.split", "Split"), new ImageIcon(this.getClass().getResource("img/splitter.png"))), Color.WHITE, new Color(0x007AFF), fontExtraLarge);
 		splitButton.setDisabledIcon(new ImageIcon(this.getClass().getResource("img/splitter_disabled.png")));
 		splitButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/splitter_rollover.png")));
-		splitButton.setHorizontalTextPosition(SwingConstants.CENTER);
-		splitButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-		splitButton.setFont(buttonFont);
-		splitButton.setMargin(new Insets(2, 16, 2, 16));
-		splitButton.setOpaque(true);
 		final JFrame dialogOwner = this;
 		splitButton.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
@@ -691,14 +555,14 @@ public class MainFrame extends JFrame {
 		progress.setValue(0);
 		progress.setStringPainted(true);
 		progress.setBorderPainted(false);
-		progress.setBackground(new Color(0xF7F7F7));
-		progress.setForeground(new Color(0x007AFF));
+		progress.setBackground(BGCOLOR_LIGHT_GRAY);//new Color(0xF7F7F7));
+		progress.setForeground(COLOR_CYAN);//new Color(0x007AFF));
 		progress.setOpaque(true);
 		surface.add(progress);
 
 		outputPathDisplay = new JLabel("");
-		outputPathDisplay.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-		outputPathDisplay.setForeground(new Color(0x34AADC));//0x007AFF));//0x34AADC));
+		outputPathDisplay.setForeground(COLOR_CYAN);//new Color(0x34AADC));//0x007AFF));//0x34AADC));
+		outputPathDisplay.setFont(fontNormal);
 		surface.add(outputPathDisplay);
 
 		final JButton gripeButton = new JButton(new ImageIcon(this.getClass().getResource("img/gripe.png")));
@@ -784,6 +648,102 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
+	 * Set preferences to ImagePanel.
+	 *
+	 * @param imagePanel
+	 * @param textField
+	 * @return imagePanel
+	 */
+	private ImagePanel initImagePanel(ImagePanel imagePanel, JTextField textField) {
+		final ImagePanel fImagePanel = imagePanel;
+		final JTextField fTextField = textField;
+		imagePanel.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
+		imagePanel.setBackground(BGCOLOR_LIGHT_GRAY);
+		imagePanel.setForeground(COLOR_DARK_GRAY);
+		imagePanel.setTransferHandler(new TransferHandler() {
+			@Override public boolean importData(TransferSupport support) {
+				try {
+					if (canImport(support)) {
+						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+						if (list instanceof List) {
+							Object file = ((List<?>)list).get(0);
+							if (file instanceof File) {
+								if (setFilePath(fTextField, (File)file, fImagePanel)) {
+									return true;
+								}
+							}
+						}
+					}
+				} catch (Throwable t) {
+					handleThrowable(t);
+				}
+				return false;
+			}
+			@Override public boolean canImport(TransferSupport support) {
+				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+			}
+		});
+		textField.setTransferHandler(imagePanel.getTransferHandler());
+		imagePanel.addMouseListener(new MouseListener() {
+			@Override public void mousePressed(MouseEvent e) { }
+			@Override public void mouseReleased(MouseEvent e) { }
+			@Override public void mouseEntered(MouseEvent e) { }
+			@Override public void mouseExited(MouseEvent e) { }
+			@Override public void mouseClicked(MouseEvent e) {
+				if (fImagePanel.getImage() != null && fImagePanel.getImageFile() != null) {
+					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
+						fTextField.setText("");
+						fImagePanel.clear();
+					}
+				} else {
+					setFilePathActionPerformed(fTextField, fImagePanel);
+				}
+			}
+		});
+
+		textField.addFocusListener(new FocusListener() {
+			@Override public void focusGained(FocusEvent e) { }
+			@Override public void focusLost(FocusEvent e) {
+				try {
+					String currentPath = (fImagePanel.getImageFile() == null) ? "" : fImagePanel.getImageFile().getCanonicalPath();
+					if (!currentPath.equals(fTextField.getText())) {
+						setFilePath(fTextField, fTextField.getText().trim().length() <= 0 ? null : new File(fTextField.getText()), fImagePanel);
+					}
+				} catch (Throwable t) {
+					handleThrowable(t);
+				}
+			}
+
+		});
+
+		return imagePanel;
+	}
+
+	/**
+	 * Set preferences to Menu button.
+	 *
+	 * @param button
+	 * @param foregroundColor
+	 * @param backgroundColor
+	 * @param font
+	 * @return
+	 */
+	private JButton initMenuButton(JButton button, Color foregroundColor, Color backgroundColor, Font font) {
+		button.setBackground(backgroundColor);
+		button.setForeground(foregroundColor);
+		button.setBorderPainted(false);
+		button.setFocusPainted(false);
+		button.setHorizontalTextPosition(SwingConstants.CENTER);
+		button.setVerticalTextPosition(SwingConstants.BOTTOM);
+		button.setFont(font);
+		button.setMargin(new Insets(2, 16, 2, 16));
+		button.setOpaque(true);
+		button.setDoubleBuffered(true);
+		button.setRolloverEnabled(true);
+		return button;
+	}
+
+	/**
 	 * Set file path from file chooser dialog.
 	 *
 	 * @param textField		TextField to set the file path
@@ -847,10 +807,14 @@ public class MainFrame extends JFrame {
 					outputPath.setText(g.getCanonicalPath());
 				}
 				if (imagePanel == splashImage) {
-					Color c = new Color(imageFile.getImage().getRGB(0, 0), true);
+					Color c = imageFile.getDefaultBackgroundColor();
 					this.setSplashBackgroundColor(String.format("%2h%2h%2h%2h", c.getAlpha(), c.getRed(), c.getGreen(), c.getBlue()).replace(' ', '0'));
 				}
 			}
+
+			if (textField == icon6Path) { optionalIcons.setSelectedIndex(0); }
+			if (textField == watchPath) { optionalIcons.setSelectedIndex(1); }
+			if (textField == carplayPath) { optionalIcons.setSelectedIndex(2); }
 		} catch (Throwable t) {
 			handleThrowable(t);
 			textField.setText("");
@@ -862,15 +826,17 @@ public class MainFrame extends JFrame {
 		return true;
 	}
 
-	private File getChosenDirectory() {
-		File dir = getChosenDirectory(icon7Path);
-		if (dir != null) return dir;
-		dir = getChosenDirectory(splashPath);
-		if (dir != null) return dir;
-		dir = getChosenDirectory(icon6Path);
-		if (dir != null) return dir;
-		dir = getChosenDirectory(outputPath);
-		if (dir != null) return dir;
+	/**
+	 * @return Chosen directory
+	 */
+	public File getChosenDirectory() {
+		File dir;
+		if ((dir = getChosenDirectory(icon7Path)) != null) return dir;
+		if ((dir = getChosenDirectory(splashPath)) != null) return dir;
+		if ((dir = getChosenDirectory(watchPath)) != null) return dir;
+		if ((dir = getChosenDirectory(icon6Path)) != null) return dir;
+		if ((dir = getChosenDirectory(carplayPath)) != null) return dir;
+		if ((dir = getChosenDirectory(outputPath)) != null) return dir;
 		return null;
 	}
 
@@ -889,9 +855,12 @@ public class MainFrame extends JFrame {
 	public boolean setIcon6Path(String path) { return setFilePath(icon6Path, new File(path), icon6Image); }
 	public boolean setIcon7Path(String path) { return setFilePath(icon7Path, new File(path), icon7Image); }
 	public boolean setSplashPath(String path) { return setFilePath(splashPath, new File(path), splashImage); }
+	public boolean setCarplayPath(String path) { return setFilePath(carplayPath, new File(path), carplayImage); }
+	public boolean setWatchPath(String path) { return setFilePath(watchPath, new File(path), watchImage); }
 	public void setOutputPath(String path) throws IOException { outputPath.setText((new File(path)).getCanonicalPath()); }
 	public void setSplashScaling(int idx) { splashScaling.setSelectedIndex(idx); }
 	public void setGenerateOldSplashImages(boolean b) { this.generateOldSplashImages.setSelected(b); }
+	public void setGenerateArtwork(boolean b) { this.generateArtwork.setSelected(b); }
 	public void setGenerateAsAssetCatalogs(boolean b) { this.generateAsAssetCatalogs.setSelected(b); }
 	public void selectIphoneOnly() { this.iBoth.setSelected(false);this.iPadOnly.setSelected(false);this.iPhoneOnly.setSelected(true); }
 	public void selectIpadOnly() { this.iBoth.setSelected(false);this.iPhoneOnly.setSelected(false);this.iPadOnly.setSelected(true); }
@@ -902,7 +871,7 @@ public class MainFrame extends JFrame {
 	public boolean isSilentMode() { return this.silentMode; }
 	public boolean isVerboseMode() { return this.verboseMode; }
 	public void setImageType(int idx) { imageType.setSelectedIndex(idx); }
-	public boolean isGenerateImagesReqested() { return !icon6Path.getText().trim().isEmpty() && !icon7Path.getText().trim().isEmpty() && !splashPath.getText().trim().isEmpty();  }
+	public boolean isGenerateImagesReqested() { return !icon6Path.getText().trim().isEmpty() || !icon7Path.getText().trim().isEmpty() || !splashPath.getText().trim().isEmpty() || !watchPath.getText().trim().isEmpty() || !carplayPath.getText().trim().isEmpty();  }
 	// hidden option.
 	public void setScalingAlgorithm(int idx) { scaleAlgorithm.setSelectedIndex(idx); }
 	protected int getScalingAlgorithm() { return ((ComboBoxItem)this.scaleAlgorithm.getSelectedItem()).getItemValue(); }
@@ -1074,7 +1043,7 @@ public class MainFrame extends JFrame {
 				if (!isBatchMode()) {
 					cancelButton.setVisible(true);
 					generateButton.setVisible(false);
-					settingsButton.setBackground(new Color(0xF7F7F7));
+					settingsButton.setBackground(BGCOLOR_LIGHT_GRAY);//new Color(0xF7F7F7));
 					settingsButton.setEnabled(false);
 				}
 				cancelRequested = false;
@@ -1155,7 +1124,7 @@ public class MainFrame extends JFrame {
 	 */
 	private ImageFileSet createValidImageFileSet() {
 		try {
-			if (icon6Path.getText().trim().length() <= 0 && icon7Path.getText().trim().length() <= 0 && splashPath.getText().trim().length() <= 0) {
+			if (!isGenerateImagesReqested()) {
 				alert(getResource("error.not.choosen", "Choose at least one Icon or Splash PNG file."));
 				return null;
 			}
@@ -1166,6 +1135,14 @@ public class MainFrame extends JFrame {
 			if (icon6Path.getText().trim().length() > 0) {
 				ifs.setIcon6File(checkFile(icon6Path));
 				if (ifs.getIcon6File() == null) return null;
+			}
+			if (watchPath.getText().trim().length() > 0) {
+				ifs.setWatchFile(checkFile(watchPath));
+				if (ifs.getWatchFile() == null) return null;
+			}
+			if (carplayPath.getText().trim().length() > 0) {
+				ifs.setCarplayFile(checkFile(carplayPath));
+				if (ifs.getCarplayFile() == null) return null;
 			}
 			if (icon7Path.getText().trim().length() > 0) {
 				ifs.setIcon7File(checkFile(icon7Path));
@@ -1237,7 +1214,7 @@ public class MainFrame extends JFrame {
 
 			// generate images for launch, or not
 			if (ifs.getSplashFile() == null) {
-				// do not create launch imagesn by default.
+				// do not create launch images by default.
 				if (this.isBatchMode()) {
 					information(getResource("confirm.splash.not.generate", "The Splash image will not be generated."));
 				}
@@ -1248,7 +1225,7 @@ public class MainFrame extends JFrame {
 			if (this.generateAsAssetCatalogs.isSelected()) {
 				// Asset Catalogs
 				ifs.setIconOutputDirectory(new File(ifs.getOutputDirectory(), getResource("string.dir.appicon", "AppIcon.appiconset")));
-				if ((ifs.getIcon6File() != null || ifs.getIcon7File() != null) && !ifs.getIconOutputDirectory().exists() && !ifs.getIconOutputDirectory().mkdirs()) {
+				if (ifs.getDefaultIconImage() != null && !ifs.getIconOutputDirectory().exists() && !ifs.getIconOutputDirectory().mkdirs()) {
 					alert("[" + ifs.getIconOutputDirectory().getCanonicalPath() + "] " + getResource("error.create.dir", "could not create."));
 					return null;
 				}
@@ -1278,14 +1255,26 @@ public class MainFrame extends JFrame {
 		StringBuilder buffer = new StringBuilder();
 		HashMap<String, IOSAssetCatalogs> filesOutput = new HashMap<String, IOSAssetCatalogs>();
 
-		if (ifs.getIcon6File() != null || ifs.getIcon7File() != null) {
+		if (ifs.getIcon6File() != null || ifs.getIcon7File() != null || ifs.getWatchFile() != null || ifs.getCarplayFile() != null) {
 			// generate icons
 			for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
 				if (cancelRequested) { count = -1; break; }
-				BufferedImage image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (ifs.getIcon6File() == null ? ifs.getIcon7File().getImage() : ifs.getIcon6File().getImage()) : ifs.getIcon7File().getImage();
+				ImageFile image = null;
+				if (asset.isAppleWatch()) {
+					if (ifs.getWatchFile() != null) { image = ifs.getWatchFile(); }
+				} else if (asset.isCarPlay()) {
+					if (ifs.getCarplayFile() != null) { image = ifs.getCarplayFile(); }
+				} else {
+					if (ifs.getIcon7File() == null && ifs.getIcon6File() == null) continue;
+					image = asset.getMinimumSystemVersion() < IOSAssetCatalogs.SYSTEM_VERSION_7 ? (ifs.getIcon6File() == null ? ifs.getIcon7File() : ifs.getIcon6File()) : ifs.getIcon7File();
+				}
 				if (image == null) continue;
-				if (asset.isIphone() && iPadOnly.isSelected()) continue;
-				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
+				if (ifs.getWatchFile() != null && ifs.getWatchFile().getImage() == null) continue;
+				if (ifs.getCarplayFile() != null && ifs.getCarplayFile().getImage() == null) continue;
+				if (!asset.isAppleWatch() && !asset.isCarPlay()) {
+					if (!asset.isIpad() && iPadOnly.isSelected()) continue;
+					if (!asset.isIphone() && iPhoneOnly.isSelected()) continue;
+				}
 				if (asset.getMinimumSystemVersion() < ifs.getTargetSystemVersion()) continue;
 
 				if (generateAsAssetCatalogs.isSelected()) {
@@ -1302,7 +1291,7 @@ public class MainFrame extends JFrame {
 				count++;
 				if (!generate) continue;
 
-				writeIconImage(image, asset.getIOSImageInfo(), ifs.getIconOutputDirectory());
+				writeIconImage(image, asset.getIOSImageInfo(), ifs.getIconOutputDirectory(), asset.isAppleWatch());
 				addProgress(1);
 			}
 			if (generate && generateAsAssetCatalogs.isSelected()) {
@@ -1312,11 +1301,16 @@ public class MainFrame extends JFrame {
 			filesOutput.clear();
 
 			// generate artwork
-			for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
-				count++;
-				if (!generate) continue;
-				addProgress(1);
-				writeIconImage(ifs.getIcon7File() == null ? ifs.getIcon6File().getImage() : ifs.getIcon7File().getImage(), artwork, ifs.getOutputDirectory());
+			if (generateArtwork.isSelected()) {
+				for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
+					count++;
+					if (!generate) continue;
+					addProgress(1);
+					ImageFile defaultImage = ifs.getDefaultIconImage();
+					if (defaultImage != null) {
+						writeIconImage(defaultImage, artwork, ifs.getOutputDirectory(), false);
+					}
+				}
 			}
 		}
 
@@ -1343,7 +1337,7 @@ public class MainFrame extends JFrame {
 				count++;
 				if (!generate) continue;
 
-				writeSplashImage(ifs.getSplashFile().getImage(), asset, ifs.getSplashOutputDirectory());
+				writeSplashImage(ifs.getSplashFile(), asset, ifs.getSplashOutputDirectory());
 				addProgress(1);
 			}
 			if (generate && generateAsAssetCatalogs.isSelected()) {
@@ -1367,23 +1361,28 @@ public class MainFrame extends JFrame {
 	/**
 	 * Write icon image to the file.
 	 *
-	 * @param src		source image
+	 * @param srcFile		source image
 	 * @param info		image information
 	 * @param outputDir	output directory
 	 * @throws Exception	exception
 	 */
-	private void writeIconImage(BufferedImage src, IOSImageInfo info, File outputDir) throws Exception {
+	private void writeIconImage(ImageFile srcFile, IOSImageInfo info, File outputDir, boolean forceIntRGB) throws Exception {
 		File f = new File(outputDir, info.getFilename());
 		int width = (int)info.getSize().getWidth();
 		int height = (int)info.getSize().getHeight();
-		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage buf = new BufferedImage(width, height, forceIntRGB ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
 		int hints = this.getScalingAlgorithm();
-		Image img = src.getScaledInstance(width, height, hints);
+		Image img = srcFile.getImage().getScaledInstance(width, height, hints);
+		if (forceIntRGB) {
+			Graphics g = buf.getGraphics();
+			g.setColor(srcFile.getDefaultBackgroundColor());
+			g.fillRect(0, 0, width, height);
+		}
 		buf.getGraphics().drawImage(img, 0, 0, this);
 		img.flush();
 		img = null;
 
-		ImageIO.write(fixImageColor(buf, src), "png", f);
+		ImageIO.write(forceIntRGB ? buf : fixImageColor(buf, srcFile.getImage()), "png", f);
 		buf.flush();
 		buf = null;
 		verbose(f);
@@ -1397,19 +1396,20 @@ public class MainFrame extends JFrame {
 	 * @param outputDir	output directory
 	 * @throws Exception	exception
 	 */
-	private void writeSplashImage(BufferedImage src, IOSSplashAssetCatalogs asset, File outputDir) throws Exception {
+	private void writeSplashImage(ImageFile srcFile, IOSSplashAssetCatalogs asset, File outputDir) throws Exception {
 		File f = new File(outputDir, asset.getFilename());
 		int width = (int)asset.getIOSImageInfo().getSize().getWidth();
 		int height = (int)asset.getIOSImageInfo().getSize().getHeight();
 		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics g = buf.getGraphics();
-		g.setColor(new Color(src.getRGB(0, 0)));
+		g.setColor(srcFile.getDefaultBackgroundColor());
 		if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
 			Color col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true);
 			if (col != null) g.setColor(col);
 		}
 		g.fillRect(0, 0, width, height);
 
+		BufferedImage src = srcFile.getImage();
 		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
 		if (splashScaling.getSelectedIndex() == 0) {
 			// No resizing(iPhone only)
@@ -1649,17 +1649,46 @@ class ImageFile
 		image = null;
 		file = null;
 	}
+
+	/**
+	 * Guess background color without alpha channel.
+	 *
+	 * @return
+	 */
+	public Color getDefaultBackgroundColor() {
+		Color c = null;
+		for (int xy = 0; xy < Math.min(this.getImage().getWidth(), this.getImage().getHeight()); xy++) {
+			Color col = new Color(this.getImage().getRGB(xy, xy), true);
+			if (col.getAlpha() != 0) {
+				c = new Color(col.getRGB(), false);
+				break;
+			}
+		}
+		return c == null ? new Color(this.getImage().getRGB(0, 0), false) : c;
+	}
 }
 
 class ImageFileSet
 {
 	private float targetSystemVersion = IOSAssetCatalogs.SYSTEM_VERSION_ANY;
 	private ImageFile icon6File;
+	private ImageFile watchFile;
+	private ImageFile carplayFile;
 	private ImageFile icon7File;
 	private File iconOutputDirectory;
 	private ImageFile splashFile;
 	private File splashOutputDirectory;
 	private File outputDirectory;
+
+	public ImageFile getDefaultIconImage() {
+		ImageFile defaultImage = null;
+		if (getIcon7File() != null) { defaultImage = getIcon7File(); }
+		if (defaultImage == null && getWatchFile() != null) { defaultImage = getWatchFile(); }
+		if (defaultImage == null && getIcon6File() != null) { defaultImage = getIcon6File(); }
+		if (defaultImage == null && getCarplayFile() != null) { defaultImage = getCarplayFile(); }
+		return defaultImage;
+	}
+
 	/**
 	 * @return targetSystemVersion
 	 */
@@ -1743,6 +1772,30 @@ class ImageFileSet
 	 */
 	public void setOutputDirectory(File outputDirectory) {
 		this.outputDirectory = outputDirectory;
+	}
+	/**
+	 * @return watchFile
+	 */
+	public ImageFile getWatchFile() {
+		return watchFile;
+	}
+	/**
+	 * @param watchFile set watchFile
+	 */
+	public void setWatchFile(ImageFile watchFile) {
+		this.watchFile = watchFile;
+	}
+	/**
+	 * @return carplayFile
+	 */
+	public ImageFile getCarplayFile() {
+		return carplayFile;
+	}
+	/**
+	 * @param carplayFile set carplayFile
+	 */
+	public void setCarplayFile(ImageFile carplayFile) {
+		this.carplayFile = carplayFile;
 	}
 }
 

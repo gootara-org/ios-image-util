@@ -49,14 +49,27 @@ public enum IOSIconInfo implements IOSImageInfo {
     ICON_72x2 ( "Icon-72@2x.png"       , 144   , 144   , 2    ), // iPad3 or later
     ICON_76   ( "Icon-76.png"          , 76    , 76    , 1    ), // iPad / iPad2 / iPad mini
     ICON_76x2 ( "Icon-76@2x.png"       , 152   , 152   , 2    ), // iPad3 or later
+
+    ICON_120x120 ( "120x120@1x.png"    , 120   , 120   , 1    ), // CarPlay
+
+    ICON_24x24x2     ( "24x24@2x.png"    , 48  , 48    , 2    ), // Apple Watch 38mm Nofitication Center
+    ICON_27_5x27_5x2 ( "27.5x27.5@2x.png", 55  , 55    , 2    ), // Apple Watch 42mm Nofitication Center
+    ICON_29x29x2     ( "29x29@2x.png"    , 58  , 58    , 2    ), // Apple Watch 2x CompanionSettings
+    ICON_29x29x3     ( "29x29@3x.png"    , 87  , 87    , 3    ), // Apple Watch 3x CompanionSettings
+    ICON_40x40x2     ( "40x40@2x.png"    , 80  , 80    , 2    ), // Apple Watch 38mm LongLook & App Launcher (both)
+    ICON_44x44x2     ( "44x44@2x.png"    , 88  , 88    , 2    ), // Apple Watch 42mm LongLook
+    ICON_86x86x2     ( "86x86@2x.png"    , 172 , 172   , 2    ), // Apple Watch 38mm QuickLook
+    ICON_98x98x2     ( "98x98@2x.png"    , 196 , 196   , 2    ), // Apple Watch 42mm QUickLook
+
 	;
 
 	private String filename;
 	private Dimension size;
 	private int scale;
-	private IOSIconInfo(String filename, int width, int height, int scale) {
+	private IOSIconInfo(String filename, double width, double height, int scale) {
 		this.filename = filename;
-		this.size = new Dimension(width, height);
+		this.size = new Dimension();
+		this.size.setSize(width, height);
 		this.scale = scale;
 	}
 	@Override public String getFilename() { return this.filename; }
