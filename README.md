@@ -3,22 +3,21 @@ ios-image-util
 
 OVERVIEW:
 ---------
-This tiny java application generate all size of icon & launch image png files those are required for various version of iOS.
-(And also supports Apple Watch and CarPlay.)
+This tiny Java application generate all size of icon & launch image png files those are required for various version of iOS.
+(Also supports Apple Watch and CarPlay.)
 
-The icon files will be generated from only two png files(one for iOS 7 or higher, another for iOS 6 or lower),
-or the icon files for all version of iOS can be generated from just one icon file if you do not care the corner of the icon which will be slightly shifted.
-Maybe only one icon png file will be enough in most cases.
+To generate PNG files of all necessary sizes with appropriate filename, you just need to drop original icon PNG file (1024 x 1024 pixels recommended) to the window. That's it.
+(For compatibility maintenance, iOS 6 icon could be specified separately, but usually does not need to set for it.)
 
 Optionally, Apple Watch and CarPlay icon can also specify separately.
-These are not required. You should set these images only when you want to output.
-(The icon for Apple Watch will be automatically generated to 24 bits RGB PNG, without alpha channel.)
+These are not requirement. You should set these images only when you want to output.
+(The icon for Apple Watch will be automatically generate to 24 bits RGB PNG, without alpha channel.)
 
-And a square png file(1536 x 1536 pixels) is fine for the launch images.
-The image will be put in the center of each size of launch images with the color of upper-left point as a background-color.
-(also you can specify launch image backgroud color with the option.)
-A square shape is not a requirement, but it's easy way to make universal launch images.
-Some scaling options are provided for the launch images.
+And a square PNG file(1536 x 1536 pixels recommended) is suitable for the launch images.
+The image will be put in the center of each size of launch images.
+(Some scaling options are provided for the launch images.)
+Normally, the background-color will be guessed automatically, but also that can be specified with the option.
+A square shape is not a requirement, but it's easy way to generate universal launch images.
 
 Support output with "Asset Catalogs" format.
 

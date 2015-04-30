@@ -71,7 +71,6 @@ public class ImagePanel extends JPanel {
 			@Override public void actionPerformed(ActionEvent e) {
 				createScaledImage();
 				repaint();
-				System.out.println("repaint!");
 			}
 		});
 		timer.setRepeats(false);
