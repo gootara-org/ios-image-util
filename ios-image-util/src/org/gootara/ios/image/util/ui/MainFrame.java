@@ -53,10 +53,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.Box;
@@ -112,6 +118,7 @@ public class MainFrame extends JFrame {
 	private SimpleShutterAnimation animator;
 	private SplitterFrame splitter;
 	private File splitTarget = null;
+	private ExecutorService pool;
 	private boolean batchMode = false;
 	private boolean silentMode = false;
 	private boolean verboseMode = false;
@@ -657,6 +664,7 @@ public class MainFrame extends JFrame {
 	private ImagePanel initImagePanel(ImagePanel imagePanel, JTextField textField) {
 		final ImagePanel fImagePanel = imagePanel;
 		final JTextField fTextField = textField;
+		final JFrame frame = this;
 		imagePanel.setHyphenator(getResource("props.hyphenator.begin", "=!),.:;?]})"), getResource("props.hyphenator.end", "([{"));
 		imagePanel.setBackground(BGCOLOR_LIGHT_GRAY);
 		imagePanel.setForeground(COLOR_DARK_GRAY);
@@ -664,24 +672,55 @@ public class MainFrame extends JFrame {
 			@Override public boolean importData(TransferSupport support) {
 				try {
 					if (canImport(support)) {
-						Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						if (list instanceof List) {
-							Object file = ((List<?>)list).get(0);
-							if (file instanceof File) {
-								if (setFilePath(fTextField, (File)file, fImagePanel)) {
-									return true;
+						File file = null;
+						if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+							Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+							if (list instanceof List) {
+								Object obj = ((List<?>)list).get(0);
+								if (obj instanceof File) {
+									file = (File)obj;
 								}
 							}
+						} else if (support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+							String urls = (String)support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+							StringTokenizer tokens = new StringTokenizer(urls);
+							if (tokens.hasMoreTokens()) {
+								file = new File(URLDecoder.decode((new URL(tokens.nextToken()).getFile()), "UTF-8"));
+							}
+						}
+						if (file == null) {
+							return false;
+						}
+						frame.setAlwaysOnTop(true);
+						frame.toFront();
+						frame.requestFocus();
+						frame.setAlwaysOnTop(false);
+						if (setFilePath(fTextField, file, fImagePanel)) {
+							return true;
 						}
 					}
 				} catch (Throwable t) {
 					handleThrowable(t);
+				} finally {
+					frame.setAlwaysOnTop(false);
 				}
 				return false;
 			}
 			@Override public boolean canImport(TransferSupport support) {
-				return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
+				if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+					return true;
+				}
+				boolean result = false;
+				if (support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+					for (DataFlavor flavor : support.getTransferable().getTransferDataFlavors()) {
+						if (flavor.getSubType().equals("uri-list")) {
+							result = true;
+						}
+					}
+	            }
+				return result;
 			}
+
 		});
 		textField.setTransferHandler(imagePanel.getTransferHandler());
 		imagePanel.addMouseListener(new MouseListener() {
@@ -883,6 +922,7 @@ public class MainFrame extends JFrame {
 	public void setHeight1x(String height) { splitter.setHeight1x(height); }
 	public void setOverwriteAlways(boolean b) { splitter.setOverwriteAlways(b); }
 	public void setSplitTarget(String path) { splitTarget = new File(path); }
+	public void setSplitterOutputDirectory(String relativePath) { splitter.setOutputDirectory(relativePath); }
 	public boolean isSplitImageRequested() { return splitTarget != null; }
 	public boolean split() {
 		if (!this.isBatchMode()) return false;
@@ -959,7 +999,7 @@ public class MainFrame extends JFrame {
 	 *
 	 * @param ex	exception
 	 */
-	private void handleThrowable(Throwable t) {
+	protected void handleThrowable(Throwable t) {
 		t.printStackTrace(System.err);
 		if (t instanceof OutOfMemoryError) {
 			alert(this.getResource("error.out.of.memory", "Out of Memory Error. Increase heap size with -Xmx java option."));
@@ -973,7 +1013,7 @@ public class MainFrame extends JFrame {
 	 *
 	 * @param message	message
 	 */
-	private void information(String message) {
+	protected void information(String message) {
 		if (this.isBatchMode()) {
 			if (!this.isSilentMode()) System.out.println(message);
 		} else {
@@ -986,7 +1026,7 @@ public class MainFrame extends JFrame {
 	 *
 	 * @param message	alert message
 	 */
-	private void alert(String message) {
+	protected void alert(String message) {
 		if (this.isBatchMode()) {
 			System.err.println(message);
 		} else {
@@ -1030,44 +1070,74 @@ public class MainFrame extends JFrame {
 	 */
 	public boolean generate() {
 		boolean result = true;
+		cancelRequested = false;
+		if (pool != null && !pool.isShutdown()) {
+			return false;
+		}
+
 		final ImageFileSet ifs = this.createValidImageFileSet();
 		if (ifs == null) {
 			return false;
 		}
 
-		SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
-			@Override protected Boolean doInBackground() throws Exception {
-				// Do not use PropertyChangeListener currently.
-				boolean result = true;
-				Color settingsColor = settingsButton.getBackground();
-				if (!isBatchMode()) {
-					cancelButton.setVisible(true);
-					generateButton.setVisible(false);
-					settingsButton.setBackground(BGCOLOR_LIGHT_GRAY);//new Color(0xF7F7F7));
-					settingsButton.setEnabled(false);
-				}
-				cancelRequested = false;
-				try {
-					progress.setMaximum(generateImages(ifs, false));
-				} catch (Exception ex) {
-					progress.setMaximum(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
-				}
-				try {
-					// start generate Images.
-					if (isBatchMode()) {
-						if (!isSilentMode() && !isVerboseMode()) {
-							System.out.print("0%");
-							for (int i = 2; i < progress.getMaximum() - 2; i++) { System.out.print(" "); }
-							System.out.println("100%");
-							System.out.print("+");
-							for (int i = 1; i < progress.getMaximum() - 1; i++) { System.out.print("-"); }
-							System.out.println("+");
-						}
-					} else {
-						progress.setValue(0);
-					}
+		final Color settingsColor = settingsButton.getBackground();
+		if (!isBatchMode()) {
+			cancelButton.setVisible(true);
+			generateButton.setVisible(false);
+			settingsButton.setBackground(BGCOLOR_LIGHT_GRAY);//new Color(0xF7F7F7));
+			settingsButton.setEnabled(false);
+		}
 
-					if (generateImages(ifs, true) < 0) {
+		try {
+			progress.setMaximum(generateImages(ifs, false));
+		} catch (Exception ex) {
+			progress.setMaximum(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
+		}
+		try {
+			int threadCount = Runtime.getRuntime().availableProcessors();
+			if (threadCount > 8) {
+				threadCount = 8;
+			}
+			pool = Executors.newFixedThreadPool(threadCount);
+
+			// start generate Images.
+			if (isBatchMode()) {
+				if (!isSilentMode() && !isVerboseMode()) {
+					System.out.print("0%");
+					for (int i = 2; i < progress.getMaximum() - 2; i++) { System.out.print(" "); }
+					System.out.println("100%");
+					System.out.print("+");
+					for (int i = 1; i < progress.getMaximum() - 1; i++) { System.out.print("-"); }
+					System.out.println("+");
+				}
+			} else {
+				progress.setValue(0);
+			}
+
+			if (generateImages(ifs, true) < 0) {
+				result = false;
+			}
+
+		} catch (Throwable ex) {
+			result = false;
+			handleThrowable(ex);
+		}
+
+		if (!result) {
+			try {
+				pool.shutdownNow();
+			} catch (Throwable t) {
+				handleThrowable(t);
+			}
+			return false;
+		}
+
+		SwingWorker<Boolean, Integer> watchdog = new SwingWorker<Boolean, Integer>() {
+			@Override protected Boolean doInBackground() throws Exception {
+				boolean result = true;
+				try {
+					pool.shutdown();
+					if (!pool.awaitTermination(progress.getMaximum() * 3, TimeUnit.MINUTES)) {
 						result = false;
 					}
 
@@ -1078,9 +1148,8 @@ public class MainFrame extends JFrame {
 						progress.setValue(progress.getMaximum());
 					}
 
-				} catch (Throwable ex) {
-					result = false;
-					handleThrowable(ex);
+				} catch (Throwable t) {
+					handleThrowable(t);
 				} finally {
 					System.gc();
 					if (!isBatchMode()) {
@@ -1088,10 +1157,10 @@ public class MainFrame extends JFrame {
 						cancelButton.setVisible(false);
 						settingsButton.setBackground(settingsColor);
 						settingsButton.setEnabled(true);
-						if (result) {
-							information(getResource("label.finish.generate", "The images are generated."));
-						} else if (cancelRequested) {
+						if (cancelRequested) {
 							information(getResource("info.generate.canceled", "Generate images are canceled."));
+						} else if (result) {
+							information(getResource("label.finish.generate", "The images are generated."));
 						}
 						progress.setValue(0);
 						outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText()));
@@ -1099,16 +1168,12 @@ public class MainFrame extends JFrame {
 				}
 				return result;
 			}
-
-			@Override protected void done() {
-				// for future reference.
-			}
 		};
 
 		try {
-			worker.execute();
+			watchdog.execute();
 			if (this.isBatchMode()) {
-				result = worker.get();
+				result = watchdog.get();
 			}
 		} catch (Throwable t) {
 			result = false;
@@ -1258,7 +1323,6 @@ public class MainFrame extends JFrame {
 		if (ifs.getIcon6File() != null || ifs.getIcon7File() != null || ifs.getWatchFile() != null || ifs.getCarplayFile() != null) {
 			// generate icons
 			for (IOSIconAssetCatalogs asset : IOSIconAssetCatalogs.values()) {
-				if (cancelRequested) { count = -1; break; }
 				ImageFile image = null;
 				if (asset.isAppleWatch()) {
 					if (ifs.getWatchFile() != null) { image = ifs.getWatchFile(); }
@@ -1292,7 +1356,6 @@ public class MainFrame extends JFrame {
 				if (!generate) continue;
 
 				writeIconImage(image, asset.getIOSImageInfo(), ifs.getIconOutputDirectory(), asset.isAppleWatch());
-				addProgress(1);
 			}
 			if (generate && generateAsAssetCatalogs.isSelected()) {
 				writeContentsJson(ifs.getIconOutputDirectory(), buffer);
@@ -1305,7 +1368,6 @@ public class MainFrame extends JFrame {
 				for (IOSArtworkInfo artwork : IOSArtworkInfo.values()) {
 					count++;
 					if (!generate) continue;
-					addProgress(1);
 					ImageFile defaultImage = ifs.getDefaultIconImage();
 					if (defaultImage != null) {
 						writeIconImage(defaultImage, artwork, ifs.getOutputDirectory(), false);
@@ -1317,7 +1379,6 @@ public class MainFrame extends JFrame {
 		if (ifs.getSplashFile() != null) {
 			// generate launch images
 			for (IOSSplashAssetCatalogs asset : IOSSplashAssetCatalogs.values()) {
-				if (cancelRequested) { count = -1; break; }
 				if (asset.isIphone() && iPadOnly.isSelected()) continue;
 				if (asset.isIpad() && iPhoneOnly.isSelected()) continue;
 				if (asset.getMinimumSystemVersion() < ifs.getTargetSystemVersion()) continue;
@@ -1338,7 +1399,6 @@ public class MainFrame extends JFrame {
 				if (!generate) continue;
 
 				writeSplashImage(ifs.getSplashFile(), asset, ifs.getSplashOutputDirectory());
-				addProgress(1);
 			}
 			if (generate && generateAsAssetCatalogs.isSelected()) {
 				writeContentsJson(ifs.getSplashOutputDirectory(), buffer);
@@ -1354,7 +1414,14 @@ public class MainFrame extends JFrame {
 	 * Cancel to generate.
 	 */
 	private void cancelGenerate() {
-		this.cancelRequested = true;
+		cancelRequested = true;
+		if (pool != null && !pool.isTerminated()) {
+			try {
+				pool.shutdownNow();
+			} catch (Throwable t) {
+				this.handleThrowable(t);
+			}
+		}
 		outputPathDisplay.setText(getResource("label.cancel.generate", "Cancel generate..."));
 	}
 
@@ -1367,25 +1434,42 @@ public class MainFrame extends JFrame {
 	 * @throws Exception	exception
 	 */
 	private void writeIconImage(ImageFile srcFile, IOSImageInfo info, File outputDir, boolean forceIntRGB) throws Exception {
-		File f = new File(outputDir, info.getFilename());
-		int width = (int)info.getSize().getWidth();
-		int height = (int)info.getSize().getHeight();
-		BufferedImage buf = new BufferedImage(width, height, forceIntRGB ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
-		int hints = this.getScalingAlgorithm();
-		Image img = srcFile.getImage().getScaledInstance(width, height, hints);
-		if (forceIntRGB) {
-			Graphics g = buf.getGraphics();
-			g.setColor(srcFile.getDefaultBackgroundColor());
-			g.fillRect(0, 0, width, height);
-		}
-		buf.getGraphics().drawImage(img, 0, 0, this);
-		img.flush();
-		img = null;
+		final ImageFile srcImageFile = srcFile;
+		final IOSImageInfo imageInfo = info;
+		final File targetFile = new File(outputDir, info.getFilename());
+		final boolean isForceIntRGB = forceIntRGB;
+		final MainFrame owner = this;
+		SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+			@Override protected Boolean doInBackground() throws Exception {
+				try {
+					int width = (int)imageInfo.getSize().getWidth();
+					int height = (int)imageInfo.getSize().getHeight();
+					BufferedImage buf = new BufferedImage(width, height, isForceIntRGB ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
+					int hints = getScalingAlgorithm();
+					Image img = srcImageFile.getImage().getScaledInstance(width, height, hints);
+					if (isForceIntRGB) {
+						Graphics g = buf.getGraphics();
+						g.setColor(srcImageFile.getDefaultBackgroundColor());
+						g.fillRect(0, 0, width, height);
+					}
+					buf.getGraphics().drawImage(img, 0, 0, owner);
+					img.flush();
+					img = null;
 
-		ImageIO.write(forceIntRGB ? buf : fixImageColor(buf, srcFile.getImage()), "png", f);
-		buf.flush();
-		buf = null;
-		verbose(f);
+					ImageIO.write(isForceIntRGB ? buf : fixImageColor(buf, srcImageFile.getImage()), "png", targetFile);
+					buf.flush();
+					buf = null;
+					verbose(targetFile);
+					return true;
+				} catch (Throwable t) {
+					handleThrowable(t);
+					return false;
+				} finally {
+					addProgress(1);
+				}
+			}
+		};
+		pool.submit(worker);
 	}
 
 	/**
@@ -1397,50 +1481,67 @@ public class MainFrame extends JFrame {
 	 * @throws Exception	exception
 	 */
 	private void writeSplashImage(ImageFile srcFile, IOSSplashAssetCatalogs asset, File outputDir) throws Exception {
-		File f = new File(outputDir, asset.getFilename());
-		int width = (int)asset.getIOSImageInfo().getSize().getWidth();
-		int height = (int)asset.getIOSImageInfo().getSize().getHeight();
-		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		Graphics g = buf.getGraphics();
-		g.setColor(srcFile.getDefaultBackgroundColor());
-		if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
-			Color col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true);
-			if (col != null) g.setColor(col);
-		}
-		g.fillRect(0, 0, width, height);
+		final ImageFile srcImageFile = srcFile;
+		final IOSSplashAssetCatalogs assetCatalogs = asset;
+		final File targetFile = new File(outputDir, asset.getFilename());
+		final MainFrame owner = this;
 
-		BufferedImage src = srcFile.getImage();
-		double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
-		if (splashScaling.getSelectedIndex() == 0) {
-			// No resizing(iPhone only)
-			if (asset.isIphone()) p = asset.getIOSImageInfo().getScale() > 1 ? 1.0d : 0.5d;
-		} else if (splashScaling.getSelectedIndex() == 1) {
-			// No resizing(iPhone & iPad)
-			p = asset.getIOSImageInfo().getScale() > 1 ? 1.0d : 0.5d;
-		} else if (splashScaling.getSelectedIndex() == 2) {
-			// Fit to the screen height(iPhone only)
-			if (asset.isIphone()) p = (double)height / (double)src.getHeight();
-		} else if (splashScaling.getSelectedIndex() == 4) {
-			p = (width < height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
-		}// else default
-		int w = (int) ((double)src.getWidth() * p);
-		int h = (int) ((double)src.getHeight() * p);
-		if (splashScaling.getSelectedIndex() == 5) {
-			w = width;
-			h = height;
-		}
-   		int x = (int) ((width - w) / 2);
-   		int y = (int) ((height - h) / 2);
-		int hints = this.getScalingAlgorithm();
-		Image img = src.getScaledInstance(w, h, hints);
-		buf.getGraphics().drawImage(img, x, y, this);
-		img.flush();
-		img = null;
+		SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+			@Override protected Boolean doInBackground() throws Exception {
+				try {
+					int width = (int)assetCatalogs.getIOSImageInfo().getSize().getWidth();
+					int height = (int)assetCatalogs.getIOSImageInfo().getSize().getHeight();
+					BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+					Graphics g = buf.getGraphics();
+					g.setColor(srcImageFile.getDefaultBackgroundColor());
+					if (splashBackgroundColor.getText().trim().length() > 0 && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
+						Color col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true);
+						if (col != null) g.setColor(col);
+					}
+					g.fillRect(0, 0, width, height);
 
-		ImageIO.write(fixImageColor(buf, src), "png", f);
-		buf.flush();
-		buf = null;
-		verbose(f);
+					BufferedImage src = srcImageFile.getImage();
+					double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
+					if (splashScaling.getSelectedIndex() == 0) {
+						// No resizing(iPhone only)
+						if (assetCatalogs.isIphone()) p = assetCatalogs.getIOSImageInfo().getScale() > 1 ? 1.0d : 0.5d;
+					} else if (splashScaling.getSelectedIndex() == 1) {
+						// No resizing(iPhone & iPad)
+						p = assetCatalogs.getIOSImageInfo().getScale() > 1 ? 1.0d : 0.5d;
+					} else if (splashScaling.getSelectedIndex() == 2) {
+						// Fit to the screen height(iPhone only)
+						if (assetCatalogs.isIphone()) p = (double)height / (double)src.getHeight();
+					} else if (splashScaling.getSelectedIndex() == 4) {
+						p = (width < height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
+					}// else default
+					int w = (int) ((double)src.getWidth() * p);
+					int h = (int) ((double)src.getHeight() * p);
+					if (splashScaling.getSelectedIndex() == 5) {
+						w = width;
+						h = height;
+					}
+			   		int x = (int) ((width - w) / 2);
+			   		int y = (int) ((height - h) / 2);
+					int hints = getScalingAlgorithm();
+					Image img = src.getScaledInstance(w, h, hints);
+					buf.getGraphics().drawImage(img, x, y, owner);
+					img.flush();
+					img = null;
+
+					ImageIO.write(fixImageColor(buf, src), "png", targetFile);
+					buf.flush();
+					buf = null;
+					verbose(targetFile);
+					return true;
+				} catch (Throwable t) {
+					handleThrowable(t);
+					return false;
+				} finally {
+					addProgress(1);
+				}
+			}
+		};
+		pool.submit(worker);
 	}
 
 	/**

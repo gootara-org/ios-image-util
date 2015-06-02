@@ -108,7 +108,7 @@ public class IOSImageUtil {
 		boolean noerr = true;
 		try {
 
-			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-noasset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor", "-sp3x", "-spsize", "-spnoreplace", "-spfile", "-noartwork", "-watch", "-carplay");
+			List<String> options = Arrays.asList("-b", "-batch", "-v", "-verbose", "-noasset", "-h", "-help", "-silent", "-icon6", "-icon7", "-launch", "-output", "-iphoneonly", "-ipadonly", "-to-status-bar", "-lscale", "-algorithm", "-imagetype", "-lbgcolor", "-sp3x", "-spsize", "-spnoreplace", "-spfile", "-spdir", "-noartwork", "-watch", "-carplay");
 			int i;
 
 			for (i = 0; i < args.length; i++) {
@@ -149,6 +149,7 @@ public class IOSImageUtil {
 				if (arg.equals("-spsize")) { i++; mainFrame.setSized(true); String[] size = args[i].split(":"); mainFrame.setWidth1x(size[0]); mainFrame.setHeight1x(size[1]); }
 				if (arg.equals("-spnoreplace")) { mainFrame.setOverwriteAlways(false); }
 				if (arg.equals("-spfile")) { i++; mainFrame.setSplitTarget(args[i]); }
+				if (arg.equals("-spdir")) { i++; mainFrame.setSplitterOutputDirectory(args[i]); }
 			}
 
 			for (i = 0; i < args.length; i++) {
@@ -220,7 +221,10 @@ public class IOSImageUtil {
 		System.out.println("  -sp3x                       Generate @3x, @2x, @1x images from @3x");
 		System.out.println("  -spSize width:height        Generate @3x, @2x, @1x with @1x(px)|@3x(%) size");
 		System.out.println("  -spNoReplace                Not overwrite if file already exists.");
-		System.out.println("  -spFile \"png path\"        Image set png file location (full path)");
+		System.out.println("  -spFile \"png path\"          Image set png file location (full path)");
+		System.out.println("  -spDir \"relative path\"      Output sub directory. (relative to -spFile path)");
+
+		System.out.println();
 
 	}
 

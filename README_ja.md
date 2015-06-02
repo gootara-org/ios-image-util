@@ -144,6 +144,7 @@ COMMAND LINE OPTIONS:
     -spSize width:height        Generate @3x, @2x, @1x with @1x(px)|@3x(%) size
     -spNoReplace                Not overwrite if file already exists.
     -spFile "png path"          Image set png file location (full path)
+    -spDir "relative path"      Output sub directory. (relative to -spFile path)
 
 
 
@@ -214,3 +215,10 @@ CHANGE LOG:
 - Add some tooltips.
 - Use anti-aliasing font on Windows platform in Japanese by default. (Coz default Japanese font is awful.)
 - Some bug fixed.
+
+2015/06/03
+- Output images by Parallel processing.
+- Enable to specify output subdirectory with Split images.
+- Multiple files are available with Split images.
+- Enable drag & drop on linux.
+
