@@ -339,6 +339,9 @@ public class SplitterFrame extends JDialog {
 
 				JFileChooser chooser = new JFileChooser();
 				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
+				chooser.setApproveButtonText(owner.getResource("button.approve", "Choose"));
+				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				chooser.setMultiSelectionEnabled(true);
 				if (targetFile == null) {
 					targetFile = owner.getChosenDirectory();
 				}
@@ -352,13 +355,13 @@ public class SplitterFrame extends JDialog {
 				} else {
 					chooser.setCurrentDirectory(targetFile);
 				}
-				chooser.setApproveButtonText(owner.getResource("button.approve", "Choose"));
-				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				int returnVal = chooser.showOpenDialog(null);
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
 					try {
 						List<File> files = new LinkedList<File>();
-						files.add(chooser.getSelectedFile());
+						for (File f : chooser.getSelectedFiles()) {
+							files.add(f);
+						}
 						dropFiles(files);
 					} catch (Throwable t) {
 						t.printStackTrace();
