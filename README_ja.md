@@ -118,6 +118,8 @@ COMMAND LINE OPTIONS:
     -b, -batch                  run as batch mode (no gui)
     -v, -verbose                verbose mode (available with batch mode only)
     -silent                     no log (available with batch mode only)
+    -props                      property file location (full path)
+
     -icon6 "icon png path"      iOS 6 icon png file location (full path)
     -watch "icon png path"      Apple Watch icon png file location (full path)
     -carplay "icon png path"    CarPlay icon png file location (full path)
@@ -143,8 +145,10 @@ COMMAND LINE OPTIONS:
     -sp3x                       Generate @3x, @2x, @1x images from @3x
     -spSize width:height        Generate @3x, @2x, @1x with @1x(px)|@3x(%) size
     -spNoReplace                Not overwrite if file already exists.
-    -spFile "png path"          Image set png file location (full path)
     -spDir "relative path"      Output sub directory. (relative to -spFile path)
+    -spFile "png path"          Image set png file location (full path)
+                    Multiple files available. (Separate by system path separator)
+                    -spFile option is available with batch mode only.
 
 
 
@@ -217,8 +221,16 @@ CHANGE LOG:
 - Some bug fixed.
 
 2015/06/03
-- Output images by Parallel processing.
+- Output images by parallel processing.
 - Enable to specify output subdirectory with Split images.
-- Multiple files are available with Split images.
+- To drop multiple files is available on image set generator. (gui mode only)
 - Enable drag & drop on linux.
+
+2015/06/07
+- Support property file. Load / Store settings by XML property file. (Other command-line options are stronger than property file)
+- Enable to drop a XML propety file in the upper half of window.
+- To specify multiple files is available with image set generator. (batch mode also)
+- Apply same fix to the parallel processing.
+- Add menu bar.
+
 

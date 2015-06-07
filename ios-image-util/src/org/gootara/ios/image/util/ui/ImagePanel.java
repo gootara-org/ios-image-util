@@ -274,6 +274,7 @@ public class ImagePanel extends JPanel {
 		this.imageFile = null;
 		this.repaint();
 		this.modifyTooktip();
+		System.gc();
 	}
 
 	/**

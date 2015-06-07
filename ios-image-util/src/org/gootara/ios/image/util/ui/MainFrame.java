@@ -42,21 +42,32 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -77,12 +88,16 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
@@ -97,6 +112,7 @@ import org.gootara.ios.image.util.IOSArtworkInfo;
 import org.gootara.ios.image.util.IOSAssetCatalogs;
 import org.gootara.ios.image.util.IOSIconAssetCatalogs;
 import org.gootara.ios.image.util.IOSImageInfo;
+import org.gootara.ios.image.util.IOSImageUtil;
 import org.gootara.ios.image.util.IOSSplashAssetCatalogs;
 
 /**
@@ -117,12 +133,14 @@ public class MainFrame extends JFrame {
 	private JLabel outputPathDisplay;
 	private SimpleShutterAnimation animator;
 	private SplitterFrame splitter;
-	private File splitTarget = null;
+	private LinkedList<File> splitTarget = null;
 	private ExecutorService pool;
+	private File propertiesFile;
 	private boolean batchMode = false;
 	private boolean silentMode = false;
 	private boolean verboseMode = false;
 	private boolean cancelRequested = false;
+	private boolean storePropertiesRequested = false;
 
 	public static final Color COLOR_DARK_GRAY = new Color(0x727284);
 	public static final Color COLOR_CYAN = new Color(0x2399CD);
@@ -135,12 +153,13 @@ public class MainFrame extends JFrame {
 	protected void frameInit() {
 		super.frameInit();
 		resource = ResourceBundle.getBundle("application");
-		this.setTitle(getResource("window.title", "iOS Image Util"));
+		this.setWindowTitle();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLayout(new BorderLayout());
 		Font fontNormal = new Font(getResource("font.default.name", Font.SANS_SERIF), Font.PLAIN, 12);
 		Font fontExtraLarge = new Font(getResource("font.default.name", Font.SANS_SERIF), Font.BOLD, 16);
 
+		final MainFrame frame = this;
 		final JLayeredPane layeredPane = new JLayeredPane();
 		layeredPane.setPreferredSize(new Dimension(620, 280));
 		this.add(layeredPane, BorderLayout.NORTH);
@@ -148,6 +167,12 @@ public class MainFrame extends JFrame {
 		final JPanel settings = new JPanel();
 		settings.setPreferredSize(layeredPane.getPreferredSize());
 		layeredPane.add(settings, JLayeredPane.DEFAULT_LAYER);
+
+		ItemListener propertyChangedItemListener = (new ItemListener() {
+			@Override public void itemStateChanged(ItemEvent e) {
+				setStorePropertiesRequested(true);
+			}
+		});
 
 		// iOS6 Icon Path.
 		// -> Optional Icons
@@ -226,6 +251,7 @@ public class MainFrame extends JFrame {
 		scaleAlgorithm = new JComboBox(items);
 		scaleAlgorithm.setFont(scaleAlgorithm.getFont().deriveFont(Font.PLAIN, 11.0f));
 		scaleAlgorithm.setSelectedIndex(4);
+		scaleAlgorithm.addItemListener(propertyChangedItemListener);
 		JLabel scaleAlgorithmLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
 		JPanel scaleAlgorithmPanel = new JPanel();
 		scaleAlgorithmPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
@@ -245,6 +271,7 @@ public class MainFrame extends JFrame {
 		splashScaling.setFont(splashScaling.getFont().deriveFont(Font.PLAIN, 11.0f));
 		splashScaling.setSelectedIndex(4);
 		splashScaling.setToolTipText(getResource("tooltip.splash.scaling", "The Non-Retina images will be scaled down in the fixed 50%, even if 'No resizing' is selected."));
+		splashScaling.addItemListener(propertyChangedItemListener);
 		JLabel splashScalingLabel = new JLabel(getResource("label.splash.image", "Splash:"));
 		JPanel splashScalingPanel = new JPanel();
 		splashScalingPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
@@ -271,6 +298,7 @@ public class MainFrame extends JFrame {
 		imageType = new JComboBox(imageTypes);
 		imageType.setFont(imageType.getFont().deriveFont(Font.PLAIN, 11.0f));
 		imageType.setSelectedIndex(0);
+		imageType.addItemListener(propertyChangedItemListener);
 		JLabel imageTypeLabel = new JLabel(getResource("label.image.type", "Image Type:"));
 		JPanel imageTypePanel = new JPanel();
 		imageTypePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 0));
@@ -286,8 +314,8 @@ public class MainFrame extends JFrame {
 			@Override public void focusGained(FocusEvent e) {
 				if (splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
 					splashBackgroundColor.setText("");
-					splashBackgroundColor.setForeground(Color.BLACK);
 				}
+				splashBackgroundColor.setForeground(Color.BLACK);
 			}
 			@Override public void focusLost(FocusEvent e) {
 				setSplashBackgroundColor(splashBackgroundColor.getText());
@@ -359,12 +387,26 @@ public class MainFrame extends JFrame {
 		});
 		settings.add(this.generateAsAssetCatalogs);
 
+		iBoth.addItemListener(propertyChangedItemListener);
+		iPhoneOnly.addItemListener(propertyChangedItemListener);
+		iPadOnly.addItemListener(propertyChangedItemListener);
+		generateArtwork.addItemListener(propertyChangedItemListener);
+		generateOldSplashImages.addItemListener(propertyChangedItemListener);
+		generateAsAssetCatalogs.addItemListener(propertyChangedItemListener);
+
 		// Output Path.
 		outputPath = new JTextField();
 		outputPath.getDocument().addDocumentListener(new DocumentListener() {
-			@Override public void changedUpdate(DocumentEvent e) { outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText())); }
-			@Override public void insertUpdate(DocumentEvent e) { outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText())); }
-			@Override public void removeUpdate(DocumentEvent e) { outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText())); }
+			@Override public void changedUpdate(DocumentEvent e) { this.setDisplayOutputPath(); }
+			@Override public void insertUpdate(DocumentEvent e) { this.setDisplayOutputPath(); }
+			@Override public void removeUpdate(DocumentEvent e) { this.setDisplayOutputPath(); }
+			private void setDisplayOutputPath() {
+				if (outputPath.getText().trim().isEmpty()) {
+					outputPathDisplay.setText("");
+				} else {
+					outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText()));
+				}
+			}
 		});
 		JButton refOutputPath = new JButton("...");
 		JLabel outputPathLabel = new JLabel(getResource("label.output.path", "Output Dir:"), SwingConstants.RIGHT);
@@ -384,7 +426,7 @@ public class MainFrame extends JFrame {
 				}
 				chooser.setApproveButtonText(getResource("button.approve", "Choose"));
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showOpenDialog(null);
+				int returnVal = chooser.showOpenDialog(frame);
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
 					setFilePath(outputPath, chooser.getSelectedFile(), null);
 			    }
@@ -398,7 +440,6 @@ public class MainFrame extends JFrame {
 		settings.setLayout(layout);
 		// Layout for iOS 6 Path
 		layout.putConstraint(SpringLayout.WEST, optionalIconBase, 5, SpringLayout.WEST, settings);
-//		layout.putConstraint(SpringLayout.EAST, optionalIconBase, 0, SpringLayout.EAST, splashLabel);
 		layout.putConstraint(SpringLayout.NORTH, optionalIconBase, 25, SpringLayout.NORTH, settings);
 		layout.putConstraint(SpringLayout.EAST, refIcon6Path, -5, SpringLayout.EAST, settings);
 		layout.putConstraint(SpringLayout.NORTH, refIcon6Path, 25, SpringLayout.NORTH, settings);
@@ -516,11 +557,12 @@ public class MainFrame extends JFrame {
 
 		generateButton = initMenuButton(new JButton(getResource("button.generate", "Generate"), new ImageIcon(this.getClass().getResource("img/generate.png"))), Color.WHITE, new Color(0xFF4981), fontExtraLarge);
 		generateButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/generate_rollover.png")));
-		generateButton.addActionListener(new ActionListener() {
+		ActionListener generateAction = (new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
 				generate();
 			}
 		});
+		generateButton.addActionListener(generateAction);
 		surface.add(generateButton);
 
 		cancelButton = initMenuButton(new JButton(getResource("button.cancel", "Cancel"), new ImageIcon(this.getClass().getResource("img/generate.gif"))), new Color(0x8E8E93), new Color(0xf7f7f7), fontExtraLarge);
@@ -542,13 +584,12 @@ public class MainFrame extends JFrame {
 		splitButton = initMenuButton(new JButton(getResource("button.split", "Split"), new ImageIcon(this.getClass().getResource("img/splitter.png"))), Color.WHITE, new Color(0x007AFF), fontExtraLarge);
 		splitButton.setDisabledIcon(new ImageIcon(this.getClass().getResource("img/splitter_disabled.png")));
 		splitButton.setRolloverIcon(new ImageIcon(this.getClass().getResource("img/splitter_rollover.png")));
-		final JFrame dialogOwner = this;
-		splitButton.addActionListener(new ActionListener() {
+		ActionListener splitAction = (new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
 				if (!splitter.isVisible()) {
-					Point p = new Point(dialogOwner.getX() + dialogOwner.getWidth() + 4, dialogOwner.getY());
+					Point p = new Point(getX() + getWidth() + 4, getY());
 					if (java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().width < p.x + splitter.getWidth()) {
-						splitter.setLocationRelativeTo(dialogOwner);
+						splitter.setLocationRelativeTo(frame);
 					} else {
 						splitter.setLocation(p);
 					}
@@ -556,6 +597,7 @@ public class MainFrame extends JFrame {
 				splitter.setVisible(!splitter.isVisible());
 			}
 		});
+		splitButton.addActionListener(splitAction);
 		surface.add(splitButton);
 
 		progress = new JProgressBar(0, IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
@@ -581,23 +623,28 @@ public class MainFrame extends JFrame {
 		gripeButton.setHorizontalTextPosition(SwingConstants.CENTER);
 		gripeButton.setMargin(null);
 
-		settingsButton.addActionListener(new ActionListener() {
+		final ActionListener settingsActionCallback = (new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
-				animator.animate(new ActionListener() {
-					@Override public void actionPerformed(ActionEvent e) {
-						outputPathDisplay.setVisible(false);
-						gripeButton.setVisible(true);
-					}
-				});
+				outputPathDisplay.setVisible(false);
+				gripeButton.setVisible(true);
+				surface.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			}
 		});
-		gripeButton.addActionListener(new ActionListener() {
+		ActionListener settingsAction = (new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
-				gripeButton.setVisible(false);
-				outputPathDisplay.setVisible(true);
-				animator.animate(null);
+				if (isGenerating()) {
+					return;
+				}
+				if (!animator.isTargetAtBaseLocation()) {
+					gripeButton.setVisible(false);
+					outputPathDisplay.setVisible(true);
+					surface.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+				}
+				animator.animate(animator.isTargetAtBaseLocation() ? settingsActionCallback : null);
 			}
 		});
+		settingsButton.addActionListener(settingsAction);
+		gripeButton.addActionListener(settingsAction);
 		surface.add(gripeButton);
 		gripeButton.setVisible(false);
 
@@ -619,7 +666,6 @@ public class MainFrame extends JFrame {
 		surfaceLayout.putConstraint(SpringLayout.SOUTH, gripeButton, 2, SpringLayout.SOUTH, surface);
 
 		animator = new SimpleShutterAnimation(surface, 16);
-
 
 		this.addComponentListener(new ComponentListener() {
 			@Override public void componentHidden(ComponentEvent e) {}
@@ -646,12 +692,211 @@ public class MainFrame extends JFrame {
 			}
 		});
 
+		// Create MenuBar.
+		JMenuBar menuBar = new JMenuBar();
+		JMenu fileMenu = new JMenu(this.getResource("menu.file", "File"));
+		JMenuItem menuItemClear = new JMenuItem(this.getResource("menu.file.new", "New (Clear Settings)"));
+		menuItemClear.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));
+		menuItemClear.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				if (isStorePropertiesRequested()) {
+					if (yesNo(getResource("question.store.properties", "Save current settings?"))) {
+						if (propertiesFile == null) {
+							if (!storeProperties()) {
+								return;
+							}
+						} else {
+							storeProperties(propertiesFile);
+						}
+					}
+				}
+				applyProperties(getDefaultProperties(new Properties()));
+				setPropertiesFile(null);
+			}
+		});
+		fileMenu.add(menuItemClear);
+		fileMenu.add(new JSeparator());
+		JMenuItem menuItemLoad = new JMenuItem(this.getResource("menu.file.load.properties", "Load Settings..."));
+		menuItemLoad.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
+		menuItemLoad.setToolTipText(this.getResource("tooltip.load.properties", "Also could be loaded settings by dropping a settings file in the upper half of window."));
+		menuItemLoad.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				if (isStorePropertiesRequested()) {
+					if (yesNo(getResource("question.store.properties", "Save current settings?"))) {
+						if (propertiesFile == null) {
+							if (!storeProperties()) {
+								return;
+							}
+						} else {
+							storeProperties(propertiesFile);
+						}
+					}
+				}
+				loadProperties();
+			}
+		});
+		fileMenu.add(menuItemLoad);
+		fileMenu.add(new JSeparator());
+		final JMenuItem menuItemOverwrite = new JMenuItem(this.getResource("menu.file.overwrite.properties", "Save"));
+		menuItemOverwrite.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
+		menuItemOverwrite.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				if (propertiesFile == null) {
+					storeProperties();
+				} else {
+					storeProperties(propertiesFile);
+				}
+			}
+		});
+		fileMenu.add(menuItemOverwrite);
+		JMenuItem menuItemStore = new JMenuItem(this.getResource("menu.file.store.properties", "Save Settings..."));
+		menuItemStore.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK));
+		menuItemStore.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				storeProperties();
+			}
+		});
+		fileMenu.add(menuItemStore);
+		fileMenu.add(new JSeparator());
+
+		JMenuItem menuItemQuit = new JMenuItem(this.getResource("menu.file.quit", "Quit"));
+		menuItemQuit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK + InputEvent.SHIFT_DOWN_MASK));
+		menuItemQuit.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				processWindowEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+			}
+		});
+		fileMenu.add(menuItemQuit);
+		menuBar.add(fileMenu);
+
+		JMenu editMenu = new JMenu(this.getResource("menu.edit", "Edit"));
+		JMenuItem menuItemGenerate = new JMenuItem(this.getResource("menu.edit.generate", "Generate Images"));
+		menuItemGenerate.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_DOWN_MASK));
+		menuItemGenerate.addActionListener(generateAction);
+		editMenu.add(menuItemGenerate);
+		editMenu.add(new JSeparator());
+		JMenuItem menuItemSettings = new JMenuItem(this.getResource("menu.edit.settings", "Settings..."));
+		menuItemSettings.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK));
+		menuItemSettings.addActionListener(settingsAction);
+		editMenu.add(menuItemSettings);
+		menuBar.add(editMenu);
+
+		JMenu windowMenu = new JMenu(this.getResource("menu.window", "Window"));
+		JMenuItem menuItemSplitter = new JMenuItem(this.getResource("menu.window.splitter", "Image Set Generator..."));
+		menuItemSplitter.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK));
+		menuItemSplitter.addActionListener(splitAction);
+		windowMenu.add(menuItemSplitter);
+		menuBar.add(windowMenu);
+
+		this.setJMenuBar(menuBar);
+
+		surface.setTransferHandler(new TransferHandler() {
+			@Override public boolean importData(TransferSupport support) {
+				try {
+					if (canImport(support)) {
+						File file = null;
+						if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+							Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+							if (list instanceof List) {
+								Object obj = ((List<?>)list).get(0);
+								if (obj instanceof File) {
+									file = (File)obj;
+								}
+							}
+						} else if (support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+							String urls = (String)support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+							StringTokenizer tokens = new StringTokenizer(urls);
+							if (tokens.hasMoreTokens()) {
+								file = new File(URLDecoder.decode((new URL(tokens.nextToken()).getFile()), "UTF-8"));
+							}
+						}
+						if (file == null) {
+							return false;
+						}
+						FileReader reader = null;
+						try {
+							setAlwaysOnTop(true);
+							toFront();
+							requestFocus();
+							setAlwaysOnTop(false);
+							loadProperties(file);
+						} catch (Throwable ex) {
+							handleThrowable(ex);
+						} finally {
+							if (reader != null) {
+								try { reader.close(); } catch (Exception ex) { ex.printStackTrace(); }
+							}
+						}
+					}
+				} catch (Throwable t) {
+					handleThrowable(t);
+				} finally {
+					setAlwaysOnTop(false);
+				}
+				return false;
+			}
+			@Override public boolean canImport(TransferSupport support) {
+				if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+					return true;
+				}
+				boolean result = false;
+				if (support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+					for (DataFlavor flavor : support.getTransferable().getTransferDataFlavors()) {
+						if (flavor.getSubType().equals("uri-list")) {
+							result = true;
+							break;
+						}
+					}
+	            }
+				return result;
+			}
+
+		});
+		this.addWindowListener(new WindowListener() {
+			@Override public void windowOpened(WindowEvent e) { }
+			@Override public void windowClosing(WindowEvent e) {
+				if (isBatchMode()) {
+					return;
+				}
+				if (isGenerating() || splitter.isGenerating()) {
+					setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+					if (splitter.isGenerating() && !splitter.isShowing()) {
+						splitButton.doClick();
+					}
+					alert(getResource("error.close.window", "Please wait until generating process will be finished."));
+					return;
+				}
+				setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				if (!isStorePropertiesRequested()) {
+					return;
+				}
+				if (!yesNo(getResource("question.store.properties", "Save current settings?"))) {
+					return;
+				}
+				if (propertiesFile == null) {
+					if (!storeProperties()) {
+						setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+					}
+				} else {
+					storeProperties(propertiesFile);
+				}
+			}
+			@Override public void windowClosed(WindowEvent e) { }
+			@Override public void windowIconified(WindowEvent e) { }
+			@Override public void windowDeiconified(WindowEvent e) { }
+			@Override public void windowActivated(WindowEvent e) { }
+			@Override public void windowDeactivated(WindowEvent e) { }
+		});
+
 		// initial initialize
-		this.setSplashBackgroundColor("");
 		surface.setLocation(0, -16);
 		this.pack();
 
 		splitter = new SplitterFrame(this, getResource("splitter.title", "Splitter"));
+
+		// Apply default properties.
+		this.applyProperties(this.getDefaultProperties(new Properties()));
+		this.setStorePropertiesRequested(false);
 	}
 
 	/**
@@ -671,6 +916,9 @@ public class MainFrame extends JFrame {
 		imagePanel.setTransferHandler(new TransferHandler() {
 			@Override public boolean importData(TransferSupport support) {
 				try {
+					if (isGenerating()) {
+						return false;
+					}
 					if (canImport(support)) {
 						File file = null;
 						if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
@@ -715,6 +963,7 @@ public class MainFrame extends JFrame {
 					for (DataFlavor flavor : support.getTransferable().getTransferDataFlavors()) {
 						if (flavor.getSubType().equals("uri-list")) {
 							result = true;
+							break;
 						}
 					}
 	            }
@@ -729,10 +978,12 @@ public class MainFrame extends JFrame {
 			@Override public void mouseEntered(MouseEvent e) { }
 			@Override public void mouseExited(MouseEvent e) { }
 			@Override public void mouseClicked(MouseEvent e) {
+				if (isGenerating()) {
+					return;
+				}
 				if (fImagePanel.getImage() != null && fImagePanel.getImageFile() != null) {
 					if (yesNo(getResource("question.clear.image", "Clear this image?"))) {
-						fTextField.setText("");
-						fImagePanel.clear();
+						setFilePath(fTextField, null, fImagePanel);
 					}
 				} else {
 					setFilePathActionPerformed(fTextField, fImagePanel);
@@ -805,7 +1056,7 @@ public class MainFrame extends JFrame {
 		}
 		chooser.setApproveButtonText(getResource("button.approve", "Choose"));
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		int returnVal = chooser.showOpenDialog(null);
+		int returnVal = chooser.showOpenDialog(this);
 		if(returnVal == JFileChooser.APPROVE_OPTION) {
 			setFilePath(textField, chooser.getSelectedFile(), imagePanel);
 	    }
@@ -822,10 +1073,12 @@ public class MainFrame extends JFrame {
 	private boolean setFilePath(JTextField textField, File f, ImagePanel imagePanel) {
 		final Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
 		final Cursor waitCursor = new Cursor(Cursor.WAIT_CURSOR);
+		String prevText = textField.getText();
 		try {
 			if (textField == null || f == null) {
 				if (textField != null) textField.setText("");
 				if (imagePanel != null) imagePanel.clear();
+				if (imagePanel == splashImage) { this.setSplashBackgroundColor(null); }
 				return false;
 			}
 			this.setCursor(waitCursor);
@@ -835,6 +1088,7 @@ public class MainFrame extends JFrame {
 				if (imageFile == null) {
 					textField.setText("");
 					if (imagePanel != null) imagePanel.clear();
+					if (imagePanel == splashImage) { this.setSplashBackgroundColor(null); }
 					return false;
 				}
 				if (!this.isBatchMode()) {
@@ -861,6 +1115,9 @@ public class MainFrame extends JFrame {
 			return false;
 		} finally {
 			this.setCursor(defaultCursor);
+			if (!prevText.equals(textField.getText())) {
+				this.setStorePropertiesRequested(true);
+			}
 		}
 		return true;
 	}
@@ -890,13 +1147,279 @@ public class MainFrame extends JFrame {
 		return f.isDirectory() ? f : f.getParentFile();
 	}
 
+	// Manage properties
+	/**
+	 * true - Show confirm dialog when closing window.
+	 *
+	 * @param b
+	 */
+	public void setStorePropertiesRequested(boolean b) {
+		this.storePropertiesRequested = b;
+		this.setWindowTitle();
+	}
+
+	/**
+	 * Are properties changed?
+	 *
+	 * @return
+	 */
+	public boolean isStorePropertiesRequested() {
+		return storePropertiesRequested;
+	}
+
+	/**
+	 * Refresh window title string.
+	 */
+	private void setWindowTitle() {
+		this.setTitle(getResource("window.title", "iOS Image Util") + (this.isStorePropertiesRequested() ? " *" : "") + (propertiesFile == null ? "" : " - [" + propertiesFile.getAbsolutePath() + "]"));
+	}
+
+	/**
+	 * Set property file.
+	 *
+	 * @param f property file
+	 */
+	private void setPropertiesFile(File f) {
+		this.propertiesFile = f;
+		this.setStorePropertiesRequested(false);
+	}
+
+	/**
+	 * Load properties from choosen file.
+	 */
+	private void loadProperties() {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setFileFilter(new FileNameExtensionFilter("Properties XML files", "xml"));
+		chooser.setApproveButtonText(getResource("button.approve", "Choose"));
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		if (propertiesFile != null) {
+			chooser.setCurrentDirectory(propertiesFile.getParentFile());
+		} else {
+			File dir = IOSImageUtil.getDefaultDirectory(this);
+			if (dir == null) {
+				dir = getChosenDirectory();
+			}
+			if (dir != null) {
+				chooser.setCurrentDirectory(dir);
+			}
+		}
+		int returnVal = chooser.showOpenDialog(this);
+		if(returnVal == JFileChooser.APPROVE_OPTION) {
+			loadProperties(chooser.getSelectedFile());
+	    }
+	}
+
+	/**
+	 * Load properties from file.
+	 *
+	 * @param f property file
+	 */
+	public void loadProperties(File f) {
+		if (f == null || !f.exists()) {
+			alert("[" + f.getAbsolutePath() + "] " + getResource("error.not.exists", "is not exists."));
+			return;
+		}
+		BufferedInputStream bin = null;
+		try {
+			Properties props = new Properties();
+			props.loadFromXML(bin = new BufferedInputStream(new FileInputStream(f)));
+			this.applyProperties(props);
+			this.setPropertiesFile(f);
+		} catch (Throwable t) {
+			handleThrowable(t);
+		} finally {
+			if (bin != null) {
+				try { bin.close(); } catch (Exception ex) { ex.printStackTrace(); }
+			}
+		}
+	}
+
+	/**
+	 * Apply stored properties.
+	 *
+	 * @param props stored properties
+	 * @return same as props
+	 */
+	public Properties applyProperties(Properties props) {
+		try {
+			this.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+			Properties def = this.getDefaultProperties(new Properties());
+			this.setGenerateAsAssetCatalogs(this.getBoolProperty(props, "generate.as.asset.catalogs", def));
+
+			this.setIcon7Path(this.getStringProperty(props, "icon.image.path", def));
+			this.setSplashPath(this.getStringProperty(props, "launch.image.path", def));
+			this.setIcon6Path(this.getStringProperty(props, "ios6.icon.image.path", def));
+			this.setCarplayPath(this.getStringProperty(props, "carplay.icon.image.path", def));
+			this.setWatchPath(this.getStringProperty(props, "watch.icon.image.path", def));
+			this.setOutputPath(this.getStringProperty(props, "output.dir.path", def));
+			this.setSplashScaling(this.getIntProperty(props, "launch.scaling.type", def));
+			this.setGenerateOldSplashImages(this.getBoolProperty(props, "generate.to-status-bar.images", def));
+			this.setGenerateArtwork(this.getBoolProperty(props, "generate.artwork.images", def));
+			if (this.getBoolProperty(props, "generate.iphone.images.only", def)) { this.selectIphoneOnly(); }
+			else if (this.getBoolProperty(props, "generate.ipad.images.only", def)) { this.selectIpadOnly(); }
+			else {  this.iBoth.setSelected(true);this.iPadOnly.setSelected(false);this.iPhoneOnly.setSelected(false); }
+			this.setImageType(this.getIntProperty(props, "image.type", def));
+			this.setScalingAlgorithm(this.getIntProperty(props, "scaling.algorithm.type", def));
+
+			this.setSplashBackgroundColor(props.getProperty("launch.image.back.color", "").trim().equals(PLACEHOLDER_SPLASH_BGCOL) ? "" : this.getStringProperty(props, "launch.image.back.color", def));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+		}
+		return splitter.applyProperties(props);
+	}
+
+	/**
+	 * Get property as String with default value.
+	 *
+	 * @param props properties
+	 * @param key property name
+	 * @param defaultProperties	default values
+	 * @return
+	 */
+	protected String getStringProperty(Properties props, String key, Properties defaultProperties) {
+		return props.getProperty(key, defaultProperties.getProperty(key, ""));
+	}
+
+	/**
+	 * Get property as int with default value.
+	 *
+	 * @param props properties
+	 * @param key property name
+	 * @param defaultProperties	default values
+	 * @return
+	 */
+	protected int getIntProperty(Properties props, String key, Properties defaultProperties) {
+		return IOSImageUtil.getIntProperty(props, key, IOSImageUtil.getIntProperty(defaultProperties, key, 0));
+	}
+
+	/**
+	 * Get property as boolean with default value.
+	 *
+	 * @param props properties
+	 * @param key property name
+	 * @param defaultProperties	default values
+	 * @return
+	 */
+	protected boolean getBoolProperty(Properties props, String key, Properties defaultProperties) {
+		return IOSImageUtil.getBoolProperty(props, key, IOSImageUtil.getBoolProperty(defaultProperties, key, false));
+	}
+
+	/**
+	 * Get default properties.
+	 *
+	 * @param props default properties
+	 * @return
+	 */
+	public Properties getDefaultProperties(Properties props) {
+		props.put("generate.as.asset.catalogs", (new Boolean(true)).toString());
+		props.put("icon.image.path", "");
+		props.put("launch.image.path", "");
+		props.put("ios6.icon.image.path", "");
+		props.put("carplay.icon.image.path", "");
+		props.put("watch.icon.image.path", "");
+		props.put("output.dir.path", "");
+		props.put("launch.scaling.type", "4");
+		props.put("generate.to-status-bar.images", (new Boolean(false).toString()));
+		props.put("generate.artwork.images", (new Boolean(true)).toString());
+		props.put("generate.iphone.images.only", (new Boolean(false).toString()));
+		props.put("generate.ipad.images.only", (new Boolean(false).toString()));
+		props.put("image.type", "0");
+		props.put("scaling.algorithm.type", "4");
+		props.put("launch.image.back.color", "");
+		return splitter.getDefaultProperties(props);
+	}
+
+	/**
+	 * Store properties to choosen file.
+	 */
+	private boolean storeProperties() {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setApproveButtonText(getResource("button.store", "Save"));
+		chooser.setFileFilter(new FileNameExtensionFilter("Properties XML files", "xml"));
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		if (propertiesFile != null) {
+			chooser.setCurrentDirectory(propertiesFile.getParentFile());
+		} else {
+			File dir = IOSImageUtil.getDefaultDirectory(this);
+			if (dir == null) {
+				dir = getChosenDirectory();
+			}
+			if (dir != null) {
+				chooser.setCurrentDirectory(dir);
+			}
+		}
+		int returnVal = chooser.showSaveDialog(this);
+		if(returnVal == JFileChooser.APPROVE_OPTION) {
+			File f = chooser.getSelectedFile();
+			if (f.getName().indexOf(".") < 0) {
+				f = new File(f.getParentFile(), f.getName().concat(".xml"));
+			}
+
+			if (f.exists()) {
+				if (!yesNo(getResource("question.store.overwrite", "A file which has same name is already exists. Overwrite it?"))) {
+					return false;
+				}
+			}
+			storeProperties(f);
+			return true;
+	    }
+		return false;
+	}
+
+	/**
+	 * Store properties to file.
+	 *
+	 * @param f property file
+	 */
+	private void storeProperties(File f) {
+		Properties props = new Properties();
+		BufferedOutputStream bout = null;
+		try {
+			this.storeProperties(props).storeToXML((bout = new BufferedOutputStream(new FileOutputStream(f))), "ios-image-util properties");
+			this.setPropertiesFile(f);
+		} catch (Throwable t) {
+			handleThrowable(t);
+		} finally {
+			if (bout != null) {
+				try { bout.close(); } catch (Exception ex) { ex.printStackTrace(); }
+			}
+		}
+	}
+
+	/**
+	 * Set properties to store.
+	 *
+	 * @param props Properties to store
+	 * @return same as props
+	 */
+	public Properties storeProperties(Properties props) {
+		props.put("icon.image.path", this.icon7Path.getText());
+		props.put("launch.image.path", this.splashPath.getText());
+		props.put("ios6.icon.image.path", this.icon6Path.getText());
+		props.put("carplay.icon.image.path", this.carplayPath.getText());
+		props.put("watch.icon.image.path", this.watchPath.getText());
+		props.put("output.dir.path", this.outputPath.getText());
+		props.put("launch.scaling.type", Integer.toString(this.splashScaling.getSelectedIndex()));
+		props.put("generate.to-status-bar.images", Boolean.toString(this.generateOldSplashImages.isSelected()));
+		props.put("generate.artwork.images", Boolean.toString(this.generateArtwork.isSelected()));
+		props.put("generate.iphone.images.only", Boolean.toString(this.iPhoneOnly.isSelected()));
+		props.put("generate.ipad.images.only", Boolean.toString(this.iPadOnly.isSelected()));
+		props.put("generate.as.asset.catalogs", Boolean.toString(this.generateAsAssetCatalogs.isSelected()));
+		props.put("image.type", Integer.toString(this.imageType.getSelectedIndex()));
+		props.put("scaling.algorithm.type", Integer.toString(this.scaleAlgorithm.getSelectedIndex()));
+		if (!this.splashBackgroundColor.getText().equals(PLACEHOLDER_SPLASH_BGCOL)) { props.put("launch.image.back.color", this.splashBackgroundColor.getText()); }
+		return splitter.storeProperties(props);
+	}
+
 	// for command line option switches.
-	public boolean setIcon6Path(String path) { return setFilePath(icon6Path, new File(path), icon6Image); }
-	public boolean setIcon7Path(String path) { return setFilePath(icon7Path, new File(path), icon7Image); }
-	public boolean setSplashPath(String path) { return setFilePath(splashPath, new File(path), splashImage); }
-	public boolean setCarplayPath(String path) { return setFilePath(carplayPath, new File(path), carplayImage); }
-	public boolean setWatchPath(String path) { return setFilePath(watchPath, new File(path), watchImage); }
-	public void setOutputPath(String path) throws IOException { outputPath.setText((new File(path)).getCanonicalPath()); }
+	public boolean setIcon6Path(String path) { return setFilePath(icon6Path, path == null || path.trim().isEmpty() ? null : new File(path), icon6Image); }
+	public boolean setIcon7Path(String path) { return setFilePath(icon7Path, path == null || path.trim().isEmpty() ? null : new File(path), icon7Image); }
+	public boolean setSplashPath(String path) { return setFilePath(splashPath, path == null || path.trim().isEmpty() ? null : new File(path), splashImage); }
+	public boolean setCarplayPath(String path) { return setFilePath(carplayPath, path == null || path.trim().isEmpty() ? null : new File(path), carplayImage); }
+	public boolean setWatchPath(String path) { return setFilePath(watchPath, path == null || path.trim().isEmpty() ? null : new File(path), watchImage); }
+	public void setOutputPath(String path) { outputPath.setText(path == null || path.trim().isEmpty() ? "" : (new File(path)).getAbsolutePath()); }
 	public void setSplashScaling(int idx) { splashScaling.setSelectedIndex(idx); }
 	public void setGenerateOldSplashImages(boolean b) { this.generateOldSplashImages.setSelected(b); }
 	public void setGenerateArtwork(boolean b) { this.generateArtwork.setSelected(b); }
@@ -921,20 +1444,23 @@ public class MainFrame extends JFrame {
 	public void setWidth1x(String width) { splitter.setWidth1x(width); }
 	public void setHeight1x(String height) { splitter.setHeight1x(height); }
 	public void setOverwriteAlways(boolean b) { splitter.setOverwriteAlways(b); }
-	public void setSplitTarget(String path) { splitTarget = new File(path); }
 	public void setSplitterOutputDirectory(String relativePath) { splitter.setOutputDirectory(relativePath); }
 	public boolean isSplitImageRequested() { return splitTarget != null; }
-	public boolean split() {
+	public void addSplitTarget(String path) {
+		if (splitTarget == null) {
+			splitTarget = new LinkedList<File>();
+		}
+		splitTarget.push(new File(path));
+	}
+	public boolean batchSplit() {
 		if (!this.isBatchMode()) return false;
-		if (splitTarget == null) { System.out.println("No image file specified."); return false; }
-		if (!splitTarget.exists()) { System.out.println(String.format("[%s] is not exists.", splitTarget.getAbsolutePath())); return false; }
+		if (splitTarget == null || splitTarget.size() <= 0) { System.out.println("No image file specified."); return false; }
 		try {
-			splitter.split(splitTarget);
+			return splitter.dropFiles(splitTarget);
 		} catch (Throwable t) {
 			handleThrowable(t);
 			return false;
 		}
-		return true;
 	}
 
 	/**
@@ -943,6 +1469,7 @@ public class MainFrame extends JFrame {
 	 * @param s color string
 	 */
 	public void setSplashBackgroundColor(String s) {
+		String prevText = this.splashBackgroundColor.getText().trim().isEmpty() ? PLACEHOLDER_SPLASH_BGCOL : this.splashBackgroundColor.getText();
 		Color col = null;
 		if (s != null && !s.trim().isEmpty()) {
 			while (s.length() < 6) s = "0".concat(s);
@@ -954,17 +1481,18 @@ public class MainFrame extends JFrame {
 				splashBackgroundColor.setBackground(new Color(col.getRed(), col.getGreen(), col.getBlue()));
 				splashBackgroundColor.setForeground(col.getRed()+col.getGreen()+col.getBlue()>384?Color.BLACK:Color.WHITE);
 				splashImage.setBackground(splashBackgroundColor.getBackground());
-			} catch (Exception ex) {
-				//
-				ex.printStackTrace();
+			} catch (Throwable t) {
+				handleThrowable(t);
 			}
 		}
 		if (col == null) {
-			splashBackgroundColor.setText("");
 			splashBackgroundColor.setText(PLACEHOLDER_SPLASH_BGCOL);
 			splashBackgroundColor.setForeground(Color.LIGHT_GRAY);
 			splashBackgroundColor.setBackground(Color.WHITE);
 			splashImage.setBackground(null);
+		}
+		if (!prevText.equals(this.splashBackgroundColor.getText())) {
+			this.setStorePropertiesRequested(true);
 		}
 	}
 
@@ -1064,6 +1592,15 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
+	 * Are images generating?
+	 *
+	 * @return generating images
+	 */
+	protected boolean isGenerating() {
+		return 	(pool != null && !pool.isTerminated());
+	}
+
+	/**
 	 * Do generate images.
 	 *
 	 * @return true - sucess / false - failed
@@ -1071,7 +1608,7 @@ public class MainFrame extends JFrame {
 	public boolean generate() {
 		boolean result = true;
 		cancelRequested = false;
-		if (pool != null && !pool.isShutdown()) {
+		if (this.isGenerating()) {
 			return false;
 		}
 
@@ -1080,12 +1617,20 @@ public class MainFrame extends JFrame {
 			return false;
 		}
 
+		if (!animator.isTargetAtBaseLocation()) {
+			settingsButton.doClick();
+		}
+
 		final Color settingsColor = settingsButton.getBackground();
 		if (!isBatchMode()) {
 			cancelButton.setVisible(true);
+			cancelButton.requestFocus();
 			generateButton.setVisible(false);
 			settingsButton.setBackground(BGCOLOR_LIGHT_GRAY);//new Color(0xF7F7F7));
 			settingsButton.setEnabled(false);
+			for (int i = 0; i < getJMenuBar().getMenuCount(); i++) {
+				getJMenuBar().getMenu(i).setEnabled(false);
+			}
 		}
 
 		try {
@@ -1094,11 +1639,7 @@ public class MainFrame extends JFrame {
 			progress.setMaximum(IOSIconAssetCatalogs.values().length + IOSArtworkInfo.values().length + IOSSplashAssetCatalogs.values().length);
 		}
 		try {
-			int threadCount = Runtime.getRuntime().availableProcessors();
-			if (threadCount > 8) {
-				threadCount = 8;
-			}
-			pool = Executors.newFixedThreadPool(threadCount);
+			pool = Executors.newFixedThreadPool(Math.min(IOSImageUtil.getSystemIntProperty("org.gootara.ios.image.util.max.threads", 12), Math.max(IOSImageUtil.getSystemIntProperty("org.gootara.ios.image.util.max.threads", 4), Runtime.getRuntime().availableProcessors())));
 
 			// start generate Images.
 			if (isBatchMode()) {
@@ -1151,8 +1692,13 @@ public class MainFrame extends JFrame {
 				} catch (Throwable t) {
 					handleThrowable(t);
 				} finally {
+					ifs.clear();
 					System.gc();
-					if (!isBatchMode()) {
+					if (isBatchMode()) {
+						if (!isSilentMode()) {
+							System.out.println();
+						}
+					} else {
 						generateButton.setVisible(true);
 						cancelButton.setVisible(false);
 						settingsButton.setBackground(settingsColor);
@@ -1164,6 +1710,9 @@ public class MainFrame extends JFrame {
 						}
 						progress.setValue(0);
 						outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText()));
+						for (int i = 0; i < getJMenuBar().getMenuCount(); i++) {
+							getJMenuBar().getMenu(i).setEnabled(true);
+						}
 					}
 				}
 				return result;
@@ -1415,7 +1964,7 @@ public class MainFrame extends JFrame {
 	 */
 	private void cancelGenerate() {
 		cancelRequested = true;
-		if (pool != null && !pool.isTerminated()) {
+		if (this.isGenerating()) {
 			try {
 				pool.shutdownNow();
 			} catch (Throwable t) {
@@ -1898,6 +2447,21 @@ class ImageFileSet
 	public void setCarplayFile(ImageFile carplayFile) {
 		this.carplayFile = carplayFile;
 	}
+
+	public void clear() {
+		if (icon6File != null) icon6File.clear();
+		if (watchFile != null) watchFile.clear();
+		if (carplayFile != null) carplayFile.clear();
+		if (icon7File != null) icon7File.clear();
+		if (splashFile != null) splashFile.clear();
+		icon6File = null;
+		watchFile = null;
+		carplayFile = null;
+		iconOutputDirectory = null;
+		splashFile = null;
+		splashOutputDirectory = null;
+		outputDirectory = null;
+	}
 }
 
 /**
@@ -1982,13 +2546,17 @@ private int direction;
 		this.base = base;
 	}
 
+	public boolean isTargetAtBaseLocation() {
+		return target.getY() == 0 - this.base;
+	}
+
 	public boolean animate(ActionListener callback) {
 		if (timer != null && timer.isRunning()) {
 			return false;
 		}
 
 		this.callbackListener = callback;
-		this.direction = target.getY() == 0 - this.base ? SimpleShutterAnimation.DIRECTION_UP : SimpleShutterAnimation.DIRECTION_DOWN;
+		this.direction = isTargetAtBaseLocation() ? SimpleShutterAnimation.DIRECTION_UP : SimpleShutterAnimation.DIRECTION_DOWN;
 		step = 0;
 		timer = new Timer(10, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
