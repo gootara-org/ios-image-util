@@ -12,25 +12,28 @@ iOS 用アイコン＆起動イメージ PNG を、必要とされる全ての�
 Apple Watch と CarPlay 用のアイコンは、それぞれ出力したい場合のみ指定してください（出力したくない場合は、空のままにしてください）。
 また、Apple Watch のアイコンは、自動的にアルファ無しの 24 bit PNG として出力されます。
 
-起動イメージは、1536×1536 ピクセルの正方形 PNG 画像を元にして、全てのサイズを出力します。
+起動イメージ（Launch Images）も、オプションです。
+1536×1536 ピクセルの正方形 PNG 画像を元にして、全てのサイズを出力します。
 その際、元画像は中央に配置され、背景色は自動的に推測されます（指定することも可能です）。
 元画像は正方形でなくても構いませんが、特にユニバーサルな場合は一番楽にそれっぽくなると思います。
 起動イメージに関しては、スケーリングオプションもいくつか用意しています。
 
-何か問題がある場合や仕様にご不満がある場合は、自由に改変してください。
-コンパイルをしたくない場合は、起動可能なjarファイルをご利用ください。
+Asset Catalogs 形式での出力に対応しました。
 
-また、Asset Catalogs 形式での出力に対応しました。
-
-それから、GUI 上の各設定値を、コマンドラインオプションで指定できるようにしました。
+また、GUI 上の各設定値をコマンドラインオプションで指定できるようにしました。
 GUI を表示せずにバッチ実行するようにオプションで指定することも可能ですので、自動化処理に組み込めるかも知れません。
+
+保存した XML プロパティファイルを読み込んで、設定値を一括で指定することも可能です。
+プロパティファイルは、メニューかウィンドウの上半分へのドロップ、もしくはコマンドラインオプションで指定して読み込みます。
+プロパティファイルで一括指定した設定値よりも、個別のコマンドラインオプションが優先されます。
+
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen_ja.png?raw=true "GUI")
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/settings_ja.png?raw=true "Settings")
 
 それから、１つの PNG 画像から @1x、@2x、@3x のイメージを切り分ける機能をおまけで追加しました。
-ドロップしたファイルを @3x として切り分けたり、@1x のサイズを指定しての切り分けが可能です。
+ドロップしたファイルを @3x として切り分けたり、@1x のサイズを指定しての切り分けが可能です（複数ファイルの選択／ドロップに対応しました）。
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter_ja.png?raw=true "Splitter")
 
@@ -221,16 +224,14 @@ CHANGE LOG:
 - Some bug fixed.
 
 2015/06/03
-- Output images by parallel processing.
-- Enable to specify output subdirectory with Split images.
-- To drop multiple files is available on image set generator. (gui mode only)
+- To generate images by parallel processing.
+- Support to specify output subdirectory with the image set generator.
+- Support to drop multiple files to the image set generator. (gui mode only)
 - Enable drag & drop on linux.
 
 2015/06/07
-- Support property file. Load / Store settings by XML property file. (Other command-line options are stronger than property file)
-- Enable to drop a XML propety file in the upper half of window.
-- To specify multiple files is available with image set generator. (batch mode also)
-- Apply same fix to the parallel processing.
+- The XML property file is supported. (Other command-line options are stronger than property file)
+- Support to choose multiple files to the image set generator. (batch mode also)
+- Apply same fix with the parallel processing.
 - Add menu bar.
-
 

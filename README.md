@@ -3,33 +3,41 @@ ios-image-util
 
 OVERVIEW:
 ---------
-This tiny Java application generate all size of icon & launch image png files those are required for various version of iOS.
-(Also supports Apple Watch and CarPlay.)
+This tiny Java application generate all size of icon & launch image files with PNG format that are required for various version of iOS.
 
-To generate PNG files of all necessary sizes with appropriate filename, you just need to drop original icon PNG file (1024 x 1024 pixels recommended) to the window. That's it.
-(For compatibility maintenance, iOS 6 icon could be specified separately, but usually does not need to set for it.)
+To generate images with appropriate filename, just drop original icon PNG file (1024 x 1024 pixels recommended) to the window.
+(For compatibility maintenance, iOS 6 icon can specify separately, but usually does not need to set for it.)
 
 Optionally, Apple Watch and CarPlay icon can also specify separately.
 These are not requirement. You should set these images only when you want to output.
 (The icon for Apple Watch will be automatically generate to 24 bits RGB PNG, without alpha channel.)
 
-And a square PNG file(1536 x 1536 pixels recommended) is suitable for the launch images.
-The image will be put in the center of each size of launch images.
-(Some scaling options are provided for the launch images.)
-Normally, the background-color will be guessed automatically, but also that can be specified with the option.
-A square shape is not a requirement, but it's easy way to generate universal launch images.
+The launch images are also optional.
+A square PNG file (1536 x 1536 pixels recommended) is suitable for the launch image set.
+Original image will be put in the center of each size of launch images. (Some scaling options are provided.)
+Normally, the background-color will be guessed automatically, but also can be specified.
+1536 x 1536 square shape is not a requirement, but it's easy way to generate universal launch images.
 
 Support output with "Asset Catalogs" format.
 
 Each settings can be specified by using command line options.
 And generate process can be automated by using command line options with no gui.
 
+The XML property file is supported.
+You can store properties to the XML file and load it next time.
+To load XML, use menu or drop to the upper half of window.
+And also property file can be specified with command-line options.
+Other command-line options are stronger than XML property file.
+
+
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true "GUI")
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/settings.png?raw=true "Settings")
 
-Then, add extra feature to generate @3x, @2x, @1x images from one png file.
-Generate images from dropped file as @3x or to specify @1x size.
+
+As the extra feature, to generate @3x, @2x, @1x images from one PNG file.
+Generate images from dropped file as @3x or to specify @1x size. (Multiple files are supported.)
+
 
 ![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter.png?raw=true "Splitter")
 
@@ -219,16 +227,14 @@ CHANGE LOG:
 - Some bug fixed.
 
 2015/06/03
-- Output images by parallel processing.
-- Enable to specify output subdirectory with Split images.
-- To drop multiple files is available on image set generator. (gui mode only)
+- To generate images by parallel processing.
+- Support to specify output subdirectory with the image set generator.
+- Support to drop multiple files to the image set generator. (gui mode only)
 - Enable drag & drop on linux.
 
 2015/06/07
-- Support property file. Load / Store settings by XML property file. (Other command-line options are stronger than property file)
-- Enable to drop a XML propety file in the upper half of window.
-- To specify multiple files is available with image set generator. (batch mode also)
-- Apply same fix to the parallel processing.
+- The XML property file is supported. (Other command-line options are stronger than property file)
+- Support to choose multiple files to the image set generator. (batch mode also)
+- Apply same fix with the parallel processing.
 - Add menu bar.
-
 
