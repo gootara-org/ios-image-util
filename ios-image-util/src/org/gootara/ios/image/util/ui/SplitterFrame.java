@@ -702,7 +702,7 @@ public class SplitterFrame extends JDialog {
 		if (!sub.isEmpty()) {
 			dir = new File(dir, sub);
 			if (!dir.exists()) {
-				dir.mkdir();
+				dir.mkdirs();
 			}
 		}
 		return new File(dir, String.format("%s@%dx%s", fileName, scale, sufix));
