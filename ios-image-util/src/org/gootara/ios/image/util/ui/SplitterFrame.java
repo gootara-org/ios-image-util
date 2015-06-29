@@ -721,10 +721,12 @@ public class SplitterFrame extends JDialog {
 		boolean result = false;
 		try {
 			File f = this.getOutputFile(srcFile, scale);
+			/* Overwrite already confrimed. Ignore this.
 			if (f.exists() && !this.overwriteAlways.isSelected()) {
 				// already exists. skip it.
 				return false;
 			}
+			*/
 			parent.verbose(f);
 			if (src == null) {
 				return false;
