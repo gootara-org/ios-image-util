@@ -671,8 +671,6 @@ public class SplitterFrame extends JFrame {
 							if (!IOSImageUtil.isNullOrWhiteSpace(name)) {
 								if (name.toLowerCase().trim().matches(String.format("^%s-(iphone|ipad|mac|watch|universal)+(-compact(w|h)|-regular(w|h)|-retina4|-38mm|-42mm)*(-compact(w|h)|-regular(w|h)|-retina4)*(-compact(w|h)|-regular(w|h)|-retina4)*@(1|2|3)x\\.png$", orgFilename))) {
 									return true;
-								} else {
-									System.out.println("not match - " + name);
 								}
 							}
 							return false;
