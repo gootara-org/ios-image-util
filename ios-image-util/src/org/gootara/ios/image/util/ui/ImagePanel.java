@@ -22,6 +22,7 @@
  */
 package org.gootara.ios.image.util.ui;
 
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -30,8 +31,8 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.image.BufferedImage;
 import java.text.BreakIterator;
 import java.util.ArrayList;
@@ -49,6 +50,10 @@ public class ImagePanel extends JPanel {
 	private java.io.File imageFile;
 	private Image image, scaledImage;
 	private String placeHolder, hyphenatorBoL, hyphnatorEoL;
+	private int scalingType;
+	private Timer timer;
+	private final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
+	private final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
 
 	/**
 	 * Constructor.
@@ -63,28 +68,101 @@ public class ImagePanel extends JPanel {
 	 * @param placeHolder placeHolder
 	 */
 	public ImagePanel(String placeHolder) {
+		this.setCursor(HAND_CURSOR);
 		this.image = null;
 		this.scaledImage = null;
 		this.setPlaceHolder(placeHolder);
 		this.setHyphenator("", "");
-		final Timer timer = new Timer(500, new ActionListener() {
+		timer = new Timer(500, new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
-				createScaledImage();
-				repaint();
+				try {
+					if (ImagePanel.this.scaledImage != null) {
+						ImagePanel.this.scaledImage.flush();
+						ImagePanel.this.scaledImage = null;
+					}
+					if (ImagePanel.this.image == null) {
+						return;
+					}
+					Dimension preferredSize = ImagePanel.this.getPreferredSize();
+					Dimension maximumSize = ImagePanel.this.getSize();
+					//double p = (maximumSize.getWidth() > maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
+					// Default is fit with aspect ratio.
+					double p = maximumSize.getWidth() / preferredSize.getWidth();
+					if (Math.floor(preferredSize.getWidth() * p) > maximumSize.getWidth() || Math.floor(preferredSize.getHeight() * p) > maximumSize.getHeight()) {
+						p = maximumSize.getHeight() / preferredSize.getHeight();
+					}
+					if (scalingType == 0) {
+						// No resizing(iPhone only)
+						p = 1.0d;
+					} else if (scalingType == 1) {
+						// No resizing(iPhone & iPad)
+						p = 1.0d;
+					} else if (scalingType == 2) {
+						// Fit to the screen height(iPhone only)
+						p = maximumSize.getHeight() / preferredSize.getHeight();
+					} else if (scalingType == 4) {
+						p = (maximumSize.getWidth() < maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
+					}// else default
+					double w = preferredSize.getWidth() * p;
+					double h = preferredSize.getHeight() * p;
+					if (scalingType == 5) {
+						w = maximumSize.getWidth();
+						h = maximumSize.getHeight();
+					}
+					ImagePanel.this.scaledImage = ImagePanel.this.image.getScaledInstance((int)Math.round(w), (int)Math.round(h), Image.SCALE_SMOOTH);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				} finally {
+					repaint();
+					modifyTooltip();
+					ImagePanel.this.setCursor(HAND_CURSOR);
+				}
 			}
 		});
 		timer.setRepeats(false);
-		this.addComponentListener(new ComponentListener() {
+		this.addComponentListener(new ComponentAdapter() {
 			@Override public void componentResized(ComponentEvent e) {
-				if (timer.isRunning()) {
-					timer.stop();
-				}
-				timer.start();
+				startResizingTimer(500);
 			}
-			@Override public void componentMoved(ComponentEvent e) {}
-			@Override public void componentShown(ComponentEvent e) {}
-			@Override public void componentHidden(ComponentEvent e) {}
 		});
+		this.setScalingType(3);
+	}
+
+	/**
+	 * Start resizing timer.
+	 *
+	 * @param delay
+	 */
+	private void startResizingTimer(int delay) {
+		stopResizingTimer();
+		if (this.image == null) {
+			repaint();
+			modifyTooltip();
+			return;
+		}
+		timer.setDelay(delay);
+		timer.start();
+		this.setCursor(WAIT_CURSOR);
+	}
+
+	/**
+	 * Stop resizing timer.
+	 */
+	private void stopResizingTimer() {
+		if (timer.isRunning()) {
+			timer.stop();
+		}
+		long l = System.currentTimeMillis();
+		while (timer.isRunning()) {
+			try {
+				Thread.sleep(10);
+				if (System.currentTimeMillis() - l > 500) {
+					break;
+				}
+			} catch (InterruptedException iex) {
+				iex.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -93,19 +171,27 @@ public class ImagePanel extends JPanel {
 	 * @param image image
 	 */
 	public void setImage(BufferedImage image) {
+		stopResizingTimer();
 		if (this.image != null) {
 			this.image.flush();
 			this.image = null;
 		}
 
-		Dimension size = new Dimension(image.getWidth(), image.getHeight());
-		if (size.getWidth() > 1024d || size.getHeight() > 1024d) {
-			size = new Dimension(1024, 1024);
+		Dimension maximumSize = new Dimension(image.getWidth(), image.getHeight());
+		if (maximumSize.getWidth() > 1024d || maximumSize.getHeight() > 1024d) {
+			maximumSize = new Dimension(1024, 1024);
 		}
-		this.image = this.createScaledImage(image, new Dimension(image.getWidth(), image.getHeight()), size);
-		createScaledImage();
-		this.repaint();
-		this.modifyTooktip();
+		Dimension preferredSize = new Dimension(image.getWidth(), image.getHeight());
+		double p = (maximumSize.getWidth() > maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
+		if (preferredSize.width != preferredSize.height) {
+			double p2 = (preferredSize.width < preferredSize.height) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
+			if (p2 < p) { p = p2; }
+		}
+		int w = (int) (preferredSize.getWidth() * p);
+		int h = (int) (preferredSize.getHeight() * p);
+		this.image = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+
+		this.startResizingTimer(255);
 	}
 
 	/**
@@ -234,35 +320,10 @@ public class ImagePanel extends JPanel {
 	}
 
 	/**
-	 * Create scaled image.
-	 */
-	private synchronized void createScaledImage() {
-		if (this.scaledImage != null) {
-			this.scaledImage.flush();
-			this.scaledImage = null;
-		}
-		if (image == null) {
-			return;
-		}
-		this.scaledImage = this.createScaledImage(this.image, this.getPreferredSize(), new Dimension(this.getWidth(), this.getHeight()));
-	}
-	private Image createScaledImage(Image src, Dimension preferredSize, Dimension maximumSize) {
-		if (preferredSize.width <= 0 || preferredSize.height <= 0) return null;
-		double p = (maximumSize.getWidth() > maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
-		if (preferredSize.width != preferredSize.height) {
-			double p2 = (preferredSize.width < preferredSize.height) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
-			if (p2 < p) { p = p2; }
-		}
-		int w = (int) (preferredSize.getWidth() * p);
-		int h = (int) (preferredSize.getHeight() * p);
-		if (w <= 0 || h <= 0) return null;
-		return src.getScaledInstance(w, h, Image.SCALE_SMOOTH);
-	}
-
-	/**
 	 * Clear images.
 	 */
 	public void clear() {
+		stopResizingTimer();
 		if (this.image != null) {
 			this.image.flush();
 			this.image = null;
@@ -273,7 +334,7 @@ public class ImagePanel extends JPanel {
 		}
 		this.imageFile = null;
 		this.repaint();
-		this.modifyTooktip();
+		this.modifyTooltip();
 		System.gc();
 	}
 
@@ -302,12 +363,29 @@ public class ImagePanel extends JPanel {
 		this.imageFile = imageFile;
 	}
 
-	private void modifyTooktip() {
+	private void modifyTooltip() {
 		if (placeHolder == null || placeHolder.trim().length() <= 0) {
 			this.setToolTipText(null);
 			return;
 		}
 		this.setToolTipText(image == null || scaledImage == null ? null : placeHolder);
+	}
+
+	/**
+	 * @return scalingType
+	 */
+	public int getScalingType() {
+		return scalingType;
+	}
+
+	/**
+	 * @param scalingType set scalingType
+	 */
+	public void setScalingType(int scalingType) {
+		if (this.scalingType != scalingType) {
+			this.scalingType = scalingType;
+			this.startResizingTimer(255);
+		}
 	}
 
 }

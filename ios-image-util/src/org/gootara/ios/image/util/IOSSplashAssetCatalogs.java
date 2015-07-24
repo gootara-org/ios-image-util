@@ -30,40 +30,41 @@ package org.gootara.ios.image.util;
  */
 public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 
-    // iOS8 and iPhone 6 upper
-    IPHONE8_736x3           (IOSSplashInfo.SPLASH_736x3           , IDIOM_IPHONE, SYSTEM_VERSION_8, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, IOSSplashAssetCatalogs.SUBTYPE_736H),
-    IPHONE8_LANDSCAPE_736x3 (IOSSplashInfo.SPLASH_LANDSCAPE_736x3 , IDIOM_IPHONE, SYSTEM_VERSION_8, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, IOSSplashAssetCatalogs.SUBTYPE_736H),
-    IPHONE8_667x2           (IOSSplashInfo.SPLASH_667x2           , IDIOM_IPHONE, SYSTEM_VERSION_8, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, IOSSplashAssetCatalogs.SUBTYPE_667H),
+    // iOS8 and Later (iPhone)
+    IPHONE8_736x3           (IOSSplashInfo.SPLASH_736x3           , IDIOM.IPHONE, SYSTEM_VERSION.IOS8, EXTENT.FULL_SCREEN, SUBTYPE.H736),
+    IPHONE8_LANDSCAPE_736x3 (IOSSplashInfo.SPLASH_LANDSCAPE_736x3 , IDIOM.IPHONE, SYSTEM_VERSION.IOS8, EXTENT.FULL_SCREEN, SUBTYPE.H736),
+    IPHONE8_667x2           (IOSSplashInfo.SPLASH_667x2           , IDIOM.IPHONE, SYSTEM_VERSION.IOS8, EXTENT.FULL_SCREEN, SUBTYPE.H667),
 
-	// iOS7 or posterior
-	IPHONE7_480x2 (IOSSplashInfo.SPLASH_480x2 , IDIOM_IPHONE , SYSTEM_VERSION_7, null, null),
-	IPHONE7_568x2 (IOSSplashInfo.SPLASH_568x2 , IDIOM_IPHONE , SYSTEM_VERSION_7, null, IOSSplashAssetCatalogs.SUBTYPE_RETINA4),
-	IPAD7_PORTRAIT    (IOSSplashInfo.SPLASH_PORTRAIT    , IDIOM_IPAD , SYSTEM_VERSION_7, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, null),
-	IPAD7_LANDSCAPE   (IOSSplashInfo.SPLASH_LANDSCAPE   , IDIOM_IPAD , SYSTEM_VERSION_7, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, null),
-	IPAD7_PORTRAITx2  (IOSSplashInfo.SPLASH_PORTRAITx2  , IDIOM_IPAD , SYSTEM_VERSION_7, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, null),
-	IPAD7_LANDSCAPEx2 (IOSSplashInfo.SPLASH_LANDSCAPEx2 , IDIOM_IPAD , SYSTEM_VERSION_7, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN, null),
-	// iOS6 or prior
-	IPHONE_480   (IOSSplashInfo.SPLASH_480   , IDIOM_IPHONE , SYSTEM_VERSION_ANY, null, null),
-	IPHONE_480x2 (IOSSplashInfo.SPLASH_480x2 , IDIOM_IPHONE , SYSTEM_VERSION_ANY, null, null),
-	IPHONE_568x2 (IOSSplashInfo.SPLASH_568x2 , IDIOM_IPHONE , SYSTEM_VERSION_ANY, null, IOSSplashAssetCatalogs.SUBTYPE_RETINA4),
-	IPAD_PORTRAIT_STB    (IOSSplashInfo.SPLASH_PORTRAIT_STB    , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR , null),
-	IPAD_PORTRAIT        (IOSSplashInfo.SPLASH_PORTRAIT        , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN   , null),
-	IPAD_LANDSCAPE_STB   (IOSSplashInfo.SPLASH_LANDSCAPE_STB   , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR , null),
-	IPAD_LANDSCAPE       (IOSSplashInfo.SPLASH_LANDSCAPE       , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN   , null),
-	IPAD_PORTRAIT_STBx2  (IOSSplashInfo.SPLASH_PORTRAIT_STBx2  , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR , null),
-	IPAD_PORTRAITx2      (IOSSplashInfo.SPLASH_PORTRAITx2      , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN   , null),
-	IPAD_LANDSCAPE_STBx2 (IOSSplashInfo.SPLASH_LANDSCAPE_STBx2 , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_TO_STATUS_BAR , null),
-	IPAD_LANDSCAPEx2     (IOSSplashInfo.SPLASH_LANDSCAPEx2     , IDIOM_IPAD , SYSTEM_VERSION_ANY, IOSSplashAssetCatalogs.EXTENT_FULL_SCREEN   , null),
+	// iOS7 and Later
+	IPHONE7_480x2 (IOSSplashInfo.SPLASH_480x2 , IDIOM.IPHONE , SYSTEM_VERSION.IOS7, null, null),
+	IPHONE7_568x2 (IOSSplashInfo.SPLASH_568x2 , IDIOM.IPHONE , SYSTEM_VERSION.IOS7, null, IOSSplashAssetCatalogs.SUBTYPE.RETINA4),
+
+	IPAD7_PORTRAIT    (IOSSplashInfo.SPLASH_PORTRAIT    , IDIOM.IPAD , SYSTEM_VERSION.IOS7, EXTENT.FULL_SCREEN, null),
+	IPAD7_LANDSCAPE   (IOSSplashInfo.SPLASH_LANDSCAPE   , IDIOM.IPAD , SYSTEM_VERSION.IOS7, EXTENT.FULL_SCREEN, null),
+	IPAD7_PORTRAITx2  (IOSSplashInfo.SPLASH_PORTRAITx2  , IDIOM.IPAD , SYSTEM_VERSION.IOS7, EXTENT.FULL_SCREEN, null),
+	IPAD7_LANDSCAPEx2 (IOSSplashInfo.SPLASH_LANDSCAPEx2 , IDIOM.IPAD , SYSTEM_VERSION.IOS7, EXTENT.FULL_SCREEN, null),
+
+	// iOS6 and prior
+	IPHONE_480   (IOSSplashInfo.SPLASH_480   , IDIOM.IPHONE , SYSTEM_VERSION.ANY, null, null),
+	IPHONE_480x2 (IOSSplashInfo.SPLASH_480x2 , IDIOM.IPHONE , SYSTEM_VERSION.ANY, null, null),
+	IPHONE_568x2 (IOSSplashInfo.SPLASH_568x2 , IDIOM.IPHONE , SYSTEM_VERSION.ANY, null, SUBTYPE.RETINA4),
+
+	IPAD_PORTRAIT_STB    (IOSSplashInfo.SPLASH_PORTRAIT_STB    , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.TO_STATUS_BAR , null),
+	IPAD_PORTRAIT        (IOSSplashInfo.SPLASH_PORTRAIT        , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.FULL_SCREEN   , null),
+	IPAD_LANDSCAPE_STB   (IOSSplashInfo.SPLASH_LANDSCAPE_STB   , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.TO_STATUS_BAR , null),
+	IPAD_LANDSCAPE       (IOSSplashInfo.SPLASH_LANDSCAPE       , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.FULL_SCREEN   , null),
+	IPAD_PORTRAIT_STBx2  (IOSSplashInfo.SPLASH_PORTRAIT_STBx2  , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.TO_STATUS_BAR , null),
+	IPAD_PORTRAITx2      (IOSSplashInfo.SPLASH_PORTRAITx2      , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.FULL_SCREEN   , null),
+	IPAD_LANDSCAPE_STBx2 (IOSSplashInfo.SPLASH_LANDSCAPE_STBx2 , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.TO_STATUS_BAR , null),
+	IPAD_LANDSCAPEx2     (IOSSplashInfo.SPLASH_LANDSCAPEx2     , IDIOM.IPAD , SYSTEM_VERSION.ANY, EXTENT.FULL_SCREEN   , null),
 	;
 
-	public final static String EXTENT_FULL_SCREEN   = "full-screen";
-	public final static String EXTENT_TO_STATUS_BAR = "to-status-bar";
 	private IOSImageInfo info;
-	private String idiom;
-	private String extent;
-	private String subtype;
-	private float minimumSystemVersion;
-	private IOSSplashAssetCatalogs(IOSImageInfo info, String idiom, float minimumSystemVersion, String extent, String subtype) {
+	private IDIOM idiom;
+	private EXTENT extent;
+	private SUBTYPE subtype;
+	private SYSTEM_VERSION minimumSystemVersion;
+	private IOSSplashAssetCatalogs(IOSImageInfo info, IDIOM idiom, SYSTEM_VERSION minimumSystemVersion, EXTENT extent, SUBTYPE subtype) {
 		this.info = info;
 		this.idiom = idiom;
 		this.minimumSystemVersion = minimumSystemVersion;
@@ -72,31 +73,26 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 	}
 
 	@Override public IOSImageInfo getIOSImageInfo() { return this.info; }
-	@Override public String getIdiom() { return this.idiom; }
-	@Override public float getMinimumSystemVersion() { return this.minimumSystemVersion; }
+	@Override public IDIOM getIdiom() { return this.idiom; }
+	@Override public SYSTEM_VERSION getMinimumSystemVersion() { return this.minimumSystemVersion; }
 	@Override public String getFilename() { return info.getFilename(); }
-	@Override public String getScale() { return (String.format("%dx", info.getScale())); }
-	@Override public boolean isIphone() { return this.getIdiom().equals(IDIOM_IPHONE); }
-	@Override public boolean isIpad() { return this.getIdiom().equals(IDIOM_IPAD); }
-	@Override public boolean isCarPlay() { return this.getIdiom().equals(IDIOM_CARPLAY); }
-	@Override public boolean isAppleWatch() { return this.getIdiom().equals(IDIOM_APPLEWATCH); }
-	@Override public String getSubType() { return this.subtype; }
-	@Override public String getRole() { return null; }
+	@Override public SUBTYPE getSubType() { return this.subtype; }
+	@Override public ROLE getRole() { return null; }
 	@Override public String toJson() {
 		StringBuilder sb = new StringBuilder("    {\n");
-		sb.append(String.format("      \"orientation\" : \"%s\",\n", (this.info.getSize().getWidth() > this.info.getSize().getHeight() ? "landscape" : "portrait")));
-		sb.append(String.format("      \"idiom\" : \"%s\",\n", this.getIdiom()));
+		sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.ORIENTATION, (this.info.getSize().getWidth() > this.info.getSize().getHeight() ? JSON_VALUE.ORIENTATION_LANDSCAPE : JSON_VALUE.ORIENTATION_PORTRAIT)));
+		sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.IDIOM, this.getIdiom()));
 		if (extent != null) {
-			sb.append(String.format("      \"extent\" : \"%s\",\n", this.getExtent()));
+			sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.EXTENT, this.getExtent()));
 		}
-		if (this.minimumSystemVersion > SYSTEM_VERSION_ANY) {
-			sb.append(String.format("      \"minimum-system-version\" : \"%.1f\",\n", this.getMinimumSystemVersion()));
+		if (this.minimumSystemVersion.later(SYSTEM_VERSION.ANY)) {
+			sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.MINIMUM_SYSTEM_VERSION, this.getMinimumSystemVersion()));
 		}
-		sb.append(String.format("      \"filename\" : \"%s\",\n", info.getFilename()));
+		sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.FILENAME, this.getFilename()));
 		if (subtype != null) {
-			sb.append(String.format("      \"subtype\" : \"%s\",\n", this.getSubType()));
+			sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.SUBTYPE, this.getSubType()));
 		}
-		sb.append(String.format("      \"scale\" : \"%s\"\n", this.getScale()));
+		sb.append(String.format("      \"%s\" : \"%s\"\n", JSON_KEY.SCALE, info.getScale()));
 		sb.append("    }");
 		return sb.toString();
 	}
@@ -106,6 +102,6 @@ public enum IOSSplashAssetCatalogs implements IOSAssetCatalogs {
 	 *
 	 * @return extent
 	 */
-	public String getExtent() { return this.extent; }
+	public EXTENT getExtent() { return this.extent; }
 
 }

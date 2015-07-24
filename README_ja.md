@@ -3,39 +3,60 @@ ios-image-util
 
 OVERVIEW:
 ---------
-iOS 用アイコン＆起動イメージ PNG を、必要とされる全てのサイズで生成する Java アプリケーションです。
-（Apple Watch と、ついでに CarPlay に対応しました）
+iOS 用のアイコン＆起動イメージ（PNG）を、必要とされる全てのサイズで生成する Java アプリケーションです。
+Apple Watch と CarPlay、および Mac に対応しました。
+また、Asset Catalogs 形式での出力に対応しています。
 
-元となるアイコン画像（1024x1024 推奨）をウィンドウにドロップして、「イメージ生成」ボタンを押すだけで、必要な全てのサイズの PNG を然るべきファイル名で生成します。
-（互換維持の為に iOS 6 用のアイコンを個別に指定できるようにしていますが、通常は指定する必要はありません）
+元となるアイコン画像（1024x1024 推奨）をウィンドウにドロップして、「イメージ生成」ボタンを押すだけで、
+必要な全てのサイズの PNG を然るべきファイル名で生成します。
+互換維持の為に iOS 6 用のアイコンを個別に指定できるようにしていますが、通常は設定する必要はありません。
+また、必要に応じて iPad 専用のアイコンや起動イメージも設定できますが、通常は iPhone と共通で構いません。
 
-Apple Watch と CarPlay 用のアイコンは、それぞれ出力したい場合のみ指定してください（出力したくない場合は、空のままにしてください）。
-また、Apple Watch のアイコンは、自動的にアルファ無しの 24 bit PNG として出力されます。
+Apple Watch、CarPlay および Mac 用のアイコンは、それぞれ出力したい場合のみ指定してください。
+（つまり、出力したくない場合は、空のままにしてください）
+※Apple Watch 用のアイコンは、設定に関わらずアルファ無しの 24 bit PNG として出力されます。
 
-起動イメージ（Launch Images）も、オプションです。
-1536×1536 ピクセルの正方形 PNG 画像を元にして、全てのサイズを出力します。
-その際、元画像は中央に配置され、背景色は自動的に推測されます（指定することも可能です）。
-元画像は正方形でなくても構いませんが、特にユニバーサルな場合は一番楽にそれっぽくなると思います。
+その他のオプションとして、起動イメージ（Launch Images）も出力可能です。
+こちらもやはり、１つの PNG 画像を元にして、全てのサイズを出力できます。
+起動イメージの元画像は 1536×1536 ピクセルの正方形でなくても構いませんが、
+特にユニバーサルな場合は、あまり手間をかけずにそれっぽくなるので推奨しています。
 起動イメージに関しては、スケーリングオプションもいくつか用意しています。
 
-Asset Catalogs 形式での出力に対応しました。
+また、GUI 上の各設定値をコマンドラインオプションで指定できるようにしてみました。
+GUI を表示せずにバッチ実行することも可能ですので、自動化処理に組み込めるかも知れません。
 
-また、GUI 上の各設定値をコマンドラインオプションで指定できるようにしました。
-GUI を表示せずにバッチ実行するようにオプションで指定することも可能ですので、自動化処理に組み込めるかも知れません。
-
-保存した XML プロパティファイルを読み込んで、設定値を一括で指定することも可能です。
-プロパティファイルは、メニューかウィンドウの上半分へのドロップ、もしくはコマンドラインオプションで指定して読み込みます。
+XML プロパティファイルによる、設定値の保存や一括指定が可能です。
+プロパティファイルは、メニューまたはウィンドウの上半分へのドロップ、
+もしくはコマンドラインオプションで指定して読み込みます。
 プロパティファイルで一括指定した設定値よりも、個別のコマンドラインオプションが優先されます。
 
+さらに Ver 2.0 からは、終了時の作業状態を保存して、次回起動時に自動的に復旧するようにしました。
+コマンドラインオプションによる、設定値のクリアやリセットにも対応しています。
+作業状態は jar ファイルと同じディレクトリに ios-image-util.properties として保存されますので、
+それを削除することでも初期状態に戻すことが可能です。
+つまり、別ディレクトリの jar から起動した場合、状態は引き継がれません。
 
-![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen_ja.png?raw=true "GUI")
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/screen_ja.png "GUI")
 
-![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/settings_ja.png?raw=true "Settings")
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/settings_ja.png "Settings")
+
+
 
 それから、１つの PNG 画像から @1x、@2x、@3x のイメージを切り分ける機能をおまけで追加しました。
-ドロップしたファイルを @3x として切り分けたり、@1x のサイズを指定しての切り分けが可能です（複数ファイルの選択／ドロップに対応しました）。
+複数ファイルのドロップ（選択）にも対応しています。
 
-![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter_ja.png?raw=true "Splitter")
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter_ja.png "Splitter")
+
+Ver 2.0 からは、さらに機能を拡張して、Image Set としての出力に対応しました。Size Class にも対応しています。
+
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter2_ja.png "Splitter")
+
+１つの元画像をドロップするだけで、Size Class に対応した最大で数十個に及ぶファイルと Contents.json が自動的に出力されます。
+全ての画像の出力サイズを、１つづつ個別に指定することも可能です。
+
+毎回、更新の後に、「これはもっと前から実装しておけばよかったなぁ」と申し訳なく思うことが多いので、
+更新チェック的な機能もつけてみました。不要でしたら、メニューからオフにしてください。
+（jar ファイルから実行した場合のみ有効です）
 
 
 
@@ -122,37 +143,55 @@ COMMAND LINE OPTIONS:
     -v, -verbose                verbose mode (available with batch mode only)
     -silent                     no log (available with batch mode only)
     -props                      property file location (full path)
+    -n, -new                    clear previous settings on startup (gui only)
+    -r, -reset                  force reset all properties (gui only)
 
     -icon6 "icon png path"      iOS 6 icon png file location (full path)
     -watch "icon png path"      Apple Watch icon png file location (full path)
     -carplay "icon png path"    CarPlay icon png file location (full path)
+    -mac "icon png path"        Mac icon png file loaction (full path)
+    -iconipad "icon png path"   iPad icon png file loaction (full path)
     -icon7 "icon png path"      iOS 7 icon png file loaction (full path)
     -launch "launch image path" launch image png file location (full path)
+    -launchipad "image path"    iPad launch image png file location (full path)
     -output "output directory"  output directory location (full path)
-    -iphoneonly                 output iPhone images only (default all)
-    -ipadonly                   output iPad images only (default all)
+    -iphoneonly                 output iPhone images only (default both)
+    -ipadonly                   output iPad images only (default both)
     -to-status-bar              generate 'to-status-bar' launch images
     -noasset                    not generate images as asset catalogs
     -noartwork                  not generate ArtWork images for Store
+    -noprerender                not generate as pre-rendered
+    -noclean                    not clean target files before generate
+    -minver [0,7,8]             minimum version to generate (default: 0)
+                                  0: All versions
+                                  7: iOS 7 and Later
+                                  8: iOS 8 and Later
     -lscale [0-5]               launch image scaling (default: 4)
                                   0: no resizing (iPhone only)
                                   1: no resizing (iPhone & iPad)
-                                  2: fit to the screen height
-                                  3: fit to the screen
+                                  2: fit to screen height (iPhone only)
+                                  3: fit to screen
                                   4: fill screen (prefer long side)
                                   5: fill screen (no aspect ratio)
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
 
-    For Image Set:
-    -sp3x                       Generate @3x, @2x, @1x images from @3x
-    -spSize width:height        Generate @3x, @2x, @1x with @1x(px)|@3x(%) size
-    -spNoReplace                Not overwrite if file already exists.
-    -spDir "relative path"      Output sub directory. (relative to -spFile path)
-    -spFile "png path"          Image set png file location (full path)
-                    Multiple files available. (Separate by system path separator)
+  For Image Set:
+    -sp3x                       deprecated. Use '-spSize 100%:100%' instead
+    -spSize width:height        generate @3x, @2x, @1x with @1x(px)|@3x(%) size
+    -spNoReplace                not overwrite if file already exists
+    -spNoClean                  not clean target files before generate
+    -spBgcolor                  background color.
+    -spScaling                  scaling type (default: 3)
+                                  0: no resizing
+                                  1: fit to short side
+                                  2: fit to long side
+                                  3: fit with aspect ratio
+                                  4: fill without aspect ratio
+    -spDir "path"               Output directory. (relative or absolute)
+    -spFile "png path"          image sets png file location (full path)
+                    multiple files available. (Separate by system path separator)
                     -spFile option is available with batch mode only.
-
 
 
 CHANGE LOG:
@@ -235,3 +274,8 @@ CHANGE LOG:
 - Apply same fix with the parallel processing.
 - Add menu bar.
 
+2015/07/19 - Version 2.0.0.0
+- Support Image Sets with Size Class.
+- Restore last settings at next startup.
+- Update checker is implemented. (very easy one)
+- And more.

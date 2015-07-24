@@ -3,43 +3,60 @@ ios-image-util
 
 OVERVIEW:
 ---------
-This tiny Java application generate all size of icon & launch image files with PNG format that are required for various version of iOS.
+This tiny Java application generate all size of icon & launch image files with PNG format for various version of iOS.
+Supports iPhone, iPad and optionally supports Apple Watch, CarPlay, Mac.
+In addition, supports "Asset Catalogs".
 
-To generate images with appropriate filename, just drop original icon PNG file (1024 x 1024 pixels recommended) to the window.
-(For compatibility maintenance, iOS 6 icon can specify separately, but usually does not need to set for it.)
+Just drop original icon PNG file (1024 x 1024 pixels recommended) to the window,
+sized images will be generated automatically with appropriate filename,
+For compatibility maintenance, iOS 6 icon can specify separately, but usually does not need to set for it.
+Also icon and launch images especially for iPad could be specified, but usually to use same images with iPhone.
 
-Optionally, Apple Watch and CarPlay icon can also specify separately.
-These are not requirement. You should set these images only when you want to output.
-(The icon for Apple Watch will be automatically generate to 24 bits RGB PNG, without alpha channel.)
+Optionally, Apple Watch, CarPlay and Mac icon can specify separately, too.
+These are not requirement. You should set these images only when you want to generate.
+*The icon for Apple Watch will be generated to 24 bits RGB PNG, without alpha channel.
 
 The launch images are also optional.
-A square PNG file (1536 x 1536 pixels recommended) is suitable for the launch image set.
-Original image will be put in the center of each size of launch images. (Some scaling options are provided.)
+A square PNG file (1536 x 1536 pixels recommended) is suitable for the launch image sets.
+The original picture will be put in the center of each size of launch images. (Some scaling options are available.)
 Normally, the background-color will be guessed automatically, but also can be specified.
 1536 x 1536 square shape is not a requirement, but it's easy way to generate universal launch images.
 
-Support output with "Asset Catalogs" format.
-
 Each settings can be specified by using command line options.
-And generate process can be automated by using command line options with no gui.
+This means generating process can be automated by using command line options with no gui.
 
 The XML property file is supported.
 You can store properties to the XML file and load it next time.
-To load XML, use menu or drop to the upper half of window.
-And also property file can be specified with command-line options.
+How to load XML - use menu or drop to the upper half of window or command-line options.
 Other command-line options are stronger than XML property file.
 
+Moreover, from Ver 2.0, restore last settings at the next startup.
+Settings can clear or reset by using command-line options.
+Also, it's possible to clear settings completely by deleting 'ios-image-util.properties' file that the last settings stored.
+This means the last settings will not be restored when executing by jar file from other directories.
 
-![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/screen.png?raw=true "GUI")
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/screen.png "GUI")
 
-![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/settings.png?raw=true "Settings")
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/settings.png "Settings")
+
 
 
 As the extra feature, to generate @3x, @2x, @1x images from one PNG file.
-Generate images from dropped file as @3x or to specify @1x size. (Multiple files are supported.)
+(To drop/select multiple files are supported.)
 
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter.png "Splitter")
 
-![alt text](https://github.com/gootara-org/ios-image-util/blob/master/ios-image-util/docs/splitter.png?raw=true "Splitter")
+From Ver 2.0, Image Set with Size Class is supported, too.
+
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter2.png "Splitter")
+
+All of Size Class image files and Contents.json will be automatically generated
+by simply dropping an original picture to the window.
+Also, it's possible to specify output image size of all images individually.
+
+In addition, from Ver 2.0, update checker is supported.
+It can be turned off if you don't need it.
+(Only available with executing from jar file)
 
 
 OUTPUT:
@@ -125,35 +142,54 @@ COMMAND LINE OPTIONS:
     -v, -verbose                verbose mode (available with batch mode only)
     -silent                     no log (available with batch mode only)
     -props                      property file location (full path)
+    -n, -new                    clear previous settings on startup (gui only)
+    -r, -reset                  force reset all properties (gui only)
 
     -icon6 "icon png path"      iOS 6 icon png file location (full path)
     -watch "icon png path"      Apple Watch icon png file location (full path)
     -carplay "icon png path"    CarPlay icon png file location (full path)
+    -mac "icon png path"        Mac icon png file loaction (full path)
+    -iconipad "icon png path"   iPad icon png file loaction (full path)
     -icon7 "icon png path"      iOS 7 icon png file loaction (full path)
     -launch "launch image path" launch image png file location (full path)
+    -launchipad "image path"    iPad launch image png file location (full path)
     -output "output directory"  output directory location (full path)
-    -iphoneonly                 output iPhone images only (default all)
-    -ipadonly                   output iPad images only (default all)
+    -iphoneonly                 output iPhone images only (default both)
+    -ipadonly                   output iPad images only (default both)
     -to-status-bar              generate 'to-status-bar' launch images
     -noasset                    not generate images as asset catalogs
     -noartwork                  not generate ArtWork images for Store
+    -noprerender                not generate as pre-rendered
+    -noclean                    not clean target files before generate
+    -minver [0,7,8]             minimum version to generate (default: 0)
+                                  0: All versions
+                                  7: iOS 7 and Later
+                                  8: iOS 8 and Later
     -lscale [0-5]               launch image scaling (default: 4)
                                   0: no resizing (iPhone only)
                                   1: no resizing (iPhone & iPad)
-                                  2: fit to the screen height
-                                  3: fit to the screen
+                                  2: fit to screen height (iPhone only)
+                                  3: fit to screen
                                   4: fill screen (prefer long side)
                                   5: fill screen (no aspect ratio)
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
 
-    For Image Set:
-    -sp3x                       Generate @3x, @2x, @1x images from @3x
-    -spSize width:height        Generate @3x, @2x, @1x with @1x(px)|@3x(%) size
-    -spNoReplace                Not overwrite if file already exists.
-    -spDir "relative path"      Output sub directory. (relative to -spFile path)
-    -spFile "png path"          Image set png file location (full path)
-                    Multiple files available. (Separate by system path separator)
+  For Image Set:
+    -sp3x                       deprecated. Use '-spSize 100%:100%' instead
+    -spSize width:height        generate @3x, @2x, @1x with @1x(px)|@3x(%) size
+    -spNoReplace                not overwrite if file already exists
+    -spNoClean                  not clean target files before generate
+    -spBgcolor                  background color.
+    -spScaling                  scaling type (default: 3)
+                                  0: no resizing
+                                  1: fit to short side
+                                  2: fit to long side
+                                  3: fit with aspect ratio
+                                  4: fill without aspect ratio
+    -spDir "path"               Output directory. (relative or absolute)
+    -spFile "png path"          image sets png file location (full path)
+                    multiple files available. (Separate by system path separator)
                     -spFile option is available with batch mode only.
 
 
@@ -176,11 +212,11 @@ CHANGE LOG:
 - Add build.xml for Ant and pom.xml for Maven.
 
 2014/02/22
-- Support output with "Asset Catalogs" format.
+- Supports output with "Asset Catalogs" format.
 - Change word: "Splash" -> "Launch"
 
 2014/02/24
-- Support command line options.
+- Supports command line options.
   Each setting can be specified by using command line options with gui.
   Also the generate process can be automated by using command line options with no gui.
 
@@ -194,11 +230,11 @@ CHANGE LOG:
 - Update documents.
 
 2014/09/11
-- Support iPhone 6 and iPhone 6 Plus.
-- Apple will no longer support Launch Images in the near future, maybe.
+- Supports iPhone 6 and iPhone 6 Plus.
+- Apple will no longer supports Launch Images in the near future, maybe.
 
 2014/09/23
-- Support Launch Image Retina HD 4.7 and Retina HD 5.5 (both portrait and landscape)
+- Supports Launch Image Retina HD 4.7 and Retina HD 5.5 (both portrait and landscape)
 
 2014/09/28
 - Simplified User Interface. Just add a surface, but it looks little bit modern, isn't it? :p
@@ -219,7 +255,7 @@ CHANGE LOG:
 - Refresh images when edit path text directly.
 
 2015/04/29
-- Support Apple Watch and CarPlay icons.
+- Supports Apple Watch and CarPlay icons.
 - Choose icon images by pane clicking.
 - Add "Do not generate ArtWork" option.
 - Add some tooltips.
@@ -228,13 +264,19 @@ CHANGE LOG:
 
 2015/06/03
 - To generate images by parallel processing.
-- Support to specify output subdirectory with the image set generator.
-- Support to drop multiple files to the image set generator. (gui mode only)
+- Supports to specify output subdirectory with the image set generator.
+- Supports to drop multiple files to the image set generator. (gui mode only)
 - Enable drag & drop on linux.
 
 2015/06/07
 - The XML property file is supported. (Other command-line options are stronger than property file)
-- Support to choose multiple files to the image set generator. (batch mode also)
+- Supports to choose multiple files to the image set generator. (batch mode also)
 - Apply same fix with the parallel processing.
 - Add menu bar.
+
+2015/07/19 - Version 2.0.0.0
+- Supports Image Sets with Size Class.
+- Restore last settings at the next startup.
+- Update checker is implemented. (very easy one)
+- And more.
 

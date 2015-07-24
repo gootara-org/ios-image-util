@@ -30,6 +30,22 @@ import java.awt.Dimension;
  * @author gootara.org
  */
 public interface IOSImageInfo {
+
+	public static enum SCALE {
+			x1	(1.0d)
+		,	x2	(2.0d)
+		,	x3	(3.0d)
+		;
+		private double value;
+		SCALE(double value) { this.value = value; }
+		@Override public String toString() { return String.format("%.0fx", value); }
+		public double value() { return value; }
+		public boolean greaterThan(SCALE that) { return this.value > that.value; }
+		public boolean greaterThanEquals(SCALE that) { return this.value >= that.value; }
+		public boolean lessThan(SCALE that) { return this.value < that.value; }
+		public boolean lessThanEquals(SCALE that) { return this.value <= that.value; }
+	}
+
 	/**
 	 * Get image filename.
 	 *
@@ -49,5 +65,5 @@ public interface IOSImageInfo {
 	 *
 	 * @return scale
 	 */
-	public int getScale();
+	public SCALE getScale();
 }

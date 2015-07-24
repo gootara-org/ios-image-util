@@ -32,19 +32,19 @@ import java.awt.Dimension;
  */
 public enum IOSArtworkInfo implements IOSImageInfo {
     //                 filename                width    height  scale      description
-    ITUNES_ARTWORK(   "iTunesArtwork"         , 512   , 512   , 1     ), // -
-    ITUNES_ARTWORKx2( "iTunesArtwork@2x"      , 1024  , 1024  , 2     ), // -
+    ITUNES_ARTWORK(   "iTunesArtwork"         , 512   , 512   , SCALE.x1     ), // -
+    ITUNES_ARTWORKx2( "iTunesArtwork@2x"      , 1024  , 1024  , SCALE.x2     ), // -
 	;
 
 	private String filename;
 	private Dimension size;
-	private int scale;
-	private IOSArtworkInfo(String filename, int width, int height, int scale) {
+	private SCALE scale;
+	private IOSArtworkInfo(String filename, int width, int height, SCALE scale) {
 		this.filename = filename;
 		this.size = new Dimension(width, height);
 		this.scale = scale;
 	}
 	@Override public String getFilename() { return this.filename; }
 	@Override public Dimension getSize() { return this.size; }
-	@Override public int getScale() { return this.scale; }
+	@Override public SCALE getScale() { return this.scale; }
 }
