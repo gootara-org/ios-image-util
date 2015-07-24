@@ -174,7 +174,6 @@ COMMAND LINE OPTIONS:
                                   5: fill screen (no aspect ratio)
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
-
   For Image Set:
     -sp3x                       deprecated. Use '-spSize 100%:100%' instead
     -spSize width:height        generate @3x, @2x, @1x with @1x(px)|@3x(%) size
