@@ -525,7 +525,7 @@ public class SplitterFrame extends JFrame {
 						chooser.setCurrentDirectory(previousTargetDirectory);
 					}
 				}
-				int returnVal = chooser.showOpenDialog(null);
+				int returnVal = chooser.showOpenDialog(SplitterFrame.this);
 				if(returnVal == JFileChooser.APPROVE_OPTION) {
 					try {
 						List<File> files = new LinkedList<File>();
