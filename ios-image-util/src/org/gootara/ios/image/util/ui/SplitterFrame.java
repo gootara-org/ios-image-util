@@ -664,8 +664,6 @@ public class SplitterFrame extends JFrame {
 				for (Map.Entry<String, File>keyValue : deleteTargets.entrySet()) {
 					File targetDirectory = keyValue.getValue();
 					final String orgFilename = keyValue.getKey();
-					System.out.println("org = " + orgFilename);
-					System.out.println(targetDirectory.getAbsolutePath());
 					String[] filenames = targetDirectory.list(new FilenameFilter() {
 						@Override public boolean accept(File dir, String name) {
 							if (!IOSImageUtil.isNullOrWhiteSpace(name)) {
