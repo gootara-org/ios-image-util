@@ -3000,7 +3000,7 @@ public class MainFrame extends JFrame {
 				menuItemExecuteUpdate.setText(String.format("%s (%s)", getResource("menu.help.execute.update", "Update Jar file"), remoteVersion));
 			} else {
 				if (gui) {
-					alert(getResource("update.already.latest", "Current version is the latest."));
+					information(getResource("update.already.latest", "Current version is the latest."));
 				} else {
 					System.err.println(getResource("update.already.latest", "Current version is the latest."));
 				}
