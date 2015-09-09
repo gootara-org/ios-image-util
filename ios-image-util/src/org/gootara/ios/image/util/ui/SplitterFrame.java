@@ -674,11 +674,13 @@ public class SplitterFrame extends JFrame {
 							return false;
 						}
 					});
-					for (String filename : filenames) {
-						File f = new File(targetDirectory, filename);
-						if (f.exists() && f.isFile()) {
-							if (!f.delete()) {
-								System.err.println("Could not delete file - " + f.getAbsolutePath());
+					if (filenames != null) {
+						for (String filename : filenames) {
+							File f = new File(targetDirectory, filename);
+							if (f.exists() && f.isFile()) {
+								if (!f.delete()) {
+									System.err.println("Could not delete file - " + f.getAbsolutePath());
+								}
 							}
 						}
 					}

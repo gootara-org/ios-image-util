@@ -58,6 +58,10 @@ In addition, from Ver 2.0, update checker is supported.
 It can be turned off if you don't need it.
 (Only available with executing from jar file)
 
+*This application will not support "Brand Assets". (In other words, Apple TV icons are not supported.)
+ Also will not support "Memory" and "Graphics" properties of Image Set.
+ These are available with Xcode 7 or later.
+
 
 OUTPUT:
 -------
@@ -87,7 +91,9 @@ OUTPUT:
 |             |   8.x~  | 44x44@2x.png                   |    88  |     88  |
 |             |   8.x~  | 86x86@2x.png                   |   172  |    172  |
 |             |   8.x~  | 98x98@2x.png                   |   196  |    196  |
-|  (CarPlay)  |   8.x~  | 120x120@1x.png                 |   120  |    120  |
+|  (CarPlay)  |   8.x   | 120x120@1x.png                 |   120  |    120  |
+|             |   9.x~  | 60x60@2x.png                   |   120  |    120  |
+|             |   9.x~  | 60x60@3x.png                   |   180  |    180  |
 | Launch      |  ~6.x   | Default.png                    |   320  |    480  |
 |             |  ~7.x~  | Default@2x.png                 |   640  |    960  |
 |             |  ~7.x~  | Default-568h@2x.png            |   640  |   1136  |
@@ -102,6 +108,7 @@ OUTPUT:
 |             |  ~6.x   | Default-Portrait@2x.png        |  1536  |   2008  |
 |             |  ~6.x   | Default-Landscape.png          |  1024  |    748  |
 |             |  ~6.x   | Default-Landscape@2x.png       |  2048  |   1496  |
+| (Apple TV)  |   9.x~  | Default-Landscape-Tv.png       |  1920  |   1080  |
 | Artwork     |  -      | iTunesArtwork                  |   512  |    512  |
 |             |  -      | iTunesArtwork@2x               |  1024  |   1024  |
 
@@ -174,7 +181,7 @@ COMMAND LINE OPTIONS:
                                   5: fill screen (no aspect ratio)
     -lbgcolor [RGB|ARGB]        '000000' black, '00FFFFFF' white 100% transparent
     -imagetype [0-13]           choose image type (@see BufferedImage)
-  For Image Set:
+    For Image Set:
     -sp3x                       deprecated. Use '-spSize 100%:100%' instead
     -spSize width:height        generate @3x, @2x, @1x with @1x(px)|@3x(%) size
     -spNoReplace                not overwrite if file already exists
@@ -278,4 +285,11 @@ CHANGE LOG:
 - Restore last settings at the next startup.
 - Update checker is implemented. (very easy one)
 - And more.
+
+2015/09/10
+- Support part of Xcode 7.1 beta.
+- Support Apple TV launch image. (Launch image only, not support icons)
+- Support new CarPlay Icons (60x60x2, 60x60x3)
+- Bug fix.
+- This application will not support "Brand Assets".
 

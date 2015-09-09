@@ -161,7 +161,7 @@ public class MainFrame extends JFrame {
 	private JComboBox scaleAlgorithm, splashScaling, imageType, optionalImages, minimumVersion;
 	private ImagePanel icon6Image, icon7Image, splashImage, carplayImage, watchImage, macImage, ipadIconImage, ipadLaunchImage;
 	private JProgressBar progress;
-	private JCheckBox generateOldSplashImages, generateAsAssetCatalogs, generateArtwork, generateAsPrerendered, cleanBeforeGenerate;
+	private JCheckBox generateOldSplashImages, generateTvSplash, generateAsAssetCatalogs, generateArtwork, generateAsPrerendered, cleanBeforeGenerate;
 	private JToggleButton generateIphone, generateIpad;
 	private JButton generateButton, settingsButton, cancelButton, splitButton, forwardButton, backButton;
 	private JLabel outputPathDisplay;
@@ -435,8 +435,10 @@ public class MainFrame extends JFrame {
 		generateOptions.add(Box.createHorizontalStrut(8));
 		generateOptions.add(this.generateArtwork = new JCheckBox(getResource("label.generate.artwork", "Artwork"), true));
 		generateOptions.add(this.generateOldSplashImages = new JCheckBox(getResource("label.generate.old.splash", "Generate Old Splash Images"), false));
+		generateOptions.add(this.generateTvSplash = new JCheckBox(getResource("label.generate.tv.splash", "tv"), false));
 		generateArtwork.setToolTipText(getResource("tooltip.generate.artwork", "Generate iTunes Store Artwork images."));
 		generateOldSplashImages.setToolTipText(getResource("tooltip.generate.old.splash", "Generate \"to-status-bar\" launch images specified for iOS 6 iPad."));
+		generateTvSplash.setToolTipText(getResource("label.generate.tv.splash.tooltip", "Generate launch images for Apple TV (not generate Icons for TV)"));
 		settings.add(generateOptions);
 
 		JSeparator separatorSouth = new JSeparator(JSeparator.HORIZONTAL);
@@ -486,6 +488,7 @@ public class MainFrame extends JFrame {
 		});
 		generateArtwork.addItemListener(propertyChangedItemListener);
 		generateOldSplashImages.addItemListener(propertyChangedItemListener);
+		generateTvSplash.addItemListener(propertyChangedItemListener);
 		generateAsAssetCatalogs.addItemListener(new ItemListener() {
 			@Override public void itemStateChanged(ItemEvent e) {
 				generateAsPrerendered.setEnabled(generateAsAssetCatalogs.isSelected());
@@ -507,6 +510,7 @@ public class MainFrame extends JFrame {
 				} else {
 					outputPathDisplay.setText(String.format("%s [%s]", getResource("string.output", "Output to"), outputPath.getText()));
 				}
+				outputPathDisplay.setToolTipText(outputPathDisplay.getText());
 				setStorePropertiesRequested(true);
 			}
 		});
@@ -1795,6 +1799,7 @@ public class MainFrame extends JFrame {
 			this.setOutputPath(this.getStringProperty(props, "output.dir.path", def));
 			this.setSplashScaling(this.getIntProperty(props, "launch.scaling.type", def));
 			this.setGenerateOldSplashImages(this.getBoolProperty(props, "generate.to-status-bar.images", def));
+			this.setGenerateTvSplash(this.getBoolProperty(props, "generate.tv.splash", def));
 			this.setGenerateArtwork(this.getBoolProperty(props, "generate.artwork.images", def));
 			if (this.getBoolProperty(props, "generate.iphone.images.only", def)) { this.selectIphoneOnly(); }
 			else if (this.getBoolProperty(props, "generate.ipad.images.only", def)) { this.selectIpadOnly(); }
@@ -1869,6 +1874,7 @@ public class MainFrame extends JFrame {
 		props.put("output.dir.path", "");
 		props.put("launch.scaling.type", "4");
 		props.put("generate.to-status-bar.images", Boolean.toString(false));
+		props.put("generate.tv.splash", Boolean.toString(false));
 		props.put("generate.artwork.images", Boolean.toString(true));
 		props.put("generate.iphone.images.only", Boolean.toString(false));
 		props.put("generate.ipad.images.only", Boolean.toString(false));
@@ -2012,6 +2018,7 @@ public class MainFrame extends JFrame {
 		props.put("output.dir.path", this.outputPath.getText());
 		props.put("launch.scaling.type", Integer.toString(this.splashScaling.getSelectedIndex()));
 		props.put("generate.to-status-bar.images", Boolean.toString(this.generateOldSplashImages.isSelected()));
+		props.put("generate.tv.splash", Boolean.toString(this.generateTvSplash.isSelected()));
 		props.put("generate.artwork.images", Boolean.toString(this.generateArtwork.isSelected()));
 		props.put("generate.iphone.images.only", Boolean.toString(this.generateIphone.isSelected() && !this.generateIpad.isSelected()));
 		props.put("generate.ipad.images.only", Boolean.toString(!this.generateIphone.isSelected() && this.generateIpad.isSelected()));
@@ -2044,6 +2051,7 @@ public class MainFrame extends JFrame {
 	public void setOutputPath(String path) { outputPath.setText(IOSImageUtil.isNullOrWhiteSpace(path) ? "" : (new File(path)).getAbsolutePath()); }
 	public void setSplashScaling(int idx) { splashScaling.setSelectedIndex(idx); }
 	public void setGenerateOldSplashImages(boolean b) { this.generateOldSplashImages.setSelected(b); }
+	public void setGenerateTvSplash(boolean b) { this.generateTvSplash.setSelected(b); }
 	public void setGenerateArtwork(boolean b) { this.generateArtwork.setSelected(b); }
 	public void setGenerateAsAssetCatalogs(boolean b) { this.generateAsAssetCatalogs.setSelected(b); }
 	public void setGenerateAsPrerendered(boolean b) { this.generateAsPrerendered.setSelected(b); }
@@ -2647,6 +2655,7 @@ public class MainFrame extends JFrame {
 				}
 				if (asset.getIdiom().isIphone() && !this.generateIphone.isSelected()) continue;
 				if (asset.getIdiom().isIpad() && !this.generateIpad.isSelected()) continue;
+				if (asset.getIdiom().isTv() && !this.generateTvSplash.isSelected()) continue;
 				if (asset.getIdiom().isIphone() || asset.getIdiom().isIpad()) {
 					if (minimumVersion.getSelectedIndex() == 1 && asset.getMinimumSystemVersion().prior(IOSAssetCatalogs.SYSTEM_VERSION.IOS7)) continue;
 					if (minimumVersion.getSelectedIndex() == 2 && asset.getMinimumSystemVersion().prior(IOSAssetCatalogs.SYSTEM_VERSION.IOS8)) continue;
@@ -2956,10 +2965,10 @@ public class MainFrame extends JFrame {
 	protected String getResource(String key, String def) {
 		if (resource.containsKey(key)) {
 			String s = resource.getString(key);
-			if (s.startsWith("\"") && !s.startsWith("\"\"")) {
+			if (s.startsWith("\"")) {
 				s = s.substring(1);
 			}
-			if (s.endsWith("\"") && !s.endsWith("\"\"")) {
+			if (s.endsWith("\"")) {
 				s = s.substring(0, s.length() - 1);
 			}
 			return s;

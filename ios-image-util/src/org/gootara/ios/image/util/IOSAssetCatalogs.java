@@ -60,6 +60,7 @@ public interface IOSAssetCatalogs {
 			ANY		(0.0f)
 		,	IOS7	(7.0f)
 		,	IOS8	(8.0f)
+		,   IOS9    (9.0f)
 		;
 		private float value;
 		SYSTEM_VERSION(float value) { this.value = value; }
@@ -78,6 +79,7 @@ public interface IOSAssetCatalogs {
 		,	CARPLAY    ("car")
 		,	APPLEWATCH ("watch")
 		,	MAC        ("mac")
+		,	TV         ("tv")
 		;
 		private String idiom;
 		IDIOM(String idiom) { this.idiom = idiom; }
@@ -88,6 +90,7 @@ public interface IOSAssetCatalogs {
 		public boolean isAppleWatch() { return this.idiom.equals(APPLEWATCH.toString()); }
 		public boolean isCarplay() { return this.idiom.equals(CARPLAY.toString()); }
 		public boolean isMac() { return this.idiom.equals(MAC.toString()); }
+		public boolean isTv() { return this.idiom.equals(TV.toString()); }
 	}
 
 	public enum SUBTYPE {

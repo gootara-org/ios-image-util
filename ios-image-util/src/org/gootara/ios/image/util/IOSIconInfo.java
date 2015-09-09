@@ -51,6 +51,8 @@ public enum IOSIconInfo implements IOSImageInfo {
     ICON_76x2 ( "76@2x.png"       , 152   , 152   , SCALE.x2    ), // iPad3 or later
 
     ICON_120x120 ( "120x120@1x.png"    , 120   , 120   , SCALE.x1    ), // CarPlay
+    ICON_60x60x2 ( "60x60@2x.png"      , 120   , 120   , SCALE.x2    ), // CarPlay
+    ICON_60x60x3 ( "60x60@3x.png"      , 180   , 180   , SCALE.x3    ), // CarPlay
 
     ICON_24x24x2     ( "24x24@2x.png"    , 48  , 48    , SCALE.x2    ), // Apple Watch 38mm Nofitication Center
     ICON_27_5x27_5x2 ( "27.5x27.5@2x.png", 55  , 55    , SCALE.x2    ), // Apple Watch 42mm Nofitication Center
