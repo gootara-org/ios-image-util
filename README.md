@@ -4,21 +4,21 @@ ios-image-util
 OVERVIEW:
 ---------
 This tiny Java application generate all size of icon & launch image files with PNG format for various version of iOS.
-Supports iPhone, iPad and optionally supports Apple Watch, CarPlay, Mac.
-In addition, supports "Asset Catalogs".
+Support devices - iPhone, iPad and optionally supports Apple Watch, CarPlay, Mac.
+"Asset Catalogs(Image Set)" is also supported.
 
-Just drop original icon PNG file (1024 x 1024 pixels recommended) to the window,
-sized images will be generated automatically with appropriate filename,
+To generate images, just drop original icon PNG file (1024 x 1024 pixels recommended) to the window and press "Generate" button.
+Scaled images will be generated automatically with appropriate filename.
 For compatibility maintenance, iOS 6 icon can specify separately, but usually does not need to set for it.
-Also icon and launch images especially for iPad could be specified, but usually to use same images with iPhone.
+Also icon and launch images especially for iPad can be specified. (If not specified, same images as iPhone will be applied.)
 
 Optionally, Apple Watch, CarPlay and Mac icon can specify separately, too.
 These are not requirement. You should set these images only when you want to generate.
-*The icon for Apple Watch will be generated to 24 bits RGB PNG, without alpha channel.
+*Icon for Apple Watch will be generated to 24 bits RGB PNG, without alpha channel.
 
 The launch images are also optional.
-A square PNG file (1536 x 1536 pixels recommended) is suitable for the launch image sets.
-The original picture will be put in the center of each size of launch images. (Some scaling options are available.)
+A square PNG file (1536 x 1536 pixels recommended) is suitable for the launch image set.
+The original picture gonna be put in the center of each size of launch images. (Some scaling options are available.)
 Normally, the background-color will be guessed automatically, but also can be specified.
 1536 x 1536 square shape is not a requirement, but it's easy way to generate universal launch images.
 
@@ -26,9 +26,9 @@ Each settings can be specified by using command line options.
 This means generating process can be automated by using command line options with no gui.
 
 The XML property file is supported.
-You can store properties to the XML file and load it next time.
+You can store properties to the XML file and load it on next execution.
 How to load XML - use menu or drop to the upper half of window or command-line options.
-Other command-line options are stronger than XML property file.
+Individual command-line options are stronger than XML property file.
 
 Moreover, from Ver 2.0, restore last settings at the next startup.
 Settings can clear or reset by using command-line options.
@@ -46,7 +46,7 @@ As the extra feature, to generate @3x, @2x, @1x images from one PNG file.
 
 ![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter.png "Splitter")
 
-From Ver 2.0, Image Set with Size Class is supported, too.
+From Ver 2.0, Image Set with Size Class is supported.
 
 ![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter2.png "Splitter")
 
