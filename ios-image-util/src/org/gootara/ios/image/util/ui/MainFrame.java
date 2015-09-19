@@ -1063,22 +1063,35 @@ public class MainFrame extends JFrame {
 						if (file == null) {
 							return false;
 						}
-						if (isStorePropertiesRequested()) {
-							if (yesNo(getResource("question.store.properties", "Save current settings?"))) {
-								if (propertiesFile == null) {
-									if (!storeProperties()) {
-										return false;
-									}
-								} else {
-									storeProperties(propertiesFile);
-								}
-							}
-						}
 						setAlwaysOnTop(true);
 						toFront();
 						requestFocus();
 						setAlwaysOnTop(false);
-						loadProperties(file);
+						final File targetFile = file;
+						// JOptionPane.showConfirmDialog has abnormal focus during dropping files on mac. Try another thread.
+						(new SwingWorker<Boolean, Integer>() {
+							@Override protected Boolean doInBackground() throws Exception {
+								try {
+									if (isStorePropertiesRequested()) {
+										if (yesNo(getResource("question.store.properties", "Save current settings?"))) {
+											if (propertiesFile == null) {
+												if (!storeProperties()) {
+													return false;
+												}
+											} else {
+												storeProperties(propertiesFile);
+											}
+										}
+									}
+									loadProperties(targetFile);
+									return true;
+								} catch (Throwable t) {
+									handleThrowable(t);
+								}
+								return false;
+							}
+						}).execute();
+						return true;
 					}
 				} catch (Throwable t) {
 					handleThrowable(t);
@@ -1172,7 +1185,7 @@ public class MainFrame extends JFrame {
 	public void initializeGUI() {
 		/**
 		 * I can't understand what a hell is going on here,
-		 * but window move event is never raised on my Mac OS X El Capitan with java 1.7.0_45, 1.8.0_51. (default look and feel.)
+		 * but window move event is never raised on my Mac OS X Yosemite with java 1.7.0_45, 1.8.0_51. (default look and feel.)
 		 * I know code like this is ugly, but rescue this bug because menu item and combobox pulldown
 		 * and something like that are sticky on previous location.
 		 * (Is this real bug? Anyone doesn't care about this?)
@@ -2196,11 +2209,14 @@ public class MainFrame extends JFrame {
 	 *
 	 * @param message	message
 	 */
-	protected void information(String message) {
+	private void information(String message) {
+		this.information(this, message);
+	}
+	protected void information(Component parentComponent, String message) {
 		if (this.isBatchMode()) {
 			if (!this.isSilentMode()) System.out.println(message);
 		} else {
-			JOptionPane.showMessageDialog(this, message, getResource("title.information", "Information"), JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(parentComponent, message, getResource("title.information", "Information"), JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
 
@@ -2209,11 +2225,14 @@ public class MainFrame extends JFrame {
 	 *
 	 * @param message	alert message
 	 */
-	protected void alert(String message) {
+	private void alert(String message) {
+		alert(this, message);
+	}
+	protected void alert(Component parentComponent, String message) {
 		if (this.isBatchMode()) {
 			System.err.println(message);
 		} else {
-			JOptionPane.showMessageDialog(this, message, getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parentComponent, message, getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -2225,10 +2244,13 @@ public class MainFrame extends JFrame {
 	 * @return	true - ok / false - cancel
 	 */
 	private boolean confirm(String message) {
+		return confirm(this, message);
+	}
+	protected boolean confirm(Component parentComponent, String message) {
 		if (this.isBatchMode()) {
 			return true;
 		}
-		return (JOptionPane.showConfirmDialog(this, message, getResource("title.confirm", "Confirm"), JOptionPane.OK_CANCEL_OPTION) != JOptionPane.CANCEL_OPTION);
+		return (JOptionPane.showConfirmDialog(parentComponent, message, getResource("title.confirm", "Confirm"), JOptionPane.OK_CANCEL_OPTION) != JOptionPane.CANCEL_OPTION);
 	}
 
 	/**
@@ -2239,10 +2261,13 @@ public class MainFrame extends JFrame {
 	 * @return true - yes / false - no
 	 */
 	private boolean yesNo(String message) {
+		return yesNo(this, message);
+	}
+	protected boolean yesNo(Component parentComponent, String message) {
 		if (this.isBatchMode()) {
 			return false;
 		}
-		return (JOptionPane.showConfirmDialog(this, message, getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+		return (JOptionPane.showConfirmDialog(parentComponent, message, getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
 
 	}
 

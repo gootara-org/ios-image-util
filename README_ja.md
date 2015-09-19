@@ -285,10 +285,12 @@ CHANGE LOG:
 - Update checker is implemented. (very easy one)
 - And more.
 
-2015/09/10
+2015/09/10 - 2.7.1.0
 - Support part of Xcode 7.1 beta.
 - Support Apple TV launch image. (Launch image only, not support icons)
 - Support new CarPlay Icons (60x60x2, 60x60x3)
 - Bug fix.
 - This application will not support "Brand Assets".
 
+2015/09/19 - 2.7.1.1
+- Fix abnormal focus problem with dropping files on mac.

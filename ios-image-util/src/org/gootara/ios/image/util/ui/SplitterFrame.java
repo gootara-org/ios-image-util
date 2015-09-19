@@ -71,7 +71,6 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSeparator;
@@ -434,7 +433,7 @@ public class SplitterFrame extends JFrame {
 					}
 
 					if (canImport(support)) {
-						List<File> files = new LinkedList<File>();
+						final List<File> files = new LinkedList<File>();
 						if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
 							Object list = support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 							if (list instanceof List<?>) {
@@ -467,13 +466,21 @@ public class SplitterFrame extends JFrame {
 						toFront();
 						requestFocus();
 						setAlwaysOnTop(false);
-						if (dropFiles(files)) {
-							return true;
-						}
+						// JOptionPane.showConfirmDialog has abnormal focus during dropping files on mac. Try another thread.
+						(new SwingWorker<Boolean, Integer>() {
+							@Override protected Boolean doInBackground() throws Exception {
+								try {
+									return dropFiles(files);
+								} catch (Throwable t) {
+									owner.handleThrowable(t);
+								}
+								return false;
+							}
+						}).execute();
+						return true;
 					}
 				} catch (Throwable t) {
-					t.printStackTrace();
-					JOptionPane.showMessageDialog(splitButton.getParent(), t.toString() + " (" + t.getMessage() + ")", owner.getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+					owner.handleThrowable(t);
 				} finally {
 					setAlwaysOnTop(false);
 				}
@@ -498,7 +505,7 @@ public class SplitterFrame extends JFrame {
 		splitButton.addActionListener(new ActionListener() {
 			@Override public void actionPerformed(ActionEvent e) {
 				if (isGenerating()) {
-					if (JOptionPane.showConfirmDialog(SplitterFrame.this, owner.getResource("splitter.question.cancel", "Are you sure to cancel generating images?"), owner.getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+					if (!yesNo(owner.getResource("splitter.question.cancel", "Are you sure to cancel generating images?"))) {
 						return;
 					}
 					try {
@@ -534,8 +541,7 @@ public class SplitterFrame extends JFrame {
 						}
 						dropFiles(files);
 					} catch (Throwable t) {
-						t.printStackTrace();
-						JOptionPane.showMessageDialog(splitButton.getParent(), t.toString() + " (" + t.getMessage() + ")", owner.getResource("title.error", "Error"), JOptionPane.ERROR_MESSAGE);
+						owner.handleThrowable(t);
 					}
 			    }
 
@@ -559,7 +565,7 @@ public class SplitterFrame extends JFrame {
 				}
 				if (isGenerating()) {
 					setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-					owner.alert(owner.getResource("error.close.window", "Please wait until generating process will be finished."));
+					alert(owner.getResource("error.close.window", "Please wait until generating process will be finished."));
 					return;
 				}
 				setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -601,7 +607,7 @@ public class SplitterFrame extends JFrame {
 			HashMap<String, File> deleteTargets = new HashMap<String, File>();
 			for (File file : files) {
 				if (!file.exists() || !file.isFile()) {
-					owner.alert("[" + file.getCanonicalPath() + "] " + owner.getResource("error.not.exists", "is not exists."));
+					alert("[" + file.getCanonicalPath() + "] " + owner.getResource("error.not.exists", "is not exists."));
 					continue;
 				}
 				previousTargetDirectory = file.getParentFile();
@@ -616,7 +622,7 @@ public class SplitterFrame extends JFrame {
 						// absolute path.
 						dir = subPath;
 						if (!dir.exists() || !dir.isDirectory()) {
-							owner.alert(owner.getResource("splitter.error.subdir", "Only existance directory is available with absolute path."));
+							alert(owner.getResource("splitter.error.subdir", "Only existance directory is available with absolute path."));
 							return false;
 						}
 					} else {
@@ -654,7 +660,7 @@ public class SplitterFrame extends JFrame {
 					}
 				}
 				if (existingFilename != null) {
-					if (JOptionPane.showConfirmDialog(this, String.format(owner.getResource("splitter.already.exists", "[%s] already exists. Replace file?"), existingFilename), owner.getResource("title.question", "Question"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+					if (!yesNo(String.format(owner.getResource("splitter.already.exists", "[%s] already exists. Replace file?"), existingFilename))) {
 						return false;
 					}
 				}
@@ -705,7 +711,7 @@ public class SplitterFrame extends JFrame {
 			IOSImageSet imageSets;
 			while ((imageSets = queue.poll()) != null) {
 				if (!imageSets.getOriginalFile().exists()) {
-					owner.alert("[" + imageSets.getFile().getCanonicalPath() + "] " + owner.getResource("error.not.exists", "is not exists."));
+					alert("[" + imageSets.getFile().getCanonicalPath() + "] " + owner.getResource("error.not.exists", "is not exists."));
 					this.addProgress(false);
 					continue;
 				}
@@ -849,7 +855,7 @@ public class SplitterFrame extends JFrame {
 		this.setCleanBeforeGenerate(owner.getBoolProperty(props, "splitter.clean.before.generate.selected", def));
 		this.setOutputDirectory(props.getProperty("splitter.sub.directory", "").trim().equals(owner.getResource("splitter.label", "Same as origin.")) ? "" : owner.getStringProperty(props, "splitter.sub.directory", def));
 		if (owner.getBoolProperty(props, "splitter.as3x.selected", def)) {
-			owner.information(owner.getResource("splitter.info.as3x", "'splitter.as3x.selected' property was deprecated. Use 100% size instead."));
+			information(owner.getResource("splitter.info.as3x", "'splitter.as3x.selected' property was deprecated. Use 100% size instead."));
 			this.setWidth1x("100 %");
 			this.setHeight1x("100 %");
 		}
@@ -1169,6 +1175,47 @@ public class SplitterFrame extends JFrame {
 			contentCache.put(imageSet.getOriginalFile(), list = new ArrayList<IOSImageSet>());
 		}
 		list.add(imageSet);
+	}
+
+
+	/**
+	 * Show information message.
+	 *
+	 * @param message	message
+	 */
+	private void information(String message) {
+		owner.information(this, message);
+	}
+
+	/**
+	 * Show alert.
+	 *
+	 * @param message	alert message
+	 */
+	private void alert(String message) {
+		owner.alert(this, message);
+	}
+
+	/**
+	 * Show confirm.
+	 * Always 'true' with the batch mode.
+	 *
+	 * @param message	message
+	 * @return	true - ok / false - cancel
+	 */
+	private boolean confirm(String message) {
+		return owner.confirm(this, message);
+	}
+
+	/**
+	 * Show yes / no dialog.
+	 * Always 'false' with the batch mode.
+	 *
+	 * @param message	message
+	 * @return true - yes / false - no
+	 */
+	private boolean yesNo(String message) {
+		return owner.yesNo(this, message);
 	}
 }
 
