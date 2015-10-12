@@ -49,14 +49,16 @@ public class IOSImageUtil {
 
 	public static void main(String[] args) {
 		try {
+			/* Mac OS X El Capitan has a little problem with mac look and feel. Ignore it.
 			for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 				if (info.getClassName().equals("com.apple.laf.AquaLookAndFeel")) {
 					System.setProperty("apple.laf.useScreenMenuBar", "true");
-					System.setProperty("com.apple.mrj.application.apple.menu.about.name", "IOSImageUtil");
+					System.setProperty("com.apple.mrj.application.apple.menu.about.name", "ios-image-util");
 					UIManager.setLookAndFeel(info.getClassName());
 					break;
 				}
 			}
+			*/
 
 			// Use anti-aliasing font on Windows platform in Japanese by default.
 			System.setProperty("awt.useSystemAAFontSettings", "lcd"); // Maybe not effective. Don't care.

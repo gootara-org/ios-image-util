@@ -551,7 +551,7 @@ public class SplitterFrame extends JFrame {
 		progress.setValue(0);
 		progress.setStringPainted(true);
 		progress.setBorderPainted(false);
-		progress.setBackground(MainFrame.BGCOLOR_LIGHT_GRAY);
+		progress.setBackground(isMacLAF ? Color.WHITE : MainFrame.BGCOLOR_LIGHT_GRAY);
 		progress.setForeground(splitButton.getBackground());
 		progress.setOpaque(true);
 		this.add(progress, BorderLayout.SOUTH);

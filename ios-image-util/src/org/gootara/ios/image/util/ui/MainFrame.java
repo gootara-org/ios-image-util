@@ -119,7 +119,6 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -768,12 +767,10 @@ public class MainFrame extends JFrame {
 		progress.setValue(0);
 		progress.setStringPainted(true);
 		progress.setBorderPainted(false);
-		progress.setBackground(BGCOLOR_LIGHT_GRAY);
+		progress.setBackground(isMacLAF ? Color.WHITE : BGCOLOR_LIGHT_GRAY);
 		progress.setForeground(COLOR_CYAN);
 		progress.setOpaque(true);
-		progress.setBorder(new EmptyBorder(0, 0, 0, 0));
 		surface.add(progress);
-
 		outputPathDisplay = new JLabel("");
 		outputPathDisplay.setForeground(COLOR_CYAN);
 		outputPathDisplay.setFont(fontNormal);
@@ -2178,7 +2175,7 @@ public class MainFrame extends JFrame {
 	}
 
 	/**
-	 * Add progress.
+	 * Add .
 	 *
 	 * @param i	value to add
 	 */
