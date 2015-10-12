@@ -119,6 +119,7 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -770,6 +771,7 @@ public class MainFrame extends JFrame {
 		progress.setBackground(BGCOLOR_LIGHT_GRAY);
 		progress.setForeground(COLOR_CYAN);
 		progress.setOpaque(true);
+		progress.setBorder(new EmptyBorder(0, 0, 0, 0));
 		surface.add(progress);
 
 		outputPathDisplay = new JLabel("");
@@ -1303,9 +1305,20 @@ public class MainFrame extends JFrame {
 						MainFrame.this.toFront();
 						MainFrame.this.requestFocus();
 						MainFrame.this.setAlwaysOnTop(false);
-						if (setFilePath(textField, file, imagePanel)) {
-							return true;
-						}
+						// JOptionPane.showConfirmDialog has abnormal focus during dropping files on mac. Try another thread.
+						final File targetFile = file;
+						(new SwingWorker<Boolean, Integer>() {
+							@Override protected Boolean doInBackground() throws Exception {
+								try {
+									if (setFilePath(textField, targetFile, imagePanel)) {
+										return true;
+									}
+								} catch (Throwable t) {
+									handleThrowable(t);
+								}
+								return false;
+							}
+						}).execute();
 					}
 				} catch (Throwable t) {
 					handleThrowable(t);

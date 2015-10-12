@@ -439,9 +439,7 @@ public class SplitterFrame extends JFrame {
 							if (list instanceof List<?>) {
 								for (Object o : ((List<?>)list)) {
 									if (o instanceof File) {
-										if (((File)o).isFile()) {
-											files.add((File)o);
-										}
+										files.add((File)o);
 									}
 								}
 							}
@@ -606,8 +604,12 @@ public class SplitterFrame extends JFrame {
 			LinkedList<IOSImageSet> queue = new LinkedList<IOSImageSet>();
 			HashMap<String, File> deleteTargets = new HashMap<String, File>();
 			for (File file : files) {
-				if (!file.exists() || !file.isFile()) {
+				if (!file.exists()) {
 					alert("[" + file.getCanonicalPath() + "] " + owner.getResource("error.not.exists", "is not exists."));
+					continue;
+				}
+				if (!file.isFile()) {
+					alert("[" + file.getCanonicalPath() + "] " + owner.getResource("error.not.file", "is directory. Choose file."));
 					continue;
 				}
 				previousTargetDirectory = file.getParentFile();

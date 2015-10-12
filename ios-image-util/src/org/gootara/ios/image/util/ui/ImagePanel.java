@@ -49,7 +49,7 @@ public class ImagePanel extends JPanel {
 
 	private java.io.File imageFile;
 	private Image image, scaledImage;
-	private String placeHolder, hyphenatorBoL, hyphnatorEoL;
+	private String placeHolder, hyphenatorBoL, hyphenatorEoL;
 	private int scalingType;
 	private Timer timer;
 	private final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
@@ -302,7 +302,7 @@ public class ImagePanel extends JPanel {
 				if (this.hyphenatorBoL != null && word.length() == 1 && this.hyphenatorBoL.indexOf(word.charAt(0)) >= 0) {
 					line.append(word);
 					word = new String();
-				} else if (this.hyphnatorEoL != null && line.length() > 1 && this.hyphnatorEoL.indexOf(line.charAt(line.length() - 1)) >= 0) {
+				} else if (this.hyphenatorEoL != null && line.length() > 1 && this.hyphenatorEoL.indexOf(line.charAt(line.length() - 1)) >= 0) {
 					word = line.substring(line.length() - 1).concat(word);
 					line.setLength(line.length() - 1);
 				}
@@ -346,7 +346,7 @@ public class ImagePanel extends JPanel {
 	 */
 	public void setHyphenator(String beginingOfLine, String endOfLine) {
 		this.hyphenatorBoL = beginingOfLine;
-		this.hyphnatorEoL = endOfLine;
+		this.hyphenatorEoL = endOfLine;
 	}
 
 	/**

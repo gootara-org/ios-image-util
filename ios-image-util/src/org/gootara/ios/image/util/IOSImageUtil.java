@@ -49,6 +49,22 @@ public class IOSImageUtil {
 
 	public static void main(String[] args) {
 		try {
+			/* Mac OS X El Capitan has a little problem with mac look and feel. Apply metal look and feel.
+			for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+				if (info.getClassName().equals("com.apple.laf.AquaLookAndFeel")) {
+					System.setProperty("apple.laf.useScreenMenuBar", "true");
+					System.setProperty("com.apple.mrj.application.apple.menu.about.name", "ios-image-util");
+					UIManager.setLookAndFeel(info.getClassName());
+					break;
+				}
+			}
+			*/
+			try {
+				UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+
 			// Use anti-aliasing font on Windows platform in Japanese by default.
 			System.setProperty("awt.useSystemAAFontSettings", "lcd"); // Maybe not effective. Don't care.
 			ResourceBundle resource = ResourceBundle.getBundle("application");
@@ -473,14 +489,14 @@ public class IOSImageUtil {
 		System.out.println("  -ipadonly                   output iPad images only (default both)");
 		System.out.println("  -to-status-bar              generate 'to-status-bar' launch images");
 		System.out.println("  -noasset                    not generate images as asset catalogs");
-	    System.out.println("  -noartwork                  not generate ArtWork images for Store");
-	    System.out.println("  -noprerender                not generate as pre-rendered");
+		System.out.println("  -noartwork                  not generate ArtWork images for Store");
+		System.out.println("  -noprerender                not generate as pre-rendered");
 		System.out.println("  -noclean                    not clean target files before generate");
-	    System.out.println("  -minver [0,7,8]             minimum version to generate (default: 0)");
+		System.out.println("  -minver [0,7,8]             minimum version to generate (default: 0)");
 		System.out.println("                                0: All versions");
 		System.out.println("                                7: iOS 7 and Later");
 		System.out.println("                                8: iOS 8 and Later");
-	    System.out.println("  -lscale [0-5]               launch image scaling (default: 4)");
+		System.out.println("  -lscale [0-5]               launch image scaling (default: 4)");
 		System.out.println("                                0: no resizing (iPhone only)");
 		System.out.println("                                1: no resizing (iPhone & iPad)");
 		System.out.println("                                2: fit to screen height (iPhone only)");
