@@ -49,20 +49,13 @@ public class IOSImageUtil {
 
 	public static void main(String[] args) {
 		try {
-			/* Mac OS X El Capitan has a little problem with mac look and feel. Apply metal look and feel.
 			for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 				if (info.getClassName().equals("com.apple.laf.AquaLookAndFeel")) {
 					System.setProperty("apple.laf.useScreenMenuBar", "true");
-					System.setProperty("com.apple.mrj.application.apple.menu.about.name", "ios-image-util");
+					System.setProperty("com.apple.mrj.application.apple.menu.about.name", "IOSImageUtil");
 					UIManager.setLookAndFeel(info.getClassName());
 					break;
 				}
-			}
-			*/
-			try {
-				UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-			} catch (Exception ex) {
-				ex.printStackTrace();
 			}
 
 			// Use anti-aliasing font on Windows platform in Japanese by default.
