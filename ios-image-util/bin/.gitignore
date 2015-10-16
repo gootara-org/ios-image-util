@@ -1,2 +1,3 @@
-/org
-ios-image-util.properties
+org
+*.properties
+*.xml
