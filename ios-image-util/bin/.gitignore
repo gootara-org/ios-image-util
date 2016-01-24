@@ -1,3 +1,1 @@
-org
-*.properties
-*.xml
+/org/

@@ -3,46 +3,39 @@ ios-image-util
 
 OVERVIEW:
 ---------
-This tiny Java application generate all size of icon & launch image files with PNG format for various version of iOS.
-Support devices - iPhone, iPad and optionally supports Apple Watch, CarPlay, Mac.
-"Asset Catalogs(Image Set)" is also supported.
+This tiny Java application generate all size of icon & launch image files with PNG format for various version of iOS.  
+Support iPhone, iPad and optionally supports Apple Watch, CarPlay, Mac.
 
 ![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/screen.png "GUI")
 
-To generate images, just drop original icon PNG file (1024 x 1024 pixels recommended) to the window and press "Generate" button.
-Scaled images will be generated automatically with appropriate filename.
-For compatibility maintenance, iOS 6 icon can specify separately, but usually does not need to set for it.
-Also icon and launch images especially for iPad can be specified. (If not specified, same images as iPhone will be applied.)
+To generate images, just drop original icon PNG file (1024 x 1024 pixels recommended) to the window and press "Generate" button.  
+Contents.json and scaled images going to be generated with appropriate filename.  
+For compatibility maintenance, iOS 6 icon can specify separately, but usually does not need to set for it.  
+Also icon and launch images especially for iPad can be specified. (If not set, same images as iPhone will be used.)
 
-Optionally, Apple Watch, CarPlay and Mac icon can specify separately, too.
-These are not requirement. You should set these images only when you want to generate.
-*Icon for Apple Watch will be generated to 24 bits RGB PNG, without alpha channel.
+Optionally, Apple Watch, CarPlay and Mac icon could set separately, too.
+These are not requirement. You should set these images only when you want to generate.  
+*Icon for Apple Watch generate as 24 bits RGB PNG, without alpha channel.
 
 The launch images are also optional.
-A square PNG file (1536 x 1536 pixels recommended) is suitable for the launch image set.
-The original picture gonna be put in the center of each size of launch images. (Some scaling options are available.)
-Normally, the background-color will be guessed automatically, but also can be specified.
-1536 x 1536 square shape is not a requirement, but it's easy way to generate universal launch images.
+Square PNG file 2048 x 2048 pixels recommended.  
+The square shape is not a requirement, but it's easy way to generate universal launch images.
 
 ![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/settings.png "Settings")
 
 Each settings can be specified by using command line options.
 This means generating process can be automated by using command line options with no gui.
 
-The XML property file is supported.
-You can store properties to the XML file and load it on next execution.
-How to load XML - use menu or drop to the upper half of window or command-line options.
-Individual command-line options are stronger than XML property file.
-
-Moreover, from Ver 2.0, restore last settings at the next startup.
-Settings can clear or reset by using command-line options.
-Also, it's possible to clear settings completely by deleting 'ios-image-util.properties' file that the last settings stored.
-This means the last settings will not be restored when executing by jar file from other directories.
+You can store settings to XML property file and load next time.
+Individual command-line options are stronger than XML property file.  
+From Ver 2.0, last settings will be restored automatically at the next startup.
+Settings stored to 'ios-image-util.properties' on window closing,
+this means the last settings will not be restored when executing by jar file from other directories.
 
 
 
-As the extra feature, to generate @3x, @2x, @1x images from one PNG file.
-(To drop/select multiple files are supported.)
+Extra feature, generating @3x, @2x, @1x images from one PNG file.
+(drop/select multiple files are supported.)
 
 ![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter.png "Splitter")
 
@@ -50,16 +43,10 @@ From Ver 2.0, Image Set with Size Class is supported.
 
 ![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/splitter2.png "Splitter")
 
-All of Size Class image files and Contents.json will be automatically generated
-by simply dropping an original picture to the window.
-Also, it's possible to specify output image size of all images individually.
-
-In addition, from Ver 2.0, update checker is supported.
-It can be turned off if you don't need it.
-(Only available with executing from jar file)
+With 'Generate with Image Set' option, Contents.json going to be generated with scaled images.
 
 *This application will not support "Brand Assets". (In other words, Apple TV icons are not supported.)
- Also will not support "Memory" and "Graphics" properties of Image Set.
+ Also will not support "Memory" and "Graphics" properties for Image Set.
  These are available with Xcode 7 or later.
 
 
@@ -83,6 +70,7 @@ OUTPUT:
 |             |  ~6.x   | Icon-72@2x.png                 |   144  |    144  |
 |             |   7.x~  | Icon-76.png                    |    76  |     76  |
 |             |   7.x~  | Icon-76@2x.png                 |   152  |    152  |
+|             |   9.x~  | Icon-83.5@2x.png               |   167  |    167  |
 |(Apple Watch)|   8.x~  | 24x24@2x.png                   |    48  |     48  |
 |             |   8.x~  | 27.5x27.5@2x.png               |    55  |     55  |
 |             |   8.x~  | 29x29@2x.png                   |    58  |     58  |
