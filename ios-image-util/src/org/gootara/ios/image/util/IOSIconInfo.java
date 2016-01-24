@@ -40,8 +40,8 @@ public enum IOSIconInfo implements IOSImageInfo {
 	ICON_40x3 ( "Small-40@3x.png" , 120   , 120   , SCALE.x3    ), // iPhone6 Plus
 	ICON_50   ( "Small-50.png"    , 50    , 50    , SCALE.x1    ), // iPad / iPad2 / iPad mini
 	ICON_50x2 ( "Small-50@2x.png" , 100   , 100   , SCALE.x2    ), // iPad3 or later
-	ICON_57   ( ".png"            , 57    , 57    , SCALE.x1    ), // iPhone 3G / 3GS
-	ICON_57x2 ( "@2x.png"         , 114   , 114   , SCALE.x2    ), // iPhone4 or later
+	ICON_57   ( "57.png"            , 57    , 57    , SCALE.x1    ), // iPhone 3G / 3GS
+	ICON_57x2 ( "57@2x.png"         , 114   , 114   , SCALE.x2    ), // iPhone4 or later
 //	ICON_60   ( "60.png"          , 60    , 60    , SCALE.x1    ), // (not exists)
 	ICON_60x2 ( "60@2x.png"       , 120   , 120   , SCALE.x2    ), // iPhone4 or later
 	ICON_60x3 ( "60@3x.png"       , 180   , 180   , SCALE.x3    ), // iPhone6 Plus
@@ -49,6 +49,7 @@ public enum IOSIconInfo implements IOSImageInfo {
 	ICON_72x2 ( "72@2x.png"       , 144   , 144   , SCALE.x2    ), // iPad3 or later
 	ICON_76   ( "76.png"          , 76    , 76    , SCALE.x1    ), // iPad / iPad2 / iPad mini
 	ICON_76x2 ( "76@2x.png"       , 152   , 152   , SCALE.x2    ), // iPad3 or later
+	ICON_83_5x2 ( "83.5@2x.png"       , 167   , 167   , SCALE.x2    ), // iPad Pro
 
 	ICON_120x120 ( "120x120@1x.png"    , 120   , 120   , SCALE.x1    ), // CarPlay
 	ICON_60x60x2 ( "60x60@2x.png"      , 120   , 120   , SCALE.x2    ), // CarPlay

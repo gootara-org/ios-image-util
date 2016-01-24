@@ -7,6 +7,8 @@ iOS 用のアイコン＆起動イメージ（PNG）を、必要とされる全�
 Apple Watch と CarPlay、および Mac に対応しました。
 また、Asset Catalogs 形式での出力に対応しています。
 
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/screen_ja.png "GUI")
+
 元となるアイコン画像（1024x1024 推奨）をウィンドウにドロップして、「イメージ生成」ボタンを押すだけで、
 必要な全てのサイズの PNG を然るべきファイル名で生成します。
 互換維持の為に iOS 6 用のアイコンを個別に指定できるようにしていますが、通常は設定する必要はありません。
@@ -22,6 +24,8 @@ Apple Watch、CarPlay および Mac 用のアイコンは、それぞれ出力�
 特にユニバーサルな場合は、あまり手間をかけずにそれっぽくなるので推奨しています。
 起動イメージに関しては、スケーリングオプションもいくつか用意しています。
 
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/settings_ja.png "Settings")
+
 また、GUI 上の各設定値をコマンドラインオプションで指定できるようにしてみました。
 GUI を表示せずにバッチ実行することも可能ですので、自動化処理に組み込めるかも知れません。
 
@@ -35,10 +39,6 @@ XML プロパティファイルによる、設定値の保存や一括指定が�
 作業状態は jar ファイルと同じディレクトリに ios-image-util.properties として保存されますので、
 それを削除することでも初期状態に戻すことが可能です。
 つまり、別ディレクトリの jar から起動した場合、状態は引き継がれません。
-
-![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/screen_ja.png "GUI")
-
-![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/settings_ja.png "Settings")
 
 
 
@@ -294,3 +294,7 @@ CHANGE LOG:
 
 2015/09/19 - 2.7.1.1
 - Fix abnormal focus problem with dropping files on mac.
+
+2016/01/24 - 2.7.2.0
+- Support iPad Pro icon.
+

@@ -7,6 +7,8 @@ This tiny Java application generate all size of icon & launch image files with P
 Support devices - iPhone, iPad and optionally supports Apple Watch, CarPlay, Mac.
 "Asset Catalogs(Image Set)" is also supported.
 
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/screen.png "GUI")
+
 To generate images, just drop original icon PNG file (1024 x 1024 pixels recommended) to the window and press "Generate" button.
 Scaled images will be generated automatically with appropriate filename.
 For compatibility maintenance, iOS 6 icon can specify separately, but usually does not need to set for it.
@@ -22,6 +24,8 @@ The original picture gonna be put in the center of each size of launch images. (
 Normally, the background-color will be guessed automatically, but also can be specified.
 1536 x 1536 square shape is not a requirement, but it's easy way to generate universal launch images.
 
+![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/settings.png "Settings")
+
 Each settings can be specified by using command line options.
 This means generating process can be automated by using command line options with no gui.
 
@@ -34,10 +38,6 @@ Moreover, from Ver 2.0, restore last settings at the next startup.
 Settings can clear or reset by using command-line options.
 Also, it's possible to clear settings completely by deleting 'ios-image-util.properties' file that the last settings stored.
 This means the last settings will not be restored when executing by jar file from other directories.
-
-![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/screen.png "GUI")
-
-![alt text](https://raw.github.com/gootara-org/ios-image-util/master/ios-image-util/docs/settings.png "Settings")
 
 
 
@@ -296,3 +296,5 @@ CHANGE LOG:
 2015/09/19 - 2.7.1.1
 - Fix abnormal focus problem with dropping files on mac.
 
+2016/01/24 - 2.7.2.0
+- Support iPad Pro icon.

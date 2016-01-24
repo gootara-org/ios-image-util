@@ -49,6 +49,7 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	IPAD_72x2 (IOSIconInfo.ICON_72x2 , IDIOM.IPAD , SYSTEM_VERSION.ANY, null, null),
 	IPAD_76   (IOSIconInfo.ICON_76   , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),
 	IPAD_76x2 (IOSIconInfo.ICON_76x2 , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),
+	IPAD_83_5x2 (IOSIconInfo.ICON_83_5x2 , IDIOM.IPAD , SYSTEM_VERSION.IOS9, null, null),
 
 	CAR_120x120 (IOSIconInfo.ICON_120x120, IDIOM.CARPLAY, SYSTEM_VERSION.ANY, null, null),
 	CAR_60x60x2 (IOSIconInfo.ICON_60x60x2, IDIOM.CARPLAY, SYSTEM_VERSION.IOS9, null, null),
