@@ -286,3 +286,9 @@ CHANGE LOG:
 
 2016/01/24 - 2.7.2.0
 - Support iPad Pro icon.
+
+2016/01/24 - 2.7.2.1
+- Selected scaling algorithm and image type applies to preview.
+- Support to open output directory by selecting menu item or clicking label.
+- Fix some bugs.
+

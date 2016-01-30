@@ -41,16 +41,20 @@ import java.util.Locale;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import org.gootara.ios.image.util.IOSAssetCatalogs;
+import org.gootara.ios.image.util.IOSIconAssetCatalogs;
+
 /**
  * @author gootara.org
  *
  */
 public class ImagePanel extends JPanel {
-
+	private AssetImageGenerator generator;
+	private IOSAssetCatalogs asset;
 	private java.io.File imageFile;
-	private Image image, scaledImage;
-	private String placeHolder, hyphenatorBoL, hyphenatorEoL;
 	private int scalingType;
+	private BufferedImage image, scaledImage;
+	private String placeHolder, hyphenatorBoL, hyphenatorEoL;
 	private Timer timer;
 	private final Cursor WAIT_CURSOR = new Cursor(Cursor.WAIT_CURSOR);
 	private final Cursor HAND_CURSOR = new Cursor(Cursor.HAND_CURSOR);
@@ -58,8 +62,8 @@ public class ImagePanel extends JPanel {
 	/**
 	 * Constructor.
 	 */
-	public ImagePanel() {
-		this("");
+	public ImagePanel(AssetImageGenerator generator, IOSAssetCatalogs asset) {
+		this(generator, asset, "");
 	}
 
 	/**
@@ -67,7 +71,9 @@ public class ImagePanel extends JPanel {
 	 *
 	 * @param placeHolder placeHolder
 	 */
-	public ImagePanel(String placeHolder) {
+	public ImagePanel(AssetImageGenerator generator, IOSAssetCatalogs asset, String placeHolder) {
+		this.generator = generator;
+		this.asset = asset;
 		this.setCursor(HAND_CURSOR);
 		this.image = null;
 		this.scaledImage = null;
@@ -83,33 +89,38 @@ public class ImagePanel extends JPanel {
 					if (ImagePanel.this.image == null) {
 						return;
 					}
-					Dimension preferredSize = ImagePanel.this.getPreferredSize();
+					
 					Dimension maximumSize = ImagePanel.this.getSize();
-					//double p = (maximumSize.getWidth() > maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
-					// Default is fit with aspect ratio.
-					double p = maximumSize.getWidth() / preferredSize.getWidth();
-					if (Math.floor(preferredSize.getWidth() * p) > maximumSize.getWidth() || Math.floor(preferredSize.getHeight() * p) > maximumSize.getHeight()) {
-						p = maximumSize.getHeight() / preferredSize.getHeight();
+					if (ImagePanel.this.asset instanceof IOSIconAssetCatalogs) {
+						int size = maximumSize.width > maximumSize.height ? maximumSize.height : maximumSize.width;
+						ImagePanel.this.scaledImage = ImagePanel.this.generator.generateIconImage(ImagePanel.this.image, size, size, ImagePanel.this.asset.getIdiom().isAppleWatch());
+					} else {
+						Dimension preferredSize = ImagePanel.this.getPreferredSize();
+						// Default is fit with aspect ratio.
+						double p = maximumSize.getWidth() / preferredSize.getWidth();
+						if (Math.floor(preferredSize.getWidth() * p) > maximumSize.getWidth() || Math.floor(preferredSize.getHeight() * p) > maximumSize.getHeight()) {
+							p = maximumSize.getHeight() / preferredSize.getHeight();
+						}
+						if (scalingType == 0) {
+							// No resizing(iPhone only)
+							p = 1.0d;
+						} else if (scalingType == 1) {
+							// No resizing(iPhone & iPad)
+							p = 1.0d;
+						} else if (scalingType == 2) {
+							// Fit to the screen height(iPhone only)
+							p = maximumSize.getHeight() / preferredSize.getHeight();
+						} else if (scalingType == 4) {
+							p = (maximumSize.getWidth() < maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
+						}// else default
+						double w = preferredSize.getWidth() * p;
+						double h = preferredSize.getHeight() * p;
+						if (scalingType == 5) {
+							w = maximumSize.getWidth();
+							h = maximumSize.getHeight();
+						}
+						ImagePanel.this.scaledImage = ImagePanel.this.generator.generateLaunchImage(ImagePanel.this.image, (int)Math.round(w), (int)Math.round(h), ImagePanel.this.asset);
 					}
-					if (scalingType == 0) {
-						// No resizing(iPhone only)
-						p = 1.0d;
-					} else if (scalingType == 1) {
-						// No resizing(iPhone & iPad)
-						p = 1.0d;
-					} else if (scalingType == 2) {
-						// Fit to the screen height(iPhone only)
-						p = maximumSize.getHeight() / preferredSize.getHeight();
-					} else if (scalingType == 4) {
-						p = (maximumSize.getWidth() < maximumSize.getHeight()) ? maximumSize.getHeight() / preferredSize.getHeight() : maximumSize.getWidth() / preferredSize.getWidth();
-					}// else default
-					double w = preferredSize.getWidth() * p;
-					double h = preferredSize.getHeight() * p;
-					if (scalingType == 5) {
-						w = maximumSize.getWidth();
-						h = maximumSize.getHeight();
-					}
-					ImagePanel.this.scaledImage = ImagePanel.this.image.getScaledInstance((int)Math.round(w), (int)Math.round(h), Image.SCALE_SMOOTH);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				} finally {
@@ -120,12 +131,12 @@ public class ImagePanel extends JPanel {
 			}
 		});
 		timer.setRepeats(false);
+		this.setScalingType(3);
 		this.addComponentListener(new ComponentAdapter() {
 			@Override public void componentResized(ComponentEvent e) {
-				startResizingTimer(500);
+				refresh();
 			}
 		});
-		this.setScalingType(3);
 	}
 
 	/**
@@ -156,7 +167,7 @@ public class ImagePanel extends JPanel {
 		while (timer.isRunning()) {
 			try {
 				Thread.sleep(10);
-				if (System.currentTimeMillis() - l > 500) {
+				if (System.currentTimeMillis() - l > 1000) {
 					break;
 				}
 			} catch (InterruptedException iex) {
@@ -189,9 +200,12 @@ public class ImagePanel extends JPanel {
 		}
 		int w = (int) (preferredSize.getWidth() * p);
 		int h = (int) (preferredSize.getHeight() * p);
-		this.image = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
-
-		this.startResizingTimer(255);
+		this.image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Image img = image.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+		this.image.getGraphics().drawImage(img, 0, 0, this);
+		img.flush();
+		img = null;
+		this.refresh();
 	}
 
 	/**
@@ -384,10 +398,16 @@ public class ImagePanel extends JPanel {
 	public void setScalingType(int scalingType) {
 		if (this.scalingType != scalingType) {
 			this.scalingType = scalingType;
-			this.startResizingTimer(255);
+			this.refresh();
 		}
 	}
 
+	/**
+	 * Refresh displayed image.
+	 */
+	public void refresh() {
+		this.startResizingTimer(255);
+	}
 }
 
 

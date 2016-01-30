@@ -65,15 +65,15 @@ public enum IOSIconInfo implements IOSImageInfo {
 	ICON_98x98x2     ( "98x98@2x.png"    , 196 , 196   , SCALE.x2    ), // Apple Watch 42mm QUickLook
 
 	ICON_16x16x1   ( "16x16.png"     , 16  , 16  , SCALE.x1), // Mac
-	ICON_16x16x2   ( "32x32.png"     , 32  , 32  , SCALE.x2), // Mac retina
+	ICON_16x16x2   ( "16x16@2x.png"  , 32  , 32  , SCALE.x2), // Mac retina
 	ICON_32x32x1   ( "32x32.png"     , 32  , 32  , SCALE.x1), // Mac
-	ICON_32x32x2   ( "64x64.png"     , 64  , 64  , SCALE.x2), // Mac retina
+	ICON_32x32x2   ( "32x32@2x.png"  , 64  , 64  , SCALE.x2), // Mac retina
 	ICON_128x128x1 ( "128x128.png"   , 128 , 128 , SCALE.x1), // Mac
-	ICON_128x128x2 ( "256x256.png"   , 256 , 256 , SCALE.x2), // Mac retina
+	ICON_128x128x2 ( "128x128@2x.png", 256 , 256 , SCALE.x2), // Mac retina
 	ICON_256x256x1 ( "256x256.png"   , 256 , 256 , SCALE.x1), // Mac
-	ICON_256x256x2 ( "512x512.png"   , 512 , 512 , SCALE.x2), // Mac retina
+	ICON_256x256x2 ( "256x256@2x.png", 512 , 512 , SCALE.x2), // Mac retina
 	ICON_512x512x1 ( "512x512.png"   , 512 , 512 , SCALE.x1), // Mac
-	ICON_512x512x2 ( "1024x1024.png" , 1024, 1024, SCALE.x2), // Mac retina
+	ICON_512x512x2 ( "512x512@2x.png", 1024, 1024, SCALE.x2), // Mac retina
 
 	;
 

@@ -33,6 +33,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -77,6 +78,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -138,7 +140,7 @@ import org.gootara.ios.image.util.IOSSplashAssetCatalogs;
  *
  * @author gootara.org
  */
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame implements AssetImageGenerator {
 	public static final Dimension DEFAULT_WINDOW_SIZE = new Dimension(640, 584);
 	public static final String PLACEHOLDER_SPLASH_BGCOL = "(e.g. ffffff)";
 	public static final Color COLOR_DARK_GRAY        = new Color(0x727284);
@@ -299,7 +301,6 @@ public class MainFrame extends JFrame {
 		scaleAlgorithm = new JComboBox(items);
 		scaleAlgorithm.setFont(scaleAlgorithm.getFont().deriveFont(Font.PLAIN, 11.0f));
 		scaleAlgorithm.setSelectedIndex(4);
-		scaleAlgorithm.addItemListener(propertyChangedItemListener);
 		JLabel scaleAlgorithmLabel = new JLabel(getResource("label.scaling.algorithm", "  Scaling Algorithm:"));
 		JPanel scaleAlgorithmPanel = new JPanel();
 		scaleAlgorithmPanel.setLayout(new FlowLayout(FlowLayout.LEFT, isMacLAF ? 0 : 4, 0));
@@ -361,7 +362,6 @@ public class MainFrame extends JFrame {
 		imageType = new JComboBox(imageTypes);
 		imageType.setFont(imageType.getFont().deriveFont(Font.PLAIN, 11.0f));
 		imageType.setSelectedIndex(0);
-		imageType.addItemListener(propertyChangedItemListener);
 		JLabel imageTypeLabel = new JLabel(getResource("label.image.type", "Image Type:"));
 		JPanel imageTypePanel = new JPanel();
 		imageTypePanel.setLayout(new FlowLayout(FlowLayout.LEFT, isMacLAF ? 0 : 4, 0));
@@ -633,17 +633,29 @@ public class MainFrame extends JFrame {
 
 		// Image Panels.
 		final JPanel imagesPanel = new JPanel();
-		icon7Image = initImagePanel(new ImagePanel(getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here")), icon7Path);
+		icon7Image = initImagePanel(new ImagePanel(this, IOSIconAssetCatalogs.IPHONE_60x2, getResource("label.icon7.drop", "Drop iOS7 Icon PNG Here")), icon7Path);
 		icon7Image.setForeground(COLOR_CYAN);
-		splashImage = initImagePanel(new ImagePanel(getResource("label.splash.drop", "Drop Splash Image PNG Here")), splashPath);
+		splashImage = initImagePanel(new ImagePanel(this, IOSSplashAssetCatalogs.IPHONE_568x2, getResource("label.splash.drop", "Drop Splash Image PNG Here")), splashPath);
 
-		icon6Image = initImagePanel(new ImagePanel(getResource("label.icon6.drop", "Drop iOS6 Icon PNG Here")), icon6Path);
-		carplayImage = initImagePanel(new ImagePanel(getResource("label.carplay.drop", "Icon for CarPlay\n( Optional )")), carplayPath);
-		watchImage = initImagePanel(new ImagePanel(getResource("label.watch.drop", "Icon for Apple Watch\n( Optional )")), watchPath);
-		macImage = initImagePanel(new ImagePanel(getResource("label.mac.drop", "Icon for Mac\n( Optional )")), macPath);
-		ipadIconImage = initImagePanel(new ImagePanel(getResource("label.ipad.drop", "Icon for iPad\n( Optional )")), ipadIconPath);
-		ipadLaunchImage = initImagePanel(new ImagePanel(getResource("label.ipad.launch.drop", "Launch Image for iPad\n( Optional )")), ipadLaunchPath);
+		icon6Image = initImagePanel(new ImagePanel(this, IOSIconAssetCatalogs.IPHONE_57x2, getResource("label.icon6.drop", "Drop iOS6 Icon PNG Here")), icon6Path);
+		carplayImage = initImagePanel(new ImagePanel(this, IOSIconAssetCatalogs.CAR_60x60x2, getResource("label.carplay.drop", "Icon for CarPlay\n( Optional )")), carplayPath);
+		watchImage = initImagePanel(new ImagePanel(this, IOSIconAssetCatalogs.WATCH_29x29x3, getResource("label.watch.drop", "Icon for Apple Watch\n( Optional )")), watchPath);
+		macImage = initImagePanel(new ImagePanel(this, IOSIconAssetCatalogs.MAC_256x256x2, getResource("label.mac.drop", "Icon for Mac\n( Optional )")), macPath);
+		ipadIconImage = initImagePanel(new ImagePanel(this, IOSIconAssetCatalogs.IPAD_76x2, getResource("label.ipad.drop", "Icon for iPad\n( Optional )")), ipadIconPath);
+		ipadLaunchImage = initImagePanel(new ImagePanel(this, IOSSplashAssetCatalogs.IPAD_LANDSCAPEx2, getResource("label.ipad.launch.drop", "Launch Image for iPad\n( Optional )")), ipadLaunchPath);
 
+		ItemListener imageItemListener = (new ItemListener() {
+			@Override public void itemStateChanged(ItemEvent e) {
+				setStorePropertiesRequested(true);
+				for (ImagePanel ip : Arrays.asList(icon7Image, splashImage, icon6Image, carplayImage, watchImage, macImage, ipadIconImage, ipadLaunchImage)) {
+					ip.refresh();
+				}
+			}
+		});
+		scaleAlgorithm.addItemListener(imageItemListener);
+		imageType.addItemListener(imageItemListener);
+
+		
 		JPanel optionalIconImages1 = new JPanel();
 		optionalIconImages1.setBackground(BGCOLOR_LIGHT_GRAY);
 		optionalIconImages1.setLayout(new GridLayout(2, 1, 0, 2));
@@ -774,6 +786,7 @@ public class MainFrame extends JFrame {
 		outputPathDisplay = new JLabel("");
 		outputPathDisplay.setForeground(COLOR_CYAN);
 		outputPathDisplay.setFont(fontNormal);
+		outputPathDisplay.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		surface.add(outputPathDisplay);
 
 		final JButton gripeButton = new JButton(new ImageIcon(this.getClass().getResource("img/gripe.png")));
@@ -956,6 +969,34 @@ public class MainFrame extends JFrame {
 		menuItemGenerate.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, shortcutKeyMask));
 		menuItemGenerate.addActionListener(generateAction);
 		editMenu.add(menuItemGenerate);
+		final JMenuItem menuItemOpenDirectory = new JMenuItem(this.getResource("menu.edit.open.output", "Open Output Directory"));
+		menuItemOpenDirectory.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, shortcutKeyMask));
+		menuItemOpenDirectory.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				try {
+					if (splitter.isActive()) {
+						splitter.openOutputDirectory();
+					} else {
+						if (!IOSImageUtil.isNullOrWhiteSpace(outputPath.getText())) {
+							File dir = new File(outputPath.getText());
+							if (dir.exists()) {
+								Desktop.getDesktop().open(dir);
+							} else {
+								alert(String.format("[%s] %s", dir.getAbsolutePath(), getResource("error.not.exists", "isnot exists")));
+							}
+						}
+					}
+				} catch (Throwable t) {
+					handleThrowable(t);
+				}
+			}
+		});
+		editMenu.add(menuItemOpenDirectory);
+		outputPathDisplay.addMouseListener(new MouseAdapter() {
+			@Override public void mouseClicked(MouseEvent e) {
+				menuItemOpenDirectory.doClick();
+			}
+		});
 		editMenu.add(new JSeparator());
 		JMenuItem menuItemSettings = new JMenuItem(this.getResource("menu.edit.settings", "Settings..."));
 		menuItemSettings.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, shortcutKeyMask));
@@ -1781,6 +1822,9 @@ public class MainFrame extends JFrame {
 			Rectangle windowBounds = new Rectangle(x, y, width, height);
 			this.setBounds(MainFrame.keepWindowInsideScreen(windowBounds));
 		}
+		if (IOSImageUtil.getBoolProperty(props, "system.window.maximized", false)) {
+			this.setExtendedState(Frame.MAXIMIZED_BOTH);
+		}
 
 		x = IOSImageUtil.getIntProperty(props, "system.dialog.x", -1);
 		y = IOSImageUtil.getIntProperty(props, "system.dialog.y", -1);
@@ -1980,7 +2024,9 @@ public class MainFrame extends JFrame {
 				idx++;
 			}
 		}
-
+		
+		props.put("system.window.maximized", (this.getExtendedState() & Frame.MAXIMIZED_BOTH) != 0 ? "true" : "false");
+		this.setExtendedState(Frame.NORMAL);
 		Rectangle r = this.getBounds();
 		props.put("system.window.x", Integer.toString(r.x));
 		props.put("system.window.y", Integer.toString(r.y));
@@ -2206,11 +2252,16 @@ public class MainFrame extends JFrame {
 	 * @param ex	exception
 	 */
 	protected void handleThrowable(Throwable t) {
+		if (t == null) { return; }
 		t.printStackTrace(System.err);
 		if (t instanceof OutOfMemoryError) {
 			alert(this.getResource("error.out.of.memory", "Out of Memory Error. Increase heap size with -Xmx java option."));
 		} else {
-			alert(t.toString() + " (" + t.getMessage() + ")");
+			if (t.getMessage() != null && t.toString().indexOf(t.getMessage()) < 0) {
+				alert(t.toString() + " (" + t.getMessage() + ")");
+			} else {
+				alert(t.toString());
+			}
 		}
 	}
 
@@ -2497,7 +2548,7 @@ public class MainFrame extends JFrame {
 				alert("[" + ifs.getOutputDirectory().getCanonicalPath() + "] " + getResource("error.not.directory", "is not directory. Choose directory."));
 				return null;
 			}
-
+			
 			// generate images for iOS6, or not
 			/* minimum system version to be choosable from ver 2.0
 			if (ifs.getIcon6File() == null && ifs.getIcon7File() != null) {
@@ -2774,30 +2825,25 @@ public class MainFrame extends JFrame {
 	/**
 	 * Write icon image to the file.
 	 *
-	 * @param srcFile		source image
-	 * @param info		image information
-	 * @param outputDir	output directory
+	 * @param srcImageFile		source image
+	 * @param imageInfo		image information
+	 * @param targetFile	file to output
+	 * @param forceIntRGB	set true when generate apple watch icon
 	 * @throws Exception	exception
 	 */
 	private void writeIconImage(final ImageFile srcImageFile, final IOSImageInfo imageInfo, final File targetFile, final boolean forceIntRGB) throws Exception {
 		SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
 			@Override protected Boolean doInBackground() throws Exception {
 				try {
-					int width = (int)imageInfo.getSize().getWidth();
-					int height = (int)imageInfo.getSize().getHeight();
-					BufferedImage buf = new BufferedImage(width, height, forceIntRGB ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
-					int hints = getScalingAlgorithm();
-					Image img = srcImageFile.getImage().getScaledInstance(width, height, hints);
-					if (forceIntRGB) {
-						Graphics g = buf.getGraphics();
-						g.setColor(srcImageFile.getDefaultBackgroundColor());
-						g.fillRect(0, 0, width, height);
+					boolean writable = (targetFile.exists() && targetFile.canWrite());
+					if (!writable && !targetFile.exists()) {
+						try { writable = targetFile.createNewFile(); } catch (Exception ex) { writable = false; }
 					}
-					buf.getGraphics().drawImage(img, 0, 0, MainFrame.this);
-					img.flush();
-					img = null;
-
-					ImageIO.write(forceIntRGB ? buf : fixImageColor(buf, srcImageFile.getImage()), "png", targetFile);
+					if (!writable) {
+						throw new IOException(String.format("%s [%s]", getResource("error.not.writable", "not writable"), targetFile.getAbsolutePath()));
+					}
+					BufferedImage buf = generateIconImage(srcImageFile.getImage(), (int)imageInfo.getSize().getWidth(), (int)imageInfo.getSize().getHeight(), forceIntRGB);
+					ImageIO.write(buf, "png", targetFile);
 					buf.flush();
 					buf = null;
 					verbose(targetFile);
@@ -2812,64 +2858,54 @@ public class MainFrame extends JFrame {
 		};
 		pool.submit(worker);
 	}
-
+	
+	/**
+	 * Generate icon image.
+	 *
+	 * @param srcImage	source image
+	 * @param width		image width
+	 * @param height	image height
+	 * @param forceIntRGB	set true when generate apple watch icon
+	 * @throws Exception	exception
+	 */
+	public BufferedImage generateIconImage(BufferedImage srcImage, int width, int height, boolean forceIntRGB) throws Exception {
+		BufferedImage buf = new BufferedImage(width, height, forceIntRGB ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
+		int hints = getScalingAlgorithm();
+		Image img = srcImage.getScaledInstance(width, height, hints);
+		if (forceIntRGB) {
+			Graphics g = buf.getGraphics();
+			g.setColor(ImageFile.getDefaultBackgroundColor(srcImage));
+			g.fillRect(0, 0, width, height);
+		}
+		buf.getGraphics().drawImage(img, 0, 0, MainFrame.this);
+		img.flush();
+		img = null;
+		return forceIntRGB ? buf : fixImageColor(buf, srcImage);
+	}
+	
 	/**
 	 * Write launch image to the file.
 	 *
-	 * @param src		source image
-	 * @param asset		asset catalogs
-	 * @param outputDir	output directory
+	 * @param srcImageFile	source image
+	 * @param asset			image information
+	 * @param targetFile	file to output
 	 * @throws Exception	exception
 	 */
-	private void writeSplashImage(final ImageFile srcImageFile, final IOSSplashAssetCatalogs assetCatalogs, final File targetFile) throws Exception {
+	private void writeSplashImage(final ImageFile srcImageFile, final IOSSplashAssetCatalogs asset, final File targetFile) throws Exception {
 		SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
 			@Override protected Boolean doInBackground() throws Exception {
 				try {
-					int width = (int)assetCatalogs.getIOSImageInfo().getSize().getWidth();
-					int height = (int)assetCatalogs.getIOSImageInfo().getSize().getHeight();
-					BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-					Graphics g = buf.getGraphics();
-					if (!IOSImageUtil.isNullOrWhiteSpace(splashBackgroundColor.getText()) && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
-						g.setColor(srcImageFile.getDefaultBackgroundColor());
-						Color col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true);
-						if (col != null) g.setColor(col);
-						g.fillRect(0, 0, width, height);
+					boolean writable = (targetFile.exists() && targetFile.canWrite());
+					if (!writable && !targetFile.exists()) {
+						try { writable = targetFile.createNewFile(); } catch (Exception ex) { writable = false; }
 					}
-
-					BufferedImage src = srcImageFile.getImage();
-					//double p = (width > height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
-					// Default is fit with aspect ratio.
-					double p = (double)width / (double)src.getWidth();
-					if (Math.floor((double)src.getWidth() * p) > width || Math.floor((double)src.getHeight() * p) > height) {
-						p = (double)height / (double)src.getHeight();
+					if (!writable) {
+						throw new IOException(String.format("%s [%s]", getResource("error.not.writable", "not writable"), targetFile.getAbsolutePath()));
 					}
-					if (splashScaling.getSelectedIndex() == 0) {
-						// No resizing(iPhone only)
-						if (assetCatalogs.getIdiom().isIphone()) p = assetCatalogs.getIOSImageInfo().getScale().greaterThan(IOSImageInfo.SCALE.x1) ? 1.0d : 0.5d;
-					} else if (splashScaling.getSelectedIndex() == 1) {
-						// No resizing(iPhone & iPad)
-						p = assetCatalogs.getIOSImageInfo().getScale().greaterThan(IOSImageInfo.SCALE.x1) ? 1.0d : 0.5d;
-					} else if (splashScaling.getSelectedIndex() == 2) {
-						// Fit to the screen height(iPhone only)
-						if (assetCatalogs.getIdiom().isIphone()) p = (double)height / (double)src.getHeight();
-					} else if (splashScaling.getSelectedIndex() == 4) {
-						p = (width < height) ? (double)height / (double)src.getHeight() : (double)width / (double)src.getWidth();
-					}// else default
-					int w = (int) ((double)src.getWidth() * p);
-					int h = (int) ((double)src.getHeight() * p);
-					if (splashScaling.getSelectedIndex() == 5) {
-						w = width;
-						h = height;
-					}
-			   		int x = (int) ((width - w) / 2);
-			   		int y = (int) ((height - h) / 2);
-					int hints = getScalingAlgorithm();
-					Image img = src.getScaledInstance(w, h, hints);
-					buf.getGraphics().drawImage(img, x, y, MainFrame.this);
-					img.flush();
-					img = null;
-
-					ImageIO.write(fixImageColor(buf, src), "png", targetFile);
+					int width = (int)asset.getIOSImageInfo().getSize().getWidth();
+					int height = (int)asset.getIOSImageInfo().getSize().getHeight();
+					BufferedImage buf = generateLaunchImage(srcImageFile.getImage(), width, height, asset);
+					ImageIO.write(buf, "png", targetFile);
 					buf.flush();
 					buf = null;
 					verbose(targetFile);
@@ -2884,7 +2920,59 @@ public class MainFrame extends JFrame {
 		};
 		pool.submit(worker);
 	}
+	
+	/**
+	 * Write launch image to the file.
+	 *
+	 * @param srcImageFile		source image
+	 * @param width		image width
+	 * @param height	image height
+	 * @param assetCatalogs		image information
+	 * @throws Exception	exception
+	 */
+	public BufferedImage generateLaunchImage(BufferedImage srcImage, int width, int height, IOSAssetCatalogs assetCatalogs) throws Exception {
+		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		Graphics g = buf.getGraphics();
+		if (!IOSImageUtil.isNullOrWhiteSpace(splashBackgroundColor.getText()) && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
+			g.setColor(ImageFile.getDefaultBackgroundColor(srcImage));
+			Color col = new Color(Long.valueOf(splashBackgroundColor.getText(), 16).intValue(), true);
+			if (col != null) g.setColor(col);
+			g.fillRect(0, 0, width, height);
+		}
 
+		// Default is fit with aspect ratio.
+		double p = (double)width / (double)srcImage.getWidth();
+		if (Math.floor((double)srcImage.getWidth() * p) > width || Math.floor((double)srcImage.getHeight() * p) > height) {
+			p = (double)height / (double)srcImage.getHeight();
+		}
+		if (splashScaling.getSelectedIndex() == 0) {
+			// No resizing(iPhone only)
+			if (assetCatalogs.getIdiom().isIphone()) p = assetCatalogs.getIOSImageInfo().getScale().greaterThan(IOSImageInfo.SCALE.x1) ? 1.0d : 0.5d;
+		} else if (splashScaling.getSelectedIndex() == 1) {
+			// No resizing(iPhone & iPad)
+			p = assetCatalogs.getIOSImageInfo().getScale().greaterThan(IOSImageInfo.SCALE.x1) ? 1.0d : 0.5d;
+		} else if (splashScaling.getSelectedIndex() == 2) {
+			// Fit to the screen height(iPhone only)
+			if (assetCatalogs.getIdiom().isIphone()) p = (double)height / (double)srcImage.getHeight();
+		} else if (splashScaling.getSelectedIndex() == 4) {
+			p = (width < height) ? (double)height / (double)srcImage.getHeight() : (double)width / (double)srcImage.getWidth();
+		}// else default
+		int w = (int) ((double)srcImage.getWidth() * p);
+		int h = (int) ((double)srcImage.getHeight() * p);
+		if (splashScaling.getSelectedIndex() == 5) {
+			w = width;
+			h = height;
+		}
+   		int x = (int) ((width - w) / 2);
+   		int y = (int) ((height - h) / 2);
+		int hints = getScalingAlgorithm();
+		Image img = srcImage.getScaledInstance(w, h, hints);
+		buf.getGraphics().drawImage(img, x, y, MainFrame.this);
+		img.flush();
+		img = null;
+		return fixImageColor(buf, srcImage);
+	}
+	
 	/**
 	 * Apply source image type or combobox image type.
 	 *
@@ -3191,18 +3279,27 @@ class ImageFile
 	/**
 	 * Guess background color without alpha channel.
 	 *
-	 * @return
+	 * @return guessed color
 	 */
 	public Color getDefaultBackgroundColor() {
+		return ImageFile.getDefaultBackgroundColor(this.getImage());
+	}
+	
+	/**
+	 * Guess background color without alpha channel.
+	 *
+	 * @return guessed color
+	 */
+	public static Color getDefaultBackgroundColor(BufferedImage img) {
 		Color c = null;
-		for (int xy = 0; xy < Math.min(this.getImage().getWidth(), this.getImage().getHeight()); xy++) {
-			Color col = new Color(this.getImage().getRGB(xy, xy), true);
+		for (int xy = 0; xy < Math.min(img.getWidth(), img.getHeight()); xy++) {
+			Color col = new Color(img.getRGB(xy, xy), true);
 			if (col.getAlpha() != 0) {
 				c = new Color(col.getRGB(), false);
 				break;
 			}
 		}
-		return c == null ? new Color(this.getImage().getRGB(0, 0), false) : c;
+		return c == null ? new Color(img.getRGB(0, 0), false) : c;
 	}
 }
 
@@ -3520,4 +3617,9 @@ private int direction;
 	}
 }
 
+interface AssetImageGenerator {
+	
+	public BufferedImage generateIconImage(BufferedImage srcImage, int width, int height, boolean forceIntRGB) throws Exception;
+	public BufferedImage generateLaunchImage(BufferedImage srcImage, int width, int height, IOSAssetCatalogs assetCatalogs) throws Exception;
 
+}

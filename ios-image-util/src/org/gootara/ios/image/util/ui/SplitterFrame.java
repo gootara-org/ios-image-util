@@ -27,6 +27,8 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -41,11 +43,14 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -107,7 +112,7 @@ public class SplitterFrame extends JFrame {
 	private JLabel widthLabel, heightLabel;
 	private JTextField subdir, bgcolor;
 	private JButton splitButton;
-	private File previousTargetDirectory;
+	private File previousTargetDirectory, previousOutputDirectory;
 	private SplitterSizePanel sizeDefault, sizeUniversal, sizeiPhone, sizeiPad, sizeAppleWatch, sizeMac;
 	private JProgressBar progress;
 	private ExecutorService pool;
@@ -150,6 +155,7 @@ public class SplitterFrame extends JFrame {
 		Font fontLarge = new Font(owner.getResource("font.default.name", Font.SANS_SERIF), Font.PLAIN, 14);
 		Font fontNormal = new Font(owner.getResource("font.default.name", Font.SANS_SERIF), Font.PLAIN, 12);
 		Font fontSmall = new Font(owner.getResource("font.default.name", Font.SANS_SERIF), Font.PLAIN, 11);
+		previousOutputDirectory = null;
 
 		ItemListener propertyChangedItemListener = (new ItemListener() {
 			@Override public void itemStateChanged(ItemEvent e) {
@@ -340,7 +346,14 @@ public class SplitterFrame extends JFrame {
 		this.cleanBeforeGenerate.addItemListener(propertyChangedItemListener);
 
 		JLabel subdirLabel = new JLabel(owner.getResource("splitter.label.subdir", "Output Dir :"), SwingConstants.LEFT);
+		subdirLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		subdirLabel.setToolTipText(owner.getResource("splitter.open.subdir", "Click to open previous target directory."));
 		settingsSouth.add(subdirLabel);
+		subdirLabel.addMouseListener(new MouseAdapter() {
+			@Override public void mouseClicked(MouseEvent e) {
+				openOutputDirectory();
+			}
+		});
 		settingsSouth.add(this.subdir = new JTextField(placeHolder, 16));
 		Insets insets = new Insets(2, 2, 2, 2);
 		this.subdir.setMargin(insets);
@@ -578,6 +591,32 @@ public class SplitterFrame extends JFrame {
 		this.pack();
 		this.applyComponentStatus();
 	}
+	
+	/**
+	 * Open previous target directory.
+	 */
+	protected void openOutputDirectory() {
+		try {
+			File dir = previousOutputDirectory;
+			if (dir == null && !IOSImageUtil.isNullOrWhiteSpace(subdir.getText())) {
+				dir = new File(subdir.getText());
+				if (!dir.isAbsolute()) {
+					dir = null;
+				}
+			}
+			if (dir == null && previousTargetDirectory != null) {
+				dir = previousTargetDirectory;
+				if (!IOSImageUtil.isNullOrWhiteSpace(subdir.getText())) {
+					dir = new File(dir, subdir.getText());
+				}
+			}
+			if (dir != null && dir.exists()) {
+				Desktop.getDesktop().open(dir);
+			}
+		} catch (Throwable t) {
+			owner.handleThrowable(t);
+		}
+	}
 
 	/**
 	 * true - Generating images just now.
@@ -635,6 +674,7 @@ public class SplitterFrame extends JFrame {
 						}
 					}
 				}
+				previousOutputDirectory = dir;
 				if (this.asImageSets.isSelected()) {
 					if (this.universal.isSelected()) {
 						queue = this.sizeUniversal.addImageQueue(owner, queue, file, dir);
@@ -1087,6 +1127,16 @@ public class SplitterFrame extends JFrame {
 			@Override protected Boolean doInBackground() throws Exception {
 				boolean result = false;
 				try {
+					if (!imageSet.getFile().getParentFile().exists()) {
+						imageSet.getFile().getParentFile().mkdirs();
+					}
+					boolean writable = (imageSet.getFile().exists() && imageSet.getFile().canWrite());
+					if (!writable && !imageSet.getFile().exists()) {
+						try { writable = imageSet.getFile().createNewFile(); } catch (Exception ex) { writable = false; }
+					}
+					if (!writable) {
+						throw new IOException(String.format("%s [%s]", owner.getResource("error.not.writable", "not writable"), imageSet.getFile().getAbsolutePath()));
+					}
 					owner.verbose(imageSet.getFile());
 
 					BufferedImage src = ImageIO.read(imageSet.getOriginalFile());
@@ -1148,12 +1198,9 @@ public class SplitterFrame extends JFrame {
 					g.drawImage(img, (int)((outputSize.getWidth() - imageSize.getWidth()) / 2.0), (int)((outputSize.getHeight() - imageSize.getHeight()) / 2.0), SplitterFrame.this);
 					img.flush();
 					img = null;
-					if (!imageSet.getFile().getParentFile().exists()) {
-						imageSet.getFile().getParentFile().mkdirs();
-					}
 					// Image Set image type is always ARGB.
-					//ImageIO.write(owner.fixImageColor(buf, src), "png", imageSets.getFile());
-					ImageIO.write(buf, "png", imageSet.getFile());
+					ImageIO.write(owner.fixImageColor(buf, src), "png", imageSet.getFile());
+					//ImageIO.write(buf, "png", imageSet.getFile());
 					buf.flush();
 					buf = null;
 					src.flush();
