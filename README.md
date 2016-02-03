@@ -292,3 +292,5 @@ CHANGE LOG:
 - Support to open output directory by selecting menu item or clicking label.
 - Fix some bugs.
 
+2016/02/04 - 2.7.2.2
+- Add png sufix to iTunesArtwork images and force no alpha channel.

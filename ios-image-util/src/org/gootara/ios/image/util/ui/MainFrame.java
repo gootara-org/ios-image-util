@@ -2703,7 +2703,7 @@ public class MainFrame extends JFrame implements AssetImageGenerator {
 					if (!generate) continue;
 					ImageFile defaultImage = ifs.getDefaultIconImage();
 					if (defaultImage != null) {
-						writeIconImage(defaultImage, artwork, new File(ifs.getOutputDirectory(), artwork.getFilename()), false);
+						writeIconImage(defaultImage, artwork, new File(ifs.getOutputDirectory(), artwork.getFilename()), true);
 					}
 				}
 			}

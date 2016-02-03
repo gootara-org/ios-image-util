@@ -32,8 +32,8 @@ import java.awt.Dimension;
  */
 public enum IOSArtworkInfo implements IOSImageInfo {
     //                 filename                width    height  scale      description
-	ITUNES_ARTWORK(   "iTunesArtwork"         , 512   , 512   , SCALE.x1     ), // -
-	ITUNES_ARTWORKx2( "iTunesArtwork@2x"      , 1024  , 1024  , SCALE.x2     ), // -
+	ITUNES_ARTWORK(   "iTunesArtwork.png"      , 512   , 512   , SCALE.x1     ), // -
+	ITUNES_ARTWORKx2( "iTunesArtwork@2x.png"   , 1024  , 1024  , SCALE.x2     ), // -
 	;
 
 	private String filename;
