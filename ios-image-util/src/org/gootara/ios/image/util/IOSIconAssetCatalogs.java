@@ -29,6 +29,8 @@ package org.gootara.ios.image.util;
  * @see org.gootara.ios.image.util.IOSAssetCatalogs
  */
 public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
+	IPHONE_20x2 (IOSIconInfo.ICON_20x2 , IDIOM.IPHONE , SYSTEM_VERSION.IOS7, null, null),	// iPhone Notifications
+	IPHONE_20x3 (IOSIconInfo.ICON_20x3 , IDIOM.IPHONE , SYSTEM_VERSION.IOS7, null, null),	// iPhone Notifications
 	IPHONE_29   (IOSIconInfo.ICON_29   , IDIOM.IPHONE , SYSTEM_VERSION.ANY, null, null),
 	IPHONE_29x2 (IOSIconInfo.ICON_29x2 , IDIOM.IPHONE , SYSTEM_VERSION.IOS7, null, null),
 	IPHONE_29x3 (IOSIconInfo.ICON_29x3 , IDIOM.IPHONE , SYSTEM_VERSION.IOS8, null, null),
@@ -39,6 +41,8 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	IPHONE_60x2 (IOSIconInfo.ICON_60x2 , IDIOM.IPHONE , SYSTEM_VERSION.IOS7, null, null),
 	IPHONE_60x3 (IOSIconInfo.ICON_60x3 , IDIOM.IPHONE , SYSTEM_VERSION.IOS8, null, null),
 
+	IPAD_20   (IOSIconInfo.ICON_20   , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),	// iPad Notifications
+	IPAD_20x2 (IOSIconInfo.ICON_20x2 , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),	// iPad Notifications
 	IPAD_29   (IOSIconInfo.ICON_29   , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),
 	IPAD_29x2 (IOSIconInfo.ICON_29x2 , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),
 	IPAD_40   (IOSIconInfo.ICON_40   , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),

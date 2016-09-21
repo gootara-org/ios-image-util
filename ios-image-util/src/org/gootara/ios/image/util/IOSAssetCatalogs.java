@@ -57,10 +57,11 @@ public interface IOSAssetCatalogs {
 	}
 
 	public enum SYSTEM_VERSION {
-			ANY		(0.0f)
-		,	IOS7	(7.0f)
-		,	IOS8	(8.0f)
-		,   IOS9    (9.0f)
+			ANY     (0.0f)
+		,	IOS7    (7.0f)
+		,	IOS8    (8.0f)
+		,	IOS9    (9.0f)
+		,	IOS10   (10.0f)
 		;
 		private float value;
 		SYSTEM_VERSION(float value) { this.value = value; }
@@ -97,6 +98,7 @@ public interface IOSAssetCatalogs {
 			RETINA4  ("retina4")
 		,	H667     ("667h")
 		,	H736     ("736h")
+		,	H1366    ("1366h")
 		,	MM38     ("38mm")
 		,	MM42     ("42mm")
 		;

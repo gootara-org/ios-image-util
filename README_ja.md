@@ -73,6 +73,9 @@ OUTPUT:
 |             |   7.x~  | Icon-76.png                    |    76  |     76  |
 |             |   7.x~  | Icon-76@2x.png                 |   152  |    152  |
 |             |   9.x~  | Icon-83.5@2x.png               |   167  |    167  |
+|(Notification|   7.x~  | 20x20.png                      |    20  |     20  |
+|             |   7.x~  | 20x20@2x.png                   |    40  |     40  |
+|             |   7.x~  | 20x20@3x.png                   |    60  |     60  |
 |(Apple Watch)|   8.x~  | 24x24@2x.png                   |    48  |     48  |
 |             |   8.x~  | 27.5x27.5@2x.png               |    55  |     55  |
 |             |   8.x~  | 29x29@2x.png                   |    58  |     58  |
@@ -89,6 +92,7 @@ OUTPUT:
 |             |  ~7.x~  | Default-568h@2x.png            |   640  |   1136  |
 |             |  ~8.x~  | Default-667h@2x.png            |   750  |   1334  |
 |             |  ~8.x~  | Default-736h@3x.png            |  1242  |   2208  |
+|             |  ~8.x~  | Default-1366h@2x.png           |  2048  |   2732  |
 |             |  ~8.x~  | Default-Laundscape-736h@3x.png |  2208  |   1242  |
 |             |  ~7.x~  | Default-Portrait~ipad.png      |   768  |   1024  |
 |             |  ~7.x~  | Default-Portrait@2x~ipad.png   |  1536  |   2048  |
@@ -296,3 +300,5 @@ CHANGE LOG:
 2016/02/04 - 2.7.2.2
 - Add png sufix to iTunesArtwork images and force no alpha channel.
 
+2016/09/22 - 2.8.0.0
+- Add Notification Icons and 1366h Launch Image (for Xcode 8.0)

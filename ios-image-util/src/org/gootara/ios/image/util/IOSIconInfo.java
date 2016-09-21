@@ -32,6 +32,9 @@ import java.awt.Dimension;
  */
 public enum IOSIconInfo implements IOSImageInfo {
 	//           filename           width   height  scale      description
+	ICON_20   ( "20x20.png"       , 20    , 20    , SCALE.x1    ), // iPad Notifications
+	ICON_20x2 ( "20x20@2x.png"    , 40    , 40    , SCALE.x2    ), // iPhone/iPad Notifications
+	ICON_20x3 ( "20x20@3x.png"    , 60    , 60    , SCALE.x3    ), // iPhone Notifications
 	ICON_29   ( "Small.png"       , 29    , 29    , SCALE.x1    ), // iPhone3G / 3GS / iPad / iPad2 / iPad mini
 	ICON_29x2 ( "Small@2x.png"    , 58    , 58    , SCALE.x2    ), // iPhone4 / iPad3 or later
 	ICON_29x3 ( "Small@3x.png"    , 87    , 87    , SCALE.x3    ), // iPhone6 Plus
@@ -40,8 +43,8 @@ public enum IOSIconInfo implements IOSImageInfo {
 	ICON_40x3 ( "Small-40@3x.png" , 120   , 120   , SCALE.x3    ), // iPhone6 Plus
 	ICON_50   ( "Small-50.png"    , 50    , 50    , SCALE.x1    ), // iPad / iPad2 / iPad mini
 	ICON_50x2 ( "Small-50@2x.png" , 100   , 100   , SCALE.x2    ), // iPad3 or later
-	ICON_57   ( "57.png"            , 57    , 57    , SCALE.x1    ), // iPhone 3G / 3GS
-	ICON_57x2 ( "57@2x.png"         , 114   , 114   , SCALE.x2    ), // iPhone4 or later
+	ICON_57   ( "57.png"          , 57    , 57    , SCALE.x1    ), // iPhone 3G / 3GS
+	ICON_57x2 ( "57@2x.png"       , 114   , 114   , SCALE.x2    ), // iPhone4 or later
 //	ICON_60   ( "60.png"          , 60    , 60    , SCALE.x1    ), // (not exists)
 	ICON_60x2 ( "60@2x.png"       , 120   , 120   , SCALE.x2    ), // iPhone4 or later
 	ICON_60x3 ( "60@3x.png"       , 180   , 180   , SCALE.x3    ), // iPhone6 Plus

@@ -47,6 +47,7 @@ public enum IOSSplashInfo implements IOSImageInfo {
 	SPLASH_LANDSCAPE_STB   ( "Default-Landscape.png"         , 1024  , 748   , SCALE.x1    ), // iPad / iPad2 / iPad mini
 	SPLASH_LANDSCAPE_STBx2 ( "Default-Landscape@2x.png"      , 2048  , 1496  , SCALE.x2    ), // iPad 3 or later
 	SPLASH_LANDSCAPE_TV    ( "Default-Landscape-Tv.png"      , 1920  , 1080  , SCALE.x1    ), // Apple TV
+	SPLASH_1366x2          ( "Default-1366h@2x.png"          , 2048  , 2732  , SCALE.x2    ), // iPad Pro Portrait
 	;
 
 	private String filename;
