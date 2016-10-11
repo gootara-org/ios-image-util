@@ -302,3 +302,6 @@ CHANGE LOG:
 
 2016/09/22 - 2.8.0.0
 - Add Notification Icons and 1366h Launch Image (for Xcode 8.0)
+
+2016/10/11 - 2.8.1.0
+- Splitter supports jpeg output.

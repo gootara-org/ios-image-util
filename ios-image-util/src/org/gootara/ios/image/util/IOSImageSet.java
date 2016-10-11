@@ -37,6 +37,7 @@ public class IOSImageSet implements IOSAssetCatalogs, IOSImageInfo, Cloneable, C
 	private String widthAsString;
 	private String heightAsString;
 	private String imageName;
+	private String suffix;
 	private Dimension size;
 	private SCALE scale = SCALE.x1;
 	private IDIOM idiom;
@@ -224,6 +225,21 @@ public class IOSImageSet implements IOSAssetCatalogs, IOSImageInfo, Cloneable, C
 	 */
 	public IOSImageSet setImageName(String imageName) {
 		this.imageName = imageName;
+		return this;
+	}
+
+	/**
+	 * @return suffix
+	 */
+	public String getSuffix() {
+		return suffix;
+	}
+
+	/**
+	 * @param suffix set suffix
+	 */
+	public IOSImageSet setSuffix(String suffix) {
+		this.suffix = suffix;
 		return this;
 	}
 

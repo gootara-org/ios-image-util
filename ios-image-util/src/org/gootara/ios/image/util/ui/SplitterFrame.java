@@ -48,7 +48,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
@@ -66,7 +68,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -103,12 +109,13 @@ import org.gootara.ios.image.util.IOSImageUtil;
  * @author gootara.org
  */
 public class SplitterFrame extends JFrame {
+	static final int[] COMPRESSION_QUALITIES = { 100, 10, 30, 60, 80, 100 };
 	private MainFrame owner;
 	private JPanel settings, card;
 	private JTabbedPane deviceSpecificTabs;
 	private JToggleButton universal, deviceSpecific;
 	private JCheckBox overwriteAlways, asImageSets, cleanBeforeGenerate;
-	private JComboBox widthType, heightType, scalingType, renderAs;
+	private JComboBox widthType, heightType, scalingType, renderAs, outputAs;
 	private JLabel widthLabel, heightLabel;
 	private JTextField subdir, bgcolor;
 	private JButton splitButton;
@@ -283,6 +290,19 @@ public class SplitterFrame extends JFrame {
 
 		JPanel settingsSouth = new JPanel();
 		settingsSouth.setBackground(Color.WHITE);
+		
+		// Output file type and parameters
+		Vector<String> outputAsItems = new Vector<String>();
+		outputAsItems.add("PNG");
+		for (int i = 1; i < SplitterFrame.COMPRESSION_QUALITIES.length; i++) {
+			outputAsItems.add(String.format("JPEG - %d%%", SplitterFrame.COMPRESSION_QUALITIES[i]));
+		}
+		outputAs = new JComboBox(outputAsItems);
+		outputAs.setFont(fontSmall);
+		outputAs.addItemListener(propertyChangedItemListener);
+		//JLabel renderAsLabel = new JLabel(owner.getResource("splitter.item.render.as", "Render As"));
+		//settingsNorth.add(renderAsLabel);
+		settingsSouth.add(outputAs);
 
 		// Scaling
 		Vector<String> scalingItems = new Vector<String>();
@@ -385,24 +405,44 @@ public class SplitterFrame extends JFrame {
 				}
 			}
 		});
+		JButton subdirButton = new JButton("...");
+		subdirButton.setFont(fontSmall);
+		subdirButton.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				File dir = getPreviousOutputDirectory();
+				if (dir != null) {
+					chooser.setCurrentDirectory(dir.getParentFile());
+				}
+				chooser.setApproveButtonText(owner.getResource("button.approve", "Choose"));
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				int returnVal = chooser.showOpenDialog(SplitterFrame.this);
+				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					setOutputDirectory(chooser.getSelectedFile().getAbsolutePath(), true);
+			    }
+			}
+		});
+		settingsSouth.add(subdirButton);
 
 		SpringLayout layoutSouth = new SpringLayout();
-		layoutSouth.putConstraint(SpringLayout.EAST, scalingType, -16, SpringLayout.HORIZONTAL_CENTER, settingsSouth);
-		layoutSouth.putConstraint(SpringLayout.NORTH, scalingType, isMacLAF ? 8 : 10, SpringLayout.NORTH, settingsSouth);
-		//layoutSouth.putConstraint(SpringLayout.EAST, scalingLabel, -4, SpringLayout.WEST, scalingType);
-		//layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, scalingLabel, 4, SpringLayout.VERTICAL_CENTER, scalingType);
+		layoutSouth.putConstraint(SpringLayout.WEST, outputAs, 16, SpringLayout.WEST, settingsSouth);
+		layoutSouth.putConstraint(SpringLayout.NORTH, outputAs, isMacLAF ? 8 : 10, SpringLayout.NORTH, settingsSouth);
+		layoutSouth.putConstraint(SpringLayout.WEST, scalingType, 16, SpringLayout.EAST, outputAs);
+		layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, scalingType, 0, SpringLayout.VERTICAL_CENTER, outputAs);
 
-		layoutSouth.putConstraint(SpringLayout.WEST, bgcolorLabel, 8, SpringLayout.HORIZONTAL_CENTER, settingsSouth);
-		layoutSouth.putConstraint(SpringLayout.WEST, bgcolor, isMacLAF ? 0 : 2, SpringLayout.EAST, bgcolorLabel);
+		layoutSouth.putConstraint(SpringLayout.EAST, bgcolorLabel, isMacLAF ? 0 : -2, SpringLayout.WEST, bgcolor);
+		layoutSouth.putConstraint(SpringLayout.EAST, bgcolor, isMacLAF ? 0 : -4, SpringLayout.WEST, bgcolorButton);
+		layoutSouth.putConstraint(SpringLayout.EAST, bgcolorButton, -16, SpringLayout.EAST, settingsSouth);
 		layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, bgcolor, 0, SpringLayout.VERTICAL_CENTER, scalingType);
 		layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, bgcolorLabel, 0, SpringLayout.VERTICAL_CENTER, scalingType);
-		layoutSouth.putConstraint(SpringLayout.WEST, bgcolorButton, isMacLAF ? 0 : 4, SpringLayout.EAST, bgcolor);
 		layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, bgcolorButton, 0, SpringLayout.VERTICAL_CENTER, scalingType);
 
 		layoutSouth.putConstraint(SpringLayout.EAST, subdirLabel, isMacLAF ? -2 : -4, SpringLayout.WEST, subdir);
 		layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, subdirLabel, 0, SpringLayout.VERTICAL_CENTER, subdir);
-		layoutSouth.putConstraint(SpringLayout.EAST, subdir, -16, SpringLayout.WEST, overwriteAlways);
+		layoutSouth.putConstraint(SpringLayout.EAST, subdir, -2, SpringLayout.WEST, subdirButton);
 		layoutSouth.putConstraint(SpringLayout.NORTH, subdir, 8, SpringLayout.SOUTH, scalingType);
+		layoutSouth.putConstraint(SpringLayout.EAST, subdirButton, -14, SpringLayout.WEST, overwriteAlways);
+		layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, subdirButton, 0, SpringLayout.VERTICAL_CENTER, subdir);
 		layoutSouth.putConstraint(SpringLayout.EAST, overwriteAlways, -8, SpringLayout.WEST, cleanBeforeGenerate);
 		layoutSouth.putConstraint(SpringLayout.VERTICAL_CENTER, overwriteAlways, 0, SpringLayout.VERTICAL_CENTER, subdir);
 		layoutSouth.putConstraint(SpringLayout.EAST, cleanBeforeGenerate, -16, SpringLayout.EAST, settingsSouth);
@@ -410,12 +450,16 @@ public class SplitterFrame extends JFrame {
 		settingsSouth.setLayout(layoutSouth);
 		int preferredWidthSouth1 = layoutSouth.getConstraints(subdirLabel).getWidth().getPreferredValue()
 				+ layoutSouth.getConstraints(subdir).getWidth().getPreferredValue()
+				+ layoutSouth.getConstraints(subdirButton).getWidth().getPreferredValue()
 				+ layoutSouth.getConstraints(overwriteAlways).getWidth().getPreferredValue()
 				+ layoutSouth.getConstraints(cleanBeforeGenerate).getWidth().getPreferredValue()
 				+ (isMacLAF ? 48 : 56);
-		int preferredWidthSouth2 = layoutSouth.getConstraints(bgcolorButton).getX().getPreferredValue()
+		int preferredWidthSouth2 = layoutSouth.getConstraints(outputAs).getWidth().getPreferredValue()
+				+ layoutSouth.getConstraints(scalingType).getWidth().getPreferredValue()
+				+ layoutSouth.getConstraints(bgcolorLabel).getWidth().getPreferredValue()
+				+ layoutSouth.getConstraints(bgcolor).getWidth().getPreferredValue()
 				+ layoutSouth.getConstraints(bgcolorButton).getWidth().getPreferredValue()
-				+ 16;
+				+ (isMacLAF ? 64 : 72);
 		int preferredWidthSouth = preferredWidthSouth1 > preferredWidthSouth2 ? preferredWidthSouth1 : preferredWidthSouth2;
 		int preferredHeightSouth = layoutSouth.getConstraints(subdir).getY().getPreferredValue()
 				+ layoutSouth.getConstraints(subdir).getHeight().getPreferredValue()
@@ -529,7 +573,7 @@ public class SplitterFrame extends JFrame {
 				}
 
 				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FileNameExtensionFilter("PNG Images", "png"));
+				chooser.setFileFilter(new FileNameExtensionFilter("Images (png, jpg, jpeg)", "png", "jpg", "jpeg"));
 				chooser.setApproveButtonText(owner.getResource("button.approve", "Choose"));
 				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				chooser.setMultiSelectionEnabled(true);
@@ -596,26 +640,34 @@ public class SplitterFrame extends JFrame {
 	 * Open previous target directory.
 	 */
 	protected void openOutputDirectory() {
-		try {
-			File dir = previousOutputDirectory;
-			if (dir == null && !IOSImageUtil.isNullOrWhiteSpace(subdir.getText())) {
-				dir = new File(subdir.getText());
-				if (!dir.isAbsolute()) {
-					dir = null;
-				}
-			}
-			if (dir == null && previousTargetDirectory != null) {
-				dir = previousTargetDirectory;
-				if (!IOSImageUtil.isNullOrWhiteSpace(subdir.getText())) {
-					dir = new File(dir, subdir.getText());
-				}
-			}
-			if (dir != null && dir.exists()) {
+		File dir = this.getPreviousOutputDirectory();
+		if (dir != null) {
+			try {
 				Desktop.getDesktop().open(dir);
+			} catch (Throwable t) {
+				owner.handleThrowable(t);
 			}
-		} catch (Throwable t) {
-			owner.handleThrowable(t);
 		}
+	}
+	
+	protected File getPreviousOutputDirectory() {
+		File dir = previousOutputDirectory;
+		if (dir == null && !IOSImageUtil.isNullOrWhiteSpace(subdir.getText())) {
+			dir = new File(subdir.getText());
+			if (!dir.isAbsolute()) {
+				dir = null;
+			}
+		}
+		if (dir == null && previousTargetDirectory != null) {
+			dir = previousTargetDirectory;
+			if (!IOSImageUtil.isNullOrWhiteSpace(subdir.getText())) {
+				dir = new File(dir, subdir.getText());
+			}
+		}
+		if (dir != null && dir.exists()) {
+			return dir;
+		}
+		return null;
 	}
 
 	/**
@@ -675,21 +727,22 @@ public class SplitterFrame extends JFrame {
 					}
 				}
 				previousOutputDirectory = dir;
+				String suffix = this.getOutputSuffix();
 				if (this.asImageSets.isSelected()) {
 					if (this.universal.isSelected()) {
-						queue = this.sizeUniversal.addImageQueue(owner, queue, file, dir);
+						queue = this.sizeUniversal.addImageQueue(owner, queue, file, dir, suffix);
 					} else {
-						queue = this.sizeiPhone.addImageQueue(owner, queue, file, dir);
-						queue = this.sizeiPad.addImageQueue(owner, queue, file, dir);
-						queue = this.sizeAppleWatch.addImageQueue(owner, queue, file, dir);
-						queue = this.sizeMac.addImageQueue(owner, queue, file, dir);
+						queue = this.sizeiPhone.addImageQueue(owner, queue, file, dir, suffix);
+						queue = this.sizeiPad.addImageQueue(owner, queue, file, dir, suffix);
+						queue = this.sizeAppleWatch.addImageQueue(owner, queue, file, dir, suffix);
+						queue = this.sizeMac.addImageQueue(owner, queue, file, dir, suffix);
 					}
 					if (this.cleanBeforeGenerate.isSelected() && queue.size() > 0) {
 						IOSImageSet imageSet = queue.peek();
 						deleteTargets.put(imageSet.getImageName(), imageSet.getFile().getParentFile());
 					}
 				} else {
-					queue = this.sizeDefault.addImageQueue(owner, queue, file, dir);
+					queue = this.sizeDefault.addImageQueue(owner, queue, file, dir, suffix);
 				}
 			}
 
@@ -903,6 +956,7 @@ public class SplitterFrame extends JFrame {
 		}
 		this.setBackgroundColor(owner.getStringProperty(props, "splitter.image.bgcolor", def));
 		this.setScalingType(owner.getIntProperty(props, "splitter.scaling.type", def));
+		this.setOutputAs(owner.getIntProperty(props, "splitter.output.as", def));
 
 		if (system) {
 			String lastTargetDirectory = props.getProperty("system.splitter.last.target.directory", "").trim();
@@ -942,6 +996,7 @@ public class SplitterFrame extends JFrame {
 		props.put("splitter.render.as", Integer.toString(this.renderAs.getSelectedIndex()));
 		props.put("splitter.image.bgcolor", this.getBackgroundColor());
 		props.put("splitter.scaling.type", Integer.toString(this.scalingType.getSelectedIndex()));
+		props.put("splitter.output.as", Integer.toString(this.outputAs.getSelectedIndex()));
 		if (system) {
 			try {
 				props.put("system.splitter.last.target.directory", previousTargetDirectory == null ? "" : previousTargetDirectory.getCanonicalPath());
@@ -1011,6 +1066,8 @@ public class SplitterFrame extends JFrame {
 		}
 	}
 	protected void setScalingType(int index) { scalingType.setSelectedIndex(index); }
+	private void setOutputAs(int index) { this.outputAs.setSelectedIndex(index); }
+	private String getOutputSuffix() { return this.outputAs.getSelectedIndex() > 0 ? "jpg" : "png"; }
 
 	/**
 	 * Get output directory
@@ -1127,6 +1184,11 @@ public class SplitterFrame extends JFrame {
 			@Override protected Boolean doInBackground() throws Exception {
 				boolean result = false;
 				try {
+					BufferedImage src = ImageIO.read(imageSet.getOriginalFile());
+					if (src == null) {
+						throw new Exception(owner.getResource("error.not.supported", "Unsupported file type."));
+					}
+					
 					if (!imageSet.getFile().getParentFile().exists()) {
 						imageSet.getFile().getParentFile().mkdirs();
 					}
@@ -1139,7 +1201,6 @@ public class SplitterFrame extends JFrame {
 					}
 					owner.verbose(imageSet.getFile());
 
-					BufferedImage src = ImageIO.read(imageSet.getOriginalFile());
 					Dimension imageSize = new Dimension(src.getWidth(), src.getHeight());
 
 					// width / height @1x.
@@ -1157,9 +1218,9 @@ public class SplitterFrame extends JFrame {
 					Dimension outputSize = new Dimension();
 					outputSize.setSize(outputWidth1x * imageSet.getScale().value(), outputHeight1x * imageSet.getScale().value());
 					imageSet.setSize(outputSize);
-					BufferedImage buf = new BufferedImage(outputSize.width, outputSize.height, BufferedImage.TYPE_INT_ARGB);
+					BufferedImage buf = new BufferedImage(outputSize.width, outputSize.height, imageSet.getSuffix().equalsIgnoreCase("png") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
 					Graphics g = buf.getGraphics();
-					Color backgroundColor = getImageBackgroundColor();
+					Color backgroundColor = imageSet.getSuffix().equalsIgnoreCase("png") ? getImageBackgroundColor() : Color.white;
 					if (backgroundColor != null) {
 						g.setColor(backgroundColor);
 						g.fillRect(0, 0, outputSize.width, outputSize.height);
@@ -1198,17 +1259,35 @@ public class SplitterFrame extends JFrame {
 					g.drawImage(img, (int)((outputSize.getWidth() - imageSize.getWidth()) / 2.0), (int)((outputSize.getHeight() - imageSize.getHeight()) / 2.0), SplitterFrame.this);
 					img.flush();
 					img = null;
+					
 					// Image Set image type is always ARGB.
-					ImageIO.write(owner.fixImageColor(buf, src), "png", imageSet.getFile());
-					//ImageIO.write(buf, "png", imageSet.getFile());
+					if (imageSet.getSuffix().equalsIgnoreCase("png") || outputAs.getSelectedIndex() <= 0) {
+						ImageIO.write(owner.fixImageColor(buf, src), imageSet.getSuffix(), imageSet.getFile());
+					} else {
+						ImageWriter writer = ImageIO.getImageWritersBySuffix(imageSet.getSuffix()).next();
+						BufferedOutputStream bout = new BufferedOutputStream(new FileOutputStream(imageSet.getFile()));
+						ImageOutputStream outs = ImageIO.createImageOutputStream(bout);
+						writer.setOutput(outs);
+						ImageWriteParam param = writer.getDefaultWriteParam();
+						param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+						param.setCompressionQuality((float)COMPRESSION_QUALITIES[outputAs.getSelectedIndex()] / 100f);
+						writer.write(null, new IIOImage(buf, null, null), param);
+						bout.flush();
+						outs.close();
+						bout.close();
+						writer.dispose();
+						writer = null;
+					}
 					buf.flush();
 					buf = null;
 					src.flush();
 					src = null;
 					addContentCache(imageSet);
 					result = true;
+				} catch (OutOfMemoryError err) {
+					owner.handleThrowable(err);
 				} catch (Throwable t) {
-					owner.handleThrowable(t);
+					owner.handleThrowable(new Throwable(imageSet.getOriginalFile().getAbsolutePath() + "\n" + (t.getLocalizedMessage() == null ? t.toString() : t.getLocalizedMessage()), t));
 				} finally {
 					addProgress(result);
 				}
@@ -1909,15 +1988,15 @@ class SplitterSizePanel extends JPanel
 	 * @return
 	 * @throws Exception
 	 */
-	protected LinkedList<IOSImageSet> addImageQueue(final MainFrame owner, LinkedList<IOSImageSet> queue, final File srcFile, final File outputDir) throws Exception {
+	protected LinkedList<IOSImageSet> addImageQueue(final MainFrame owner, LinkedList<IOSImageSet> queue, final File srcFile, final File outputDir, final String suffix) throws Exception {
 		if (this.getWidthAny().isEmpty() && this.getHeightAny().isEmpty()) {
 			throw new Exception(owner.getResource("splitter.error.empty.both", "Both width and height are empty. Required at least either."));
 		}
 
 		if (this.getType() == DEVICE_TYPE.DEFAULT) {
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x1, null, null, null, null));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, null, null, null, null));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x3, null, null, null, null));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x1, null, null, null, null, suffix));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, null, null, null, null, suffix));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x3, null, null, null, null, suffix));
 			return queue;
 		}
 
@@ -1928,15 +2007,15 @@ class SplitterSizePanel extends JPanel
 
 		if (this.getType() == DEVICE_TYPE.APPLE_WATCH) {
 			IOSImageSet.IDIOM idiom = IOSImageSet.IDIOM.APPLEWATCH;
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, idiom, null, null, null));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidth38mm(), this.getWidthAny(), this.getHeight38mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM38).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_38MM));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidth42mm(), this.getWidthAny(), this.getHeight42mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM42).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_42MM));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, idiom, null, null, null, suffix));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidth38mm(), this.getWidthAny(), this.getHeight38mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM38, suffix).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_38MM));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidth42mm(), this.getWidthAny(), this.getHeight42mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM42, suffix).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_42MM));
 			return queue;
 		}
 
 		if (this.getType() == DEVICE_TYPE.MAC) {
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x1, IOSAssetCatalogs.IDIOM.MAC, null, null, null));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, IOSAssetCatalogs.IDIOM.MAC, null, null, null));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x1, IOSAssetCatalogs.IDIOM.MAC, null, null, null, suffix));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, IOSAssetCatalogs.IDIOM.MAC, null, null, null, suffix));
 			return queue;
 		}
 
@@ -1947,42 +2026,42 @@ class SplitterSizePanel extends JPanel
 			idiom = IOSAssetCatalogs.IDIOM.IPAD;
 		}
 
-		queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x1, idiom, null, null, null));
-		queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, idiom, null, null, null));
+		queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x1, idiom, null, null, null, suffix));
+		queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, idiom, null, null, null, suffix));
 		if (this.getType() == DEVICE_TYPE.IPHONE && this.isGenerateRetina4())
-			{ queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.RETINA4)); }
+			{ queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.RETINA4, suffix)); }
 		if (this.getType() == DEVICE_TYPE.UNIVERSAL || this.getType() == DEVICE_TYPE.IPHONE)
-			{ queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x3, idiom, null, null, null)); }
+			{ queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x3, idiom, null, null, null, suffix)); }
 
 		final JSON_VALUE[] sizeClasses = { IOSImageSet.JSON_VALUE.SIZE_CLASS_ANY, IOSImageSet.JSON_VALUE.SIZE_CLASS_COMPACT, IOSImageSet.JSON_VALUE.SIZE_CLASS_REGULAR };
 		JSON_VALUE widthClass = sizeClasses[this.getWidthType()];
 		JSON_VALUE heightClass = sizeClasses[this.getHeightType()];
 
 		if (widthClass != IOSImageSet.JSON_VALUE.SIZE_CLASS_ANY) {
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x1, idiom, widthClass, null, null));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, null, null));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x1, idiom, widthClass, null, null, suffix));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, null, null, suffix));
 			if (this.getType() == DEVICE_TYPE.IPHONE && this.isGenerateRetina4())
-				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, null, IOSImageSet.SUBTYPE.RETINA4)); }
+				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, null, IOSImageSet.SUBTYPE.RETINA4, suffix)); }
 			if (this.getType() == DEVICE_TYPE.UNIVERSAL || this.getType() == DEVICE_TYPE.IPHONE)
-				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x3, idiom, widthClass, null, null)); }
+				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(0), this.getWidthAny(), this.getHeightTraits(0), this.getHeightAny(), IOSImageSet.SCALE.x3, idiom, widthClass, null, null, suffix)); }
 		}
 
 		if (heightClass != IOSImageSet.JSON_VALUE.SIZE_CLASS_ANY) {
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x1, idiom, null, heightClass, null));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, heightClass, null));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x1, idiom, null, heightClass, null, suffix));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, heightClass, null, suffix));
 			if (this.getType() == DEVICE_TYPE.IPHONE && this.isGenerateRetina4())
-				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, heightClass, IOSImageSet.SUBTYPE.RETINA4)); }
+				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, heightClass, IOSImageSet.SUBTYPE.RETINA4, suffix)); }
 			if (this.getType() == DEVICE_TYPE.UNIVERSAL || this.getType() == DEVICE_TYPE.IPHONE)
-				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x3, idiom, null, heightClass, null)); }
+				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(1), this.getWidthAny(), this.getHeightTraits(1), this.getHeightAny(), IOSImageSet.SCALE.x3, idiom, null, heightClass, null, suffix)); }
 		}
 
 		if (widthClass != IOSImageSet.JSON_VALUE.SIZE_CLASS_ANY && heightClass != IOSImageSet.JSON_VALUE.SIZE_CLASS_ANY) {
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x1, idiom, widthClass, heightClass, null));
-			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, heightClass, null));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x1, idiom, widthClass, heightClass, null, suffix));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, heightClass, null, suffix));
 			if (this.getType() == DEVICE_TYPE.IPHONE && this.isGenerateRetina4())
-				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, heightClass, IOSImageSet.SUBTYPE.RETINA4)); }
+				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, widthClass, heightClass, IOSImageSet.SUBTYPE.RETINA4, suffix)); }
 			if (this.getType() == DEVICE_TYPE.UNIVERSAL || this.getType() == DEVICE_TYPE.IPHONE)
-				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x3, idiom, widthClass, heightClass, null)); }
+				{ queue.add(createImageSet(outputDir, srcFile, this.getWidthTraits(2), this.getWidthAny(), this.getHeightTraits(2), this.getHeightAny(), IOSImageSet.SCALE.x3, idiom, widthClass, heightClass, null, suffix)); }
 		}
 		return queue;
 	}
@@ -2002,7 +2081,7 @@ class SplitterSizePanel extends JPanel
 	 * @param subtype	output image subtype
 	 * @return
 	 */
-	private IOSImageSet createImageSet(final File outputDir, final File srcFile, final String width, final String defaultWidth, final String height, final String defaultHeight, final IOSImageSet.SCALE scale, final IOSImageSet.IDIOM idiom, final IOSImageSet.JSON_VALUE widthClass, final IOSImageSet.JSON_VALUE heightClass, final IOSImageSet.SUBTYPE subtype) {
+	private IOSImageSet createImageSet(final File outputDir, final File srcFile, final String width, final String defaultWidth, final String height, final String defaultHeight, final IOSImageSet.SCALE scale, final IOSImageSet.IDIOM idiom, final IOSImageSet.JSON_VALUE widthClass, final IOSImageSet.JSON_VALUE heightClass, final IOSImageSet.SUBTYPE subtype, final String suffix) {
 		String imageName = srcFile.getName();
 		int idx = imageName.lastIndexOf(".");
 		if (idx >= 0) {
@@ -2017,7 +2096,7 @@ class SplitterSizePanel extends JPanel
 		imageFilename = imageFilename.concat(widthClass == null ? "" : "-" + widthClass + "w");
 		imageFilename = imageFilename.concat(heightClass == null ? "" : "-" + heightClass + "h");
 		imageFilename = imageFilename.concat(subtype == null ? "" : "-" + subtype);
-		File dstFile = new File(dstDir, String.format("%s@%s%s", imageFilename, scale, ".png"));
+		File dstFile = new File(dstDir, String.format("%s@%s.%s", imageFilename, scale, suffix));
 
 		String outputWidth;
 		String outputHeight;
@@ -2038,6 +2117,7 @@ class SplitterSizePanel extends JPanel
 									.setFile(dstFile)
 									.setImageName(imageName)
 									.setSubtype(subtype)
+									.setSuffix(suffix)
 									.setOption(IOSImageSet.JSON_KEY.WIDTH_CLASS, widthClass)
 									.setOption(IOSImageSet.JSON_KEY.HEIGHT_CLASS, heightClass)
 									;
