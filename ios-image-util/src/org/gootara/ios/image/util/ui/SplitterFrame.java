@@ -1033,6 +1033,8 @@ public class SplitterFrame extends JFrame {
 		props.put("splitter.height.type", Integer.toString(0));
 		props.put("splitter.image.bgcolor", "");
 		props.put("splitter.scaling.type", Integer.toString(3));
+		props.put("splitter.render.as", Integer.toString(0));
+		props.put("splitter.output.as", Integer.toString(0));
 		props = this.sizeDefault.getDefaultProperties(props);
 		props = this.sizeUniversal.getDefaultProperties(props);
 		props = this.sizeiPhone.getDefaultProperties(props);
