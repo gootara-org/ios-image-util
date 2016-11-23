@@ -2869,7 +2869,7 @@ public class MainFrame extends JFrame implements AssetImageGenerator {
 	 * @throws Exception	exception
 	 */
 	public BufferedImage generateIconImage(BufferedImage srcImage, int width, int height, boolean forceIntRGB) throws Exception {
-		BufferedImage buf = new BufferedImage(width, height, forceIntRGB ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB);
+		BufferedImage buf = this.createBufferedImage(srcImage, width, height, forceIntRGB);
 		int hints = getScalingAlgorithm();
 		Image img = srcImage.getScaledInstance(width, height, hints);
 		if (forceIntRGB) {
@@ -2931,7 +2931,7 @@ public class MainFrame extends JFrame implements AssetImageGenerator {
 	 * @throws Exception	exception
 	 */
 	public BufferedImage generateLaunchImage(BufferedImage srcImage, int width, int height, IOSAssetCatalogs assetCatalogs) throws Exception {
-		BufferedImage buf = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage buf = this.createBufferedImage(srcImage, width, height, false);
 		Graphics g = buf.getGraphics();
 		if (!IOSImageUtil.isNullOrWhiteSpace(splashBackgroundColor.getText()) && !splashBackgroundColor.getText().trim().equals(PLACEHOLDER_SPLASH_BGCOL)) {
 			g.setColor(ImageFile.getDefaultBackgroundColor(srcImage));
@@ -2973,6 +2973,27 @@ public class MainFrame extends JFrame implements AssetImageGenerator {
 		return fixImageColor(buf, srcImage);
 	}
 	
+	
+	protected BufferedImage createBufferedImage(BufferedImage src, int width, int height, boolean forceIntRGB) {
+		if (forceIntRGB) {
+			return new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		}
+		
+		int type = ((ComboBoxItem)imageType.getSelectedItem()).getItemValue();
+		if (type == BufferedImage.TYPE_CUSTOM) {
+			type = src.getType();
+		}
+		BufferedImage tmp = new BufferedImage(1, 1, type);
+		ColorModel scm = src.getColorModel();
+		ColorModel dcm = tmp.getColorModel();
+		tmp.flush();
+		tmp = null;
+		if (scm instanceof IndexColorModel && ((IndexColorModel)scm).getTransparentPixel() < 0 && dcm instanceof IndexColorModel) {
+			return new BufferedImage(width, height, type, (IndexColorModel)scm);
+		}
+		return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+	}
+	
 	/**
 	 * Apply source image type or combobox image type.
 	 *
@@ -2982,6 +3003,11 @@ public class MainFrame extends JFrame implements AssetImageGenerator {
 	 */
 	protected BufferedImage fixImageColor(BufferedImage buf, BufferedImage src) {
 		try {
+			ColorModel model = buf.getColorModel();
+			if (model instanceof IndexColorModel && ((IndexColorModel) model).getTransparentPixel() < 0) {
+				return buf;
+			}
+			
 			int srcColorType = src.getType();
 			int dstColorType = ((ComboBoxItem)imageType.getSelectedItem()).getItemValue();
 			if ((srcColorType != BufferedImage.TYPE_INT_ARGB && srcColorType != BufferedImage.TYPE_CUSTOM) || (dstColorType != BufferedImage.TYPE_INT_ARGB && dstColorType != BufferedImage.TYPE_CUSTOM)) {
@@ -3041,6 +3067,23 @@ public class MainFrame extends JFrame implements AssetImageGenerator {
 			System.out.println("Failed apply color model. TYPE_INT_ARGB applied. (" + ex.getMessage() + ")");
 		}
 		return buf;
+	}
+	
+	protected IndexColorModel getIndexColorModel(BufferedImage src) {
+		// index color with transparent
+		ColorModel cm = src.getColorModel();
+		if (cm instanceof IndexColorModel) {
+			IndexColorModel icm = (IndexColorModel)cm;
+			int mapSize = icm.getMapSize();
+			byte[] reds = new byte[mapSize];
+			byte[] greens = new byte[mapSize];
+			byte[] blues = new byte[mapSize];
+			icm.getReds(reds);
+			icm.getGreens(greens);
+			icm.getBlues(blues);
+			return new IndexColorModel(8, mapSize, reds, greens, blues, 0);
+		}
+		return null;
 	}
 
 	/**

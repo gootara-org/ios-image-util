@@ -1220,7 +1220,7 @@ public class SplitterFrame extends JFrame {
 					Dimension outputSize = new Dimension();
 					outputSize.setSize(outputWidth1x * imageSet.getScale().value(), outputHeight1x * imageSet.getScale().value());
 					imageSet.setSize(outputSize);
-					BufferedImage buf = new BufferedImage(outputSize.width, outputSize.height, imageSet.getSuffix().equalsIgnoreCase("png") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+					BufferedImage  buf = owner.createBufferedImage(src, outputSize.width, outputSize.height, !imageSet.getSuffix().equalsIgnoreCase("png"));
 					Graphics g = buf.getGraphics();
 					Color backgroundColor =  getImageBackgroundColor();
 					if (backgroundColor == null && imageSet.getSuffix().equalsIgnoreCase("jpg")) {
