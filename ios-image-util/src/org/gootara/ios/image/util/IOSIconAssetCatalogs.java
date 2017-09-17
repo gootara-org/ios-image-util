@@ -54,6 +54,8 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	IPAD_76   (IOSIconInfo.ICON_76   , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),
 	IPAD_76x2 (IOSIconInfo.ICON_76x2 , IDIOM.IPAD , SYSTEM_VERSION.IOS7, null, null),
 	IPAD_83_5x2 (IOSIconInfo.ICON_83_5x2 , IDIOM.IPAD , SYSTEM_VERSION.IOS9, null, null),
+	
+	IOS_MARKETING_1024 (IOSIconInfo.ICON_1024x1024x1, IDIOM.IOS_MARKETING, SYSTEM_VERSION.IOS11, null, null),
 
 	CAR_120x120 (IOSIconInfo.ICON_120x120, IDIOM.CARPLAY, SYSTEM_VERSION.ANY, null, null),
 	CAR_60x60x2 (IOSIconInfo.ICON_60x60x2, IDIOM.CARPLAY, SYSTEM_VERSION.IOS9, null, null),
@@ -68,6 +70,8 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 	WATCH_86x86x2     (IOSIconInfo.ICON_86x86x2    , IDIOM.APPLEWATCH, SYSTEM_VERSION.IOS8, SUBTYPE.MM38, ROLE.QUICK_LOOK),
 	WATCH_98x98x2     (IOSIconInfo.ICON_98x98x2    , IDIOM.APPLEWATCH, SYSTEM_VERSION.IOS8, SUBTYPE.MM42, ROLE.QUICK_LOOK),
 
+	WATCH_MARKETING_1024 (IOSIconInfo.ICON_1024x1024x1, IDIOM.WATCH_MARKETING, SYSTEM_VERSION.IOS11, null, null),
+	
 	MAC_16x16x1    (IOSIconInfo.ICON_16x16x1   , IDIOM.MAC, SYSTEM_VERSION.ANY, null, null),
 	MAC_16x16x2    (IOSIconInfo.ICON_16x16x2   , IDIOM.MAC, SYSTEM_VERSION.ANY, null, null),
 	MAC_32x32x1    (IOSIconInfo.ICON_32x32x1   , IDIOM.MAC, SYSTEM_VERSION.ANY, null, null),
@@ -109,18 +113,18 @@ public enum IOSIconAssetCatalogs implements IOSAssetCatalogs {
 		StringBuilder sb = new StringBuilder("    {\n");
 		Double w = new Double(info.getSize().getWidth() / info.getScale().value());
 		Double h = new Double(info.getSize().getHeight() / info.getScale().value());
+		sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.IDIOM, this.getIdiom()));
 		if (Math.rint(w.doubleValue()) == w.doubleValue() && Math.rint(h.doubleValue()) == h.doubleValue()) {
 			sb.append(String.format("      \"%s\" : \"%dx%d\",\n", JSON_KEY.SIZE, w.intValue(), h.intValue()));
 		} else {
 			sb.append(String.format("      \"%s\" : \"%.1fx%.1f\",\n", JSON_KEY.SIZE, w.doubleValue(), h.doubleValue()));
 		}
-		sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.IDIOM, this.getIdiom()));
 		sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.FILENAME, this.getFilename()));
-		if (subtype != null) {
-			sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.SUBTYPE, this.getSubType()));
-		}
 		if (role != null) {
 			sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.ROLE, this.getRole()));
+		}
+		if (subtype != null) {
+			sb.append(String.format("      \"%s\" : \"%s\",\n", JSON_KEY.SUBTYPE, this.getSubType()));
 		}
 		sb.append(String.format("      \"%s\" : \"%s\"\n", JSON_KEY.SCALE, info.getScale()));
 		sb.append("    }");

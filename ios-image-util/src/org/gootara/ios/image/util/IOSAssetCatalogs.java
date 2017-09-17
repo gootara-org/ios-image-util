@@ -62,6 +62,7 @@ public interface IOSAssetCatalogs {
 		,	IOS8    (8.0f)
 		,	IOS9    (9.0f)
 		,	IOS10   (10.0f)
+		,	IOS11   (11.0f)
 		;
 		private float value;
 		SYSTEM_VERSION(float value) { this.value = value; }
@@ -81,6 +82,8 @@ public interface IOSAssetCatalogs {
 		,	APPLEWATCH ("watch")
 		,	MAC        ("mac")
 		,	TV         ("tv")
+		,	IOS_MARKETING ("ios-marketing")
+		,	WATCH_MARKETING ("watch-marketing")
 		;
 		private String idiom;
 		IDIOM(String idiom) { this.idiom = idiom; }
@@ -99,6 +102,7 @@ public interface IOSAssetCatalogs {
 		,	H667     ("667h")
 		,	H736     ("736h")
 		,	H1366    ("1366h")
+		,	H2436    ("2436h")
 		,	MM38     ("38mm")
 		,	MM42     ("42mm")
 		;

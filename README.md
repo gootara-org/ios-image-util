@@ -71,6 +71,7 @@ OUTPUT:
 |             |   7.x~  | Icon-76.png                    |    76  |     76  |
 |             |   7.x~  | Icon-76@2x.png                 |   152  |    152  |
 |             |   9.x~  | Icon-83.5@2x.png               |   167  |    167  |
+|             |  11.x~  | for marketing (ios, watch)     |  1024  |   1024  |
 |(Notification|   7.x~  | 20x20.png                      |    20  |     20  |
 |             |   7.x~  | 20x20@2x.png                   |    40  |     40  |
 |             |   7.x~  | 20x20@3x.png                   |    60  |     60  |
@@ -90,6 +91,8 @@ OUTPUT:
 |             |  ~7.x~  | Default-568h@2x.png            |   640  |   1136  |
 |             |  ~8.x~  | Default-667h@2x.png            |   750  |   1334  |
 |             |  ~8.x~  | Default-736h@3x.png            |  1242  |   2208  |
+|             |  11.x~  | Default-812h@3x.png            |  1125  |   2436  |
+|             |  11.x~  | Default-Landscape-812h@3x.png  |  2436  |   1125  |
 |             |  ~8.x~  | Default-1366h@2x.png           |  2048  |   2732  |
 |             |  ~8.x~  | Default-Laundscape-736h@3x.png |  2208  |   1242  |
 |             |  ~7.x~  | Default-Portrait~ipad.png      |   768  |   1024  |
@@ -101,6 +104,7 @@ OUTPUT:
 |             |  ~6.x   | Default-Landscape.png          |  1024  |    748  |
 |             |  ~6.x   | Default-Landscape@2x.png       |  2048  |   1496  |
 | (Apple TV)  |   9.x~  | Default-Landscape-Tv.png       |  1920  |   1080  |
+|             |  11.x~  | Default-Landscape-Tv@2x.png    |  3840  |   2160  |
 | Artwork     |  -      | iTunesArtwork                  |   512  |    512  |
 |             |  -      | iTunesArtwork@2x               |  1024  |   1024  |
 
@@ -304,3 +308,6 @@ CHANGE LOG:
 
 2016/10/11 - 2.8.1,0
 - Splitter supports jpeg output.
+
+2017/09/17 - 2.9.0.0
+- Provisional support to iOS 11.

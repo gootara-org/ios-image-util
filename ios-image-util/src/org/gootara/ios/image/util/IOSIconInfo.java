@@ -78,6 +78,7 @@ public enum IOSIconInfo implements IOSImageInfo {
 	ICON_512x512x1 ( "512x512.png"   , 512 , 512 , SCALE.x1), // Mac
 	ICON_512x512x2 ( "512x512@2x.png", 1024, 1024, SCALE.x2), // Mac retina
 
+	ICON_1024x1024x1 ( "1024x1024.png", 1024, 1024, SCALE.x1), // Marketing
 	;
 
 	private String filename;

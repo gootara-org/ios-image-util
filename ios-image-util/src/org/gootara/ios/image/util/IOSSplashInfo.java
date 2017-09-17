@@ -38,6 +38,8 @@ public enum IOSSplashInfo implements IOSImageInfo {
 	SPLASH_667x2           ( "Default-667h@2x.png"           , 750   , 1334  , SCALE.x2    ), // iPhone 6 Retina HD 4.7
 	SPLASH_736x3           ( "Default-736h@3x.png"           , 1242  , 2208  , SCALE.x3    ), // iPhone 6 Plus Retina HD 5.5 Portrait
 	SPLASH_LANDSCAPE_736x3 ( "Default-Landscape-736h@3x.png" , 2208  , 1242  , SCALE.x3    ), // iPhone 6 Plus Retina HD 5.5 Landscape
+	SPLASH_812x3           ( "Default-812h@3x.png"           , 1125  , 2436  , SCALE.x3    ), // iPhone X Portrait
+	SPLASH_LANDSCAPE_812x3 ( "Default-Landscape-812h@3x.png" , 2436  , 1125  , SCALE.x3    ), // iPhone X Landscape
 	SPLASH_PORTRAIT        ( "Default-Portrait~ipad.png"     , 768   , 1024  , SCALE.x1    ), // iPad / iPad2 / iPad mini
 	SPLASH_PORTRAITx2      ( "Default-Portrait@2x~ipad.png"  , 1536  , 2048  , SCALE.x2    ), // iPad 3 or later
 	SPLASH_LANDSCAPE       ( "Default-Landscape~ipad.png"    , 1024  , 768   , SCALE.x1    ), // iPad / iPad2 / iPad mini
@@ -47,6 +49,7 @@ public enum IOSSplashInfo implements IOSImageInfo {
 	SPLASH_LANDSCAPE_STB   ( "Default-Landscape.png"         , 1024  , 748   , SCALE.x1    ), // iPad / iPad2 / iPad mini
 	SPLASH_LANDSCAPE_STBx2 ( "Default-Landscape@2x.png"      , 2048  , 1496  , SCALE.x2    ), // iPad 3 or later
 	SPLASH_LANDSCAPE_TV    ( "Default-Landscape-Tv.png"      , 1920  , 1080  , SCALE.x1    ), // Apple TV
+	SPLASH_LANDSCAPE_TVx2  ( "Default-Landscape-Tv@2x.png"   , 3840  , 2160  , SCALE.x2    ), // Apple TV
 	SPLASH_1366x2          ( "Default-1366h@2x.png"          , 2048  , 2732  , SCALE.x2    ), // iPad Pro Portrait
 	;
 
