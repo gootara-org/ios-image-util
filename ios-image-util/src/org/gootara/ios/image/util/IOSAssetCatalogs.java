@@ -95,6 +95,8 @@ public interface IOSAssetCatalogs {
 		public boolean isCarplay() { return this.idiom.equals(CARPLAY.toString()); }
 		public boolean isMac() { return this.idiom.equals(MAC.toString()); }
 		public boolean isTv() { return this.idiom.equals(TV.toString()); }
+		public boolean isiOSMarketing() { return this.idiom.equals(IOS_MARKETING.toString()); }
+		public boolean isWatchMarketing() { return this.idiom.equals(WATCH_MARKETING.toString()); }
 	}
 
 	public enum SUBTYPE {

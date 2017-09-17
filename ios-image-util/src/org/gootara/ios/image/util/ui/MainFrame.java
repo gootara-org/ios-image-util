@@ -2653,6 +2653,8 @@ public class MainFrame extends JFrame implements AssetImageGenerator {
 				ImageFile image = null;
 				if (asset.getIdiom().isAppleWatch()) {
 					if (ifs.getWatchFile() != null) { image = ifs.getWatchFile(); }
+				} else if (asset.getIdiom().isWatchMarketing()) {
+					if (ifs.getWatchFile() != null) { image = ifs.getWatchFile(); }
 				} else if (asset.getIdiom().isCarplay()) {
 					if (ifs.getCarplayFile() != null) { image = ifs.getCarplayFile(); }
 				} else if (asset.getIdiom().isMac()) {
