@@ -64,8 +64,14 @@ public enum IOSIconInfo implements IOSImageInfo {
 	ICON_29x29x3     ( "29x29@3x.png"    , 87  , 87    , SCALE.x3    ), // Apple Watch 3x CompanionSettings
 	ICON_40x40x2     ( "40x40@2x.png"    , 80  , 80    , SCALE.x2    ), // Apple Watch 38mm LongLook & App Launcher (both)
 	ICON_44x44x2     ( "44x44@2x.png"    , 88  , 88    , SCALE.x2    ), // Apple Watch 42mm LongLook
+	ICON_46x46x2     ( "46x46@2x.png"    , 92  , 92    , SCALE.x2    ), // Apple Watch 41mm LongLook 
+	ICON_50x50x2     ( "50x50@2x.png"    , 100  , 100    , SCALE.x2    ), // Apple Watch 44mm LongLook
+	ICON_51x51x2     ( "51x51@2x.png"    , 102  , 102    , SCALE.x2    ), // Apple Watch 45mm LongLook
+
 	ICON_86x86x2     ( "86x86@2x.png"    , 172 , 172   , SCALE.x2    ), // Apple Watch 38mm QuickLook
 	ICON_98x98x2     ( "98x98@2x.png"    , 196 , 196   , SCALE.x2    ), // Apple Watch 42mm QUickLook
+	ICON_108x108x2     ( "108x108@2x.png"    , 216 , 216   , SCALE.x2    ), // Apple Watch 44mm QUickLook
+	ICON_117x117x2     ( "117x117@2x.png"    , 234 , 234   , SCALE.x2    ), // Apple Watch 45mm QUickLook
 
 	ICON_16x16x1   ( "16x16.png"     , 16  , 16  , SCALE.x1), // Mac
 	ICON_16x16x2   ( "16x16@2x.png"  , 32  , 32  , SCALE.x2), // Mac retina
