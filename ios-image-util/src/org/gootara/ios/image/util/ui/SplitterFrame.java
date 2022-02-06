@@ -1375,7 +1375,7 @@ class SplitterSizePanel extends JPanel
 	};
 
 	private JPanel settings;
-	private JTextField widthAny, heightAny, width38mm, height38mm, width42mm, height42mm;
+	private JTextField widthAny, heightAny, width38mm, height38mm, width42mm, height42mm, width41mm, height41mm, width44mm, height44mm, width45mm, height45mm;
 	private JTextField[] widthTraits = { null, null, null };
 	private JTextField[] heightTraits = { null, null, null };
 	private JCheckBox generateTarget, generateRetina4;
@@ -1491,15 +1491,26 @@ class SplitterSizePanel extends JPanel
 			}
 		}
 
-		JLabel label38mm, label42mm;
-		label38mm = label42mm = null;
+		JLabel label38mm, label42mm, label41mm, label44mm, label45mm;
+		label38mm = label42mm = label41mm = label44mm = label45mm = null;
 		if (this.getType() == DEVICE_TYPE.APPLE_WATCH) {
 			settings.add(label38mm = new JLabel(IOSAssetCatalogs.SUBTYPE.MM38.toString()));
 			settings.add(label42mm = new JLabel(IOSAssetCatalogs.SUBTYPE.MM42.toString()));
+			settings.add(label41mm = new JLabel(IOSAssetCatalogs.SUBTYPE.MM41.toString()));
+			settings.add(label44mm = new JLabel(IOSAssetCatalogs.SUBTYPE.MM44.toString()));
+			settings.add(label45mm = new JLabel(IOSAssetCatalogs.SUBTYPE.MM45.toString()));
+
+
 			settings.add(width38mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
 			settings.add(height38mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
 			settings.add(width42mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
 			settings.add(height42mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
+			settings.add(width41mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
+			settings.add(height41mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
+			settings.add(width44mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
+			settings.add(height44mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
+			settings.add(width45mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
+			settings.add(height45mm = this.createSizeText(owner.getResource("splitter.tooltip.optional", "Same as 'Any' with empty value."), focusListener, documentListener));
 		}
 
 		SpringLayout layout = new SpringLayout();
@@ -1591,6 +1602,17 @@ class SplitterSizePanel extends JPanel
 
 				layout.putConstraint(SpringLayout.EAST, label42mm, -8, SpringLayout.WEST, width42mm);
 				layout.putConstraint(SpringLayout.VERTICAL_CENTER, label42mm, 0, SpringLayout.VERTICAL_CENTER, width42mm);
+
+
+
+				layout.putConstraint(SpringLayout.EAST, width41mm, gapw, SpringLayout.HORIZONTAL_CENTER, settings);
+				layout.putConstraint(SpringLayout.NORTH, width41mm, hgap, SpringLayout.SOUTH, width42mm);
+				layout.putConstraint(SpringLayout.WEST, height41mm, gaph, SpringLayout.HORIZONTAL_CENTER, settings);
+				layout.putConstraint(SpringLayout.NORTH, height41mm, hgap, SpringLayout.SOUTH, height42mm);
+
+				layout.putConstraint(SpringLayout.EAST, label41mm, -8, SpringLayout.WEST, width41mm);
+				layout.putConstraint(SpringLayout.VERTICAL_CENTER, label41mm, 0, SpringLayout.VERTICAL_CENTER, width41mm);
+
 
 				layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, labelSized, 0, SpringLayout.HORIZONTAL_CENTER, settings);
 				layout.putConstraint(SpringLayout.NORTH, labelSized, 6, SpringLayout.SOUTH, width42mm);
@@ -1715,6 +1737,22 @@ class SplitterSizePanel extends JPanel
 	public void setHeight42mm(String s) { this.setSizeText(this.height42mm, s); }
 	public String getHeight42mm() { return this.getSizeText(this.height42mm); }
 
+
+	public void setWidth41mm(String s) { this.setSizeText(this.width41mm, s); }
+	public String getWidth41mm() { return this.getSizeText(this.width41mm); }
+	public void setHeight41mm(String s) { this.setSizeText(this.height41mm, s); }
+	public String getHeight41mm() { return this.getSizeText(this.height41mm); }
+
+	public void setWidth44mm(String s) { this.setSizeText(this.width44mm, s); }
+	public String getWidth44mm() { return this.getSizeText(this.width44mm); }
+	public void setHeight44mm(String s) { this.setSizeText(this.height44mm, s); }
+	public String getHeight44mm() { return this.getSizeText(this.height44mm); }
+
+	public void setWidth45mm(String s) { this.setSizeText(this.width45mm, s); }
+	public String getWidth45mm() { return this.getSizeText(this.width45mm); }
+	public void setHeight45mm(String s) { this.setSizeText(this.height45mm, s); }
+	public String getHeight45mm() { return this.getSizeText(this.height45mm); }
+
 	public void setGenerateTarget(boolean b) {
 		generateTarget.setSelected(b);
 		applyComponentStatus();
@@ -1778,6 +1816,14 @@ class SplitterSizePanel extends JPanel
 			height38mm.setEditable(this.generateTarget.isSelected());
 			width42mm.setEditable(this.generateTarget.isSelected());
 			height42mm.setEditable(this.generateTarget.isSelected());
+
+			width41mm.setEditable(this.generateTarget.isSelected());
+			height41mm.setEditable(this.generateTarget.isSelected());
+			width44mm.setEditable(this.generateTarget.isSelected());
+			height44mm.setEditable(this.generateTarget.isSelected());
+			width45mm.setEditable(this.generateTarget.isSelected());
+			height45mm.setEditable(this.generateTarget.isSelected());
+
 			return;
 		}
 
@@ -1835,6 +1881,13 @@ class SplitterSizePanel extends JPanel
 			this.setHeight38mm(frame.getStringProperty(props, "splitter.height.38mm." + this.getType().toString(), def));
 			this.setWidth42mm(frame.getStringProperty(props, "splitter.width.42mm." + this.getType().toString(), def));
 			this.setHeight42mm(frame.getStringProperty(props, "splitter.height.42mm." + this.getType().toString(), def));
+			this.setWidth41mm(frame.getStringProperty(props, "splitter.width.41mm." + this.getType().toString(), def));
+			this.setHeight41mm(frame.getStringProperty(props, "splitter.height.41mm." + this.getType().toString(), def));
+			this.setWidth44mm(frame.getStringProperty(props, "splitter.width.44mm." + this.getType().toString(), def));
+			this.setHeight44mm(frame.getStringProperty(props, "splitter.height.44mm." + this.getType().toString(), def));
+			this.setWidth45mm(frame.getStringProperty(props, "splitter.width.45mm." + this.getType().toString(), def));
+			this.setHeight45mm(frame.getStringProperty(props, "splitter.height.45mm." + this.getType().toString(), def));
+
 			return props;
 		}
 
@@ -1875,6 +1928,8 @@ class SplitterSizePanel extends JPanel
 			props.put("splitter.height.38mm." + this.getType().toString(), this.getHeight38mm());
 			props.put("splitter.width.42mm." + this.getType().toString(), this.getWidth42mm());
 			props.put("splitter.height.42mm." + this.getType().toString(), this.getHeight42mm());
+			props.put("splitter.width.41mm." + this.getType().toString(), this.getWidth41mm());
+			props.put("splitter.height.41mm." + this.getType().toString(), this.getHeight41mm());
 			return props;
 		}
 
@@ -1923,6 +1978,13 @@ class SplitterSizePanel extends JPanel
 			props.put("splitter.height.38mm." + this.getType().toString(), "35 px");
 			props.put("splitter.width.42mm." + this.getType().toString(), "40 px");
 			props.put("splitter.height.42mm." + this.getType().toString(), "40 px");
+			props.put("splitter.width.41mm." + this.getType().toString(), "40 px");
+			props.put("splitter.height.41mm." + this.getType().toString(), "40 px");
+			props.put("splitter.width.44mm." + this.getType().toString(), "40 px");
+			props.put("splitter.height.44mm." + this.getType().toString(), "40 px");
+			props.put("splitter.width.45mm." + this.getType().toString(), "40 px");
+			props.put("splitter.height.45mm." + this.getType().toString(), "40 px");
+
 			return props;
 		}
 
@@ -2015,6 +2077,10 @@ class SplitterSizePanel extends JPanel
 			queue.add(createImageSet(outputDir, srcFile, this.getWidthAny(), null, this.getHeightAny(), null, IOSImageSet.SCALE.x2, idiom, null, null, null, suffix));
 			queue.add(createImageSet(outputDir, srcFile, this.getWidth38mm(), this.getWidthAny(), this.getHeight38mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM38, suffix).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_38MM));
 			queue.add(createImageSet(outputDir, srcFile, this.getWidth42mm(), this.getWidthAny(), this.getHeight42mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM42, suffix).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_42MM));
+			queue.add(createImageSet(outputDir, srcFile, this.getWidth41mm(), this.getWidthAny(), this.getHeight41mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM41, suffix).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_41MM));			
+			queue.add(createImageSet(outputDir, srcFile, this.getWidth44mm(), this.getWidthAny(), this.getHeight44mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM44, suffix).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_44MM));		
+			queue.add(createImageSet(outputDir, srcFile, this.getWidth44mm(), this.getWidthAny(), this.getHeight45mm(), this.getHeightAny(), IOSImageSet.SCALE.x2, idiom, null, null, IOSImageSet.SUBTYPE.MM45, suffix).setSubtype(null).setOption(IOSImageSet.JSON_KEY.SCREEN_WIDTH, IOSImageSet.JSON_VALUE.SCREEN_WIDTH_45MM));		
+
 			return queue;
 		}
 

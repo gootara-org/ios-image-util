@@ -107,6 +107,10 @@ public interface IOSAssetCatalogs {
 		,	H2436    ("2436h")
 		,	MM38     ("38mm")
 		,	MM42     ("42mm")
+		,	MM41     ("41mm")
+		,	MM44     ("44mm")
+		,	MM45     ("45mm")
+
 		;
 		private String subtype;
 		SUBTYPE(String subtype) { this.subtype = subtype; }
@@ -137,6 +141,9 @@ public interface IOSAssetCatalogs {
 	public enum JSON_VALUE {
 			SCREEN_WIDTH_38MM      ("{130,145}")
 		,	SCREEN_WIDTH_42MM      ("{146,165}")
+		,	SCREEN_WIDTH_41MM      ("{146,165}")
+		,	SCREEN_WIDTH_44MM      ("{146,165}")
+		,	SCREEN_WIDTH_45MM      ("{146,165}")
 		,	ORIENTATION_LANDSCAPE  ("landscape")
 		,	ORIENTATION_PORTRAIT   ("portrait")
 		,	SIZE_CLASS_ANY         ("any")
